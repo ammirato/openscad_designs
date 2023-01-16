@@ -7,11 +7,18 @@ open_box(width=10, depth=15, height=5, wall_thickness=1, chamfer=0);
 translate([-5,0,0])
 open_box(width=10, depth=15, height=5, wall_thickness=1, bottomless=true, chamfer=0);
 
-translate([25, 0, 0])
-open_box_with_lip(width=10, depth=15, outer_height=5, inner_height=3, outer_wall_thickness=2, inner_wall_thickness=2.5, chamfer=.5);
+translate([25, 0, 0]){
+difference (){
+open_box_with_lip(width=10, depth=15, outer_height=8, inner_height=4, outer_wall_thickness=2, inner_wall_thickness=2.5, chamfer=.5);
+translate([0, -1 * 10, 0])
+cube([20, 5, 10], center=true);
+}
+}
 
-//translate([25, 2.5, 1.5])
-//cube([10, 15, 2], center=true);
+
+
+translate([25.9, 4, -2.0 ])
+cube([8, 5, 4], center=true);
 
 
 
