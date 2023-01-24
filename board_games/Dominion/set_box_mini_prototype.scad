@@ -6,34 +6,39 @@ use <primitives/boxes.scad>
 eps=0.001;
 
 //main box params
-width = 10;
-depth = 10;
-height = 5;
-wall_thickness = 1;
-chamfer=0;
-outer_height=height;
-inner_height= 0.7*outer_height;
+width = 20;
+depth = 40;
+wall_thickness = 1.5;
+chamfer=1.0;
 outer_wall_thickness=wall_thickness;
-inner_wall_thickness=outer_wall_thickness*1.1;
+inner_wall_thickness=outer_wall_thickness*1.2;
+
+bottom_height =20;
+bottom_outer_height=bottom_height;
+bottom_inner_height = bottom_outer_height*0.8;
+
+lid_height = 30;
+lid_outer_height= lid_height;
+lid_inner_height = lid_outer_height*0.8;
+
 
 
 //snap fit params
-snap_male_width=5;
+snap_male_width=10;
+snap_block_height=3;
+snap_block_depth=outer_wall_thickness*1.05;
+snap_female_tol=1;
 
-snap_block_height=1.5;
-snap_block_depth=outer_wall_thickness*1.025;
-snap_female_tol=0.5;
-//stem_height=6;
-//stem_depth=1;
 
 
 //box_bottom(center=false);
-//
-//
+////
+////
 ////lid
 //translate([0, width+wall_thickness*3 + 30, 0]){
 //    box_lid(center=false);
 //}
+
 
 divider("Village");
 
@@ -43,7 +48,11 @@ divider("Village");
 //cube([1,1,3]);
 //}
 
-module box_bottom (center=false) {    
+module box_bottom (center=false) { 
+ 
+    outer_height = bottom_outer_height;
+    inner_height = bottom_inner_height;
+    
     cut_depth = inner_wall_thickness + outer_wall_thickness+2*eps;
     cut_height =  snap_block_height + snap_female_tol ;
     cut_width = snap_male_width + snap_female_tol;
@@ -79,11 +88,13 @@ module box_bottom (center=false) {
 }
 
 
-module box_lid (center=false) {
+module box_lid (height, center=false) {
 
-
+    outer_height = lid_outer_height;
+    inner_height = lid_inner_height;
+    
     stem_depth = inner_wall_thickness;
-    stem_height = ((outer_height - inner_height) *2) + snap_block_height + snap_female_tol/2;
+    stem_height = ((lid_outer_height - lid_inner_height) + (bottom_outer_height-bottom_inner_height)) + snap_block_height + snap_female_tol/2;
     
         
     snap_trans_x_left = 0 + outer_wall_thickness + stem_depth/2 -eps;
@@ -130,33 +141,29 @@ union() {
 
 
 module divider(text) {
-    div_width = 5;
-    div_height = 5;
+    div_width = 10;
+    div_height = 10;
     div_thickness = 1;
-    text_thickness = div_thickness/2;
-    text_height=div_height/5;
-    text_buffer = text_height/5;
+    div_sidebar_width = 1;
+    text_thickness = div_thickness; //div_thickness/2;
+    text_height=1;
+    text_buffer = 0.5;
+    
+    
+    
+    empty_width = div_width - div_sidebar_width*2;
+    empty_height = div_height - max(text_height + text_buffer*2, div_sidebar_width)*2;
+    
+    text_trans_y = div_height/2 - text_height/2 - text_buffer;
+    text_trans_z = text_thickness/2 * -1;
 
     difference() {
-        cube([div_width,div_height,div_thickness]);
-        translate([text_buffer, div_height-text_height-text_buffer, div_thickness-text_thickness]){
-            linear_extrude(div_thickness/2)
-            text(text, size=text_height, font="Helvetica:style=Bold");
+        cube([div_width,div_height,div_thickness], center=true);
+        translate([0, text_trans_y, text_trans_z]){
+            linear_extrude(text_thickness)
+            text(text, size=text_height, font="Helvetica:style=Bold", halign="center", valign="center");
         }
+        cube([empty_width, empty_height, div_thickness], center=true);
     }
     
-}
-
-
-
-module translate_pos_neg(x_dist, y_dist, z_dist, pos) {
-    
-    if (pos){
-        translate([x_dist, y_dist, z_dist])
-        children();
-    }
-    else{
-        translate([-1*x_dist, -1*y_dist, -1*z_dist])
-        children();
-    }
 }
