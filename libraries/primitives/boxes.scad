@@ -2,14 +2,14 @@ use <BOSL2/std.scad>
 eps=0.001;
 
 //translate([0, 0,0])
-//open_box(width=10, depth=15, height=20, wall_thickness=5, chamfer=0, center=true, bottomless=true);
+open_box(width=10, depth=15, height=20, wall_thickness=1, chamfer=0, center=true, bottomless=false);
 
 //translate([-5,0,0])
 //open_box(width=10, depth=15, height=5, wall_thickness=1, bottomless=true, chamfer=0);
 
 //translate([25, 0, 0]){
 //difference (){
-open_box_with_lip(width=10, depth=15, outer_height=8, inner_height=4, outer_wall_thickness=2, inner_wall_thickness=2.5, chamfer=.5, center=false);
+//open_box_with_lip(width=10, depth=15, outer_height=8, inner_height=4, outer_wall_thickness=2, inner_wall_thickness=5, chamfer=.5, center=false);
 //translate([0, -1 * 10, 0])
 //cube([20, 5, 10], center=true);
 //}
@@ -17,8 +17,8 @@ open_box_with_lip(width=10, depth=15, outer_height=8, inner_height=4, outer_wall
 
 
 
-//translate([25.9, 4, -2.0 ])
-//cube([8, 5, 4], center=true);
+//translate([19.5, 12, 5])
+//cube([5, 5, 5], center=true);
 
 
 
@@ -51,7 +51,6 @@ module open_box(width, depth, height, wall_thickness, center=false, chamfer=0, b
     depth: same as width.
     height: same as height
     wall_thickness: 
-    
 */
     full_width = width + wall_thickness*2 + eps;
     full_depth =  depth + wall_thickness*2 + eps;
@@ -68,10 +67,11 @@ module open_box(width, depth, height, wall_thickness, center=false, chamfer=0, b
     difference() {
         
         
-        
+        //this is centered by default.
         cuboid([full_width, full_depth, full_height], chamfer=chamfer);
         
         //cut out middle
+        //translate([0,0,0])
         cube([width+eps, depth+eps, height+eps], center=true);
         
         
