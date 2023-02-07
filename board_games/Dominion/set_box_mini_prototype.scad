@@ -2,20 +2,22 @@ use <BOSL2/std.scad>
 
 use <primitives/prisms.scad>
 use <primitives/boxes.scad>
+use <snap_joints/cantilever.scad>
 
 eps=0.001;
 
 //main box params
-width = 95;
-depth = 40;
+width = 93;
+depth = 21;
 wall_thickness = 1.5;
 chamfer=2.0;
 outer_wall_thickness=wall_thickness;
-inner_wall_thickness=outer_wall_thickness*2;
+inner_wall_thickness=outer_wall_thickness*2.5;
 
 bottom_height =35;
 bottom_outer_height=bottom_height;
 bottom_inner_height = bottom_outer_height*0.8;
+extra_bottom_thickness = 1;
 
 lid_height = 20;
 lid_outer_height= lid_height;
@@ -42,10 +44,11 @@ tdiv_sidebar_width = 10;
 //div: the cutout in the bottom box
 div_width = width + tdiv_extra_width + tdiv_tol*2;
 div_z_indent = 0.7; //how far into bottom div cuts
-div_height = bottom_inner_height+ div_z_indent;
+div_height = bottom_inner_height+ div_z_indent + extra_bottom_thickness;
 div_thickness = tdiv_thickness + tdiv_tol;
 
-box_bottom(center=false, div_locs=[0, 5], extra_bottom_thickness=1);
+//box_bottom(center=false, div_locs=[0, 7, 14], extra_bottom_thickness=extra_bottom_thickness);
+box_bottom_two_halves(); 
 //////
 //////
 ////lid
@@ -54,11 +57,10 @@ box_bottom(center=false, div_locs=[0, 5], extra_bottom_thickness=1);
 //}
 
 
-//divider2(text="Village", width=tdiv_width, height=tdiv_height, thickness=tdiv_thickness, text_height=tdiv_text_height);
-//translate([tdiv_width + 5, 0,0])
-//divider(text="SILVER", width=tdiv_width, height=tdiv_height, thickness=tdiv_thickness, text_height=tdiv_text_height, sidebar_width=tdiv_sidebar_width);
-//translate([(tdiv_width + 5)*2, 0,0])
-//divider(text="GOLD", width=tdiv_width, height=tdiv_height, thickness=tdiv_thickness, text_height=tdiv_text_height, sidebar_width=tdiv_sidebar_width);
+//divider2(text="Village", top_bar_width_percentage=0.55, width=tdiv_width, height=tdiv_height, thickness=tdiv_thickness, text_height=tdiv_text_height);
+//
+//translate([width*1.1, 0,0])
+//divider2(text="Philosopher's Stone", top_bar_width_percentage=0.85, width=tdiv_width, height=tdiv_height, thickness=tdiv_thickness, text_height=tdiv_text_height);
 
 
 
@@ -68,29 +70,92 @@ box_bottom(center=false, div_locs=[0, 5], extra_bottom_thickness=1);
 //cube([5,5,bottom_height]);}
 //}
 
+
+
+module box_bottom_two_halves () {
+    
+    full_width = width + outer_wall_thickness*2 + inner_wall_thickness*2;
+    full_depth = depth + outer_wall_thickness*2 + inner_wall_thickness*2+ 0.1;
+    full_height = bottom_outer_height +outer_wall_thickness + extra_bottom_thickness;
+    
+    snap_male_width = 1;
+    stem_height = 5;
+    stem_depth = 2;
+    snap_block_height=2;
+    snap_block_depth  = 1;
+    
+
+    
+    rotate([0, -90, 90]){
+        snap_fit_male(width=snap_male_width, stem_height=stem_height, stem_depth=stem_depth, block_height=snap_block_height, block_depth=snap_block_depth, taper=0.5, center=true);
+    }
+    
+    left1_trans_x = outer_wall_thickness + inner_wall_thickness/2;
+    right1_trans_x = full_width - outer_wall_thickness - inner_wall_thickness/2;
+    left1_trans_y = full_depth/2 - stem_height/2 + eps;
+    full_inner_height = bottom_inner_height + outer_wall_thickness + extra_bottom_thickness;
+    left1_trans_z_0 = full_inner_height/2;
+    
+    
+    union () {
+        //first half
+        difference(){
+            box_bottom(center=false, div_locs=[0, 7, 14], extra_bottom_thickness=extra_bottom_thickness);
+            cube([full_width*1.2, full_depth/2, full_height*1.2], center=false);
+        }
+        translate([left1_trans_x, left1_trans_y, left1_trans_z_0]){
+            rotate([0, -90, 90]){
+                snap_fit_male(width=snap_male_width, stem_height=stem_height, stem_depth=stem_depth, block_height=snap_block_height, block_depth=snap_block_depth, taper=0.5, center=true);
+            }
+        }
+        translate([right1_trans_x, left1_trans_y, left1_trans_z_0]){
+            rotate([0, -90, 90]){
+                snap_fit_male(width=snap_male_width, stem_height=stem_height, stem_depth=stem_depth, block_height=snap_block_height, block_depth=snap_block_depth, taper=0.5, center=true);
+            }
+        }
+    }
+    
+    
+    
+    
+    
+    
+    //second half
+    translate([full_width*1.1,0,0]){
+        
+        difference(){
+            box_bottom(center=false, div_locs=[0, 7, 14], extra_bottom_thickness=extra_bottom_thickness);
+            translate([0,full_depth/2,0]){
+                cube([full_width*1.2, full_depth/2, full_height*1.2], center=false);
+            }
+        }
+    }
+
+}
+
 module box_bottom (center=false, div_locs=[], extra_bottom_thickness=0) { 
  
     outer_height = bottom_outer_height + extra_bottom_thickness;
     inner_height = bottom_inner_height;
     
     cut_depth = inner_wall_thickness + outer_wall_thickness+2*eps;
-    cut_height =  snap_block_height + snap_female_tol ;
+    cut_height =  snap_block_height + snap_female_tol;
     cut_width = snap_male_width + snap_female_tol;
     
     cut_trans_x_left = 0 + cut_depth/2;
     cut_trans_x_right = width + inner_wall_thickness + outer_wall_thickness + cut_depth/2;
     cut_trans_y = depth/2  + inner_wall_thickness + outer_wall_thickness;
-    cut_trans_z = inner_height + outer_wall_thickness - cut_height/2 +eps;//inner_height - outer_height/2 - cut_depth/2;
+    cut_trans_z = inner_height + outer_wall_thickness + extra_bottom_thickness/2  - cut_height/2 +eps ;//inner_height - outer_height/2 - cut_depth/2;
     
     
     center_trans_x = center ? -1*(width/2 + outer_wall_thickness + inner_wall_thickness) : 0;
     center_trans_y = center ? -1*(depth/2 + outer_wall_thickness + inner_wall_thickness) : 0;
-    center_trans_z = center ? -1*(height/2 + outer_wall_thickness/2) + eps : eps;
+    center_trans_z = center ? -1*(height/2 + outer_wall_thickness/2 + extra_bottom_thickness/2) + eps : eps;
 
     bottom_full_width = width + 2*(outer_wall_thickness + inner_wall_thickness);
     div_trans_x = bottom_full_width/2 - div_width/2;
     div_trans_y = outer_wall_thickness + inner_wall_thickness;
-    div_trans_z = outer_wall_thickness - div_z_indent;
+    div_trans_z = outer_wall_thickness + extra_bottom_thickness - div_z_indent;
 
 
     extra_bottom_trans_x = (outer_wall_thickness + inner_wall_thickness);
@@ -172,19 +237,19 @@ module box_lid (height, center=false) {
 } 
    
 
-module snap_fit_male(width, stem_height, stem_depth, block_height, block_depth){
-
-union() {
-    //stem
-    cube([width, stem_depth, stem_height], center=true);
-
-    translate([0, block_depth/2 + stem_depth/2 - eps, stem_height/2 - block_height/2]){
-        rotate([0,0,90])
-        rotate([0, 90, 0])
-            trapezoid_prism(width_lower=block_height, width_upper=block_height/2, depth=width, height=block_depth, center=true, square_right=true);
-    }
-}
-}
+//module snap_fit_male(width, stem_height, stem_depth, block_height, block_depth){
+//
+//    union() {
+//        //stem
+//        cube([width, stem_depth, stem_height], center=true);
+//
+//        translate([0, block_depth/2 + stem_depth/2 - eps, stem_height/2 - block_height/2]){
+//            rotate([0,0,90])
+//            rotate([0, 90, 0])
+//                trapezoid_prism(width_lower=block_height, width_upper=block_height/2, depth=width, height=block_depth, center=true, square_right=true);
+//        }
+//    }
+//}
 
 
 module divider(text, width, height, thickness, text_height, sidebar_width, bottomless=false) {
@@ -227,16 +292,16 @@ module divider(text, width, height, thickness, text_height, sidebar_width, botto
 
 
 
-module divider2(text, width, height, thickness, text_height) {
+module divider2(text, width, height, thickness, text_height, top_bar_width_percentage = 0.85) {
 
     
     
-    text_thickness = thickness*0.9;
+    text_thickness = thickness*0.75;
     text_buffer = max(1.5, text_height/10);
     text_spacing = max(1.15, 1 + text_buffer/10);
     
     top_bar_height = text_height + text_buffer*2;
-    top_bar_width = width*0.82; // TODO: change
+    top_bar_width = width*top_bar_width_percentage; // TODO: change
     bottom_bar_height = top_bar_height;
     bottom_bar_width = width;
     
@@ -248,6 +313,7 @@ module divider2(text, width, height, thickness, text_height) {
     text_trans_y = top_bar_trans_y;// - text_buffer;
     text_trans_z = (text_thickness - thickness/2)*-1;///2 * -1;
     bottom_bar_trans_y = -1 * (height/2 - bottom_bar_height/2);
+    second_bottom_bar_trans_y = bottom_bar_trans_y + bottom_bar_height*2;
 
     union() {
         difference() {
@@ -264,6 +330,9 @@ module divider2(text, width, height, thickness, text_height) {
         cube([middle_bar_width, middle_bar_height, thickness], center=true);
 
         translate([0,bottom_bar_trans_y,0]){
+            cube([bottom_bar_width, bottom_bar_height, thickness], center=true);
+        }
+        translate([0,second_bottom_bar_trans_y,0]){
             cube([bottom_bar_width, bottom_bar_height, thickness], center=true);
         }
     }
