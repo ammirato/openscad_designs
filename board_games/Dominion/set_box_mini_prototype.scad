@@ -48,7 +48,7 @@ div_height = bottom_inner_height+ div_z_indent + extra_bottom_thickness;
 div_thickness = tdiv_thickness + tdiv_tol;
 
 //box_bottom(center=false, div_locs=[0, 7, 14], extra_bottom_thickness=extra_bottom_thickness);
-box_bottom_two_halves(); 
+//box_bottom_two_halves(); 
 //////
 //////
 ////lid
@@ -63,6 +63,20 @@ box_bottom_two_halves();
 //divider2(text="Philosopher's Stone", top_bar_width_percentage=0.85, width=tdiv_width, height=tdiv_height, thickness=tdiv_thickness, text_height=tdiv_text_height);
 
 
+//cube([10, 10, 10], center=false);
+//snap_male_width = 1;
+stem_height = 5;
+stem_depth = 2;
+//snap_block_height=2;
+snap_block_depth = 1;
+double_snap_fit_socket_inverse(width=snap_male_width, stem_height=stem_height, stem_depth=stem_depth, block_height=snap_block_height, block_depth=snap_block_depth, taper=0.5, center=true);
+       
+translate([0, 2, 0])
+double_snap_fit_plug(width=snap_male_width, stem_height=stem_height, stem_depth=stem_depth, block_height=snap_block_height, block_depth=snap_block_depth, taper=0.5, center=true);
+
+
+//translate
+//cube([10, 10, 10], center=false);
 
 
 //translate([32, 43, 3.0]){
