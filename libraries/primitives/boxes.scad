@@ -21,36 +21,6 @@ eps=0.001;
 //translate([19.5, 12, 5])
 //cube([5, 5, 5], center=true);
 
-open_box_in_parts(width=10, depth=15, height=20, wall_thickness=1);
-//snap_fit_male(width=3, stem_height=5, stem_depth=1, block_height=1, block_depth=1, taper=0.5, center=false);
-
-module open_box_in_parts(width, depth, height, wall_thickness, center=false, chamfer=0, bottomless=false){
-    
-    
-    stem_height = wall_thickness*2;
-    block_height = stem_height/4;
-    stem_depth=wall_thickness/4;
-    block_depth=wall_thickness*2/4;
-    snap_fit_width = wall_thickness;
-    trans_z_no_center = (block_depth/2 + stem_depth/2); // - stem_depth)/2;
-    trans_x_no_center = snap_fit_width/2;
-    trans_y_no_center = stem_height/2;
-    
-    
-    
-    //bottom
-    cube([width,depth,wall_thickness], center=false);
-    
-    
-    
-    
-//    //translate([]){
-//    translate([trans_x_no_center, trans_y_no_center, trans_z_no_center]){
-//        rotate([0, -90, -90])
-//        snap_fit_male(width=snap_fit_width, stem_height=stem_height, stem_depth=stem_depth, block_height=block_height, block_depth=block_depth, taper=0.5, center=true);
-//    }//}
-}
-
 
 
 module open_box_with_lip(width, depth, outer_height, inner_height, outer_wall_thickness, inner_wall_thickness, center=false, chamfer=0) {

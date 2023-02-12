@@ -26,10 +26,10 @@ lid_inner_height = lid_outer_height*0.8;
 
 
 //snap fit params
-snap_male_width=10;
+snap_plug_width=10;
 snap_block_height=3;
 snap_block_depth=outer_wall_thickness*1.2;
-snap_female_tol=1;
+snap_socket_tol=1;
 
 
 // tdiv: the actual divider with text writting on it
@@ -48,7 +48,19 @@ div_height = bottom_inner_height+ div_z_indent + extra_bottom_thickness;
 div_thickness = tdiv_thickness + tdiv_tol;
 
 //box_bottom(center=false, div_locs=[0, 7, 14], extra_bottom_thickness=extra_bottom_thickness);
-//box_bottom_two_halves(); 
+box_bottom_two_halves(
+width=width,
+depth=depth,
+outer_height=bottom_outer_height, 
+inner_height=bottom_inner_height, 
+inner_wall_thickness=inner_wall_thickness, 
+outer_wall_thickness=outer_wall_thickness, 
+snap_plug_block_height=snap_block_height, 
+snap_plug_width=snap_plug_width, 
+div_locs=[0], 
+extra_bottom_thickness=extra_bottom_thickness, 
+center=false
+); 
 //////
 //////
 ////lid
@@ -63,74 +75,77 @@ div_thickness = tdiv_thickness + tdiv_tol;
 //divider2(text="Philosopher's Stone", top_bar_width_percentage=0.85, width=tdiv_width, height=tdiv_height, thickness=tdiv_thickness, text_height=tdiv_text_height);
 
 
-//cube([10, 10, 10], center=false);
-//snap_male_width = 1;
-stem_height = 5;
-stem_depth = 2;
-//snap_block_height=2;
-snap_block_depth = 1;
-double_snap_fit_socket_inverse(width=snap_male_width, stem_height=stem_height, stem_depth=stem_depth, block_height=snap_block_height, block_depth=snap_block_depth, taper=0.5, center=true);
-       
-translate([0, 2, 0])
-double_snap_fit_plug(width=snap_male_width, stem_height=stem_height, stem_depth=stem_depth, block_height=snap_block_height, block_depth=snap_block_depth, taper=0.5, center=true);
 
 
-//translate
-//cube([10, 10, 10], center=false);
-
-
-//translate([32, 43, 3.0]){
-//    color([1,1,0]) {
-//cube([5,5,bottom_height]);}
-//}
-
-
-
-module box_bottom_two_halves () {
+module box_bottom_two_halves (
+width,
+depth,
+outer_height, 
+inner_height, 
+inner_wall_thickness, 
+outer_wall_thickness, 
+snap_plug_block_height, 
+snap_plug_width, 
+div_locs=[], 
+extra_bottom_thickness=0, 
+center=false,
+) 
+{ 
     
     full_width = width + outer_wall_thickness*2 + inner_wall_thickness*2;
     full_depth = depth + outer_wall_thickness*2 + inner_wall_thickness*2+ 0.1;
-    full_height = bottom_outer_height +outer_wall_thickness + extra_bottom_thickness;
+    full_height = outer_height +outer_wall_thickness + extra_bottom_thickness;
     
-    snap_male_width = 1;
-    stem_height = 5;
-    stem_depth = 2;
-    snap_block_height=2;
-    snap_block_depth  = 1;
+ 
+    join_plug_depth = 5;
+    join_plug_width = inner_wall_thickness * 0.75;
+    join_plug_height = 4;
     
-
-    
-    rotate([0, -90, 90]){
-        snap_fit_male(width=snap_male_width, stem_height=stem_height, stem_depth=stem_depth, block_height=snap_block_height, block_depth=snap_block_depth, taper=0.5, center=true);
-    }
     
     left1_trans_x = outer_wall_thickness + inner_wall_thickness/2;
     right1_trans_x = full_width - outer_wall_thickness - inner_wall_thickness/2;
-    left1_trans_y = full_depth/2 - stem_height/2 + eps;
+    //left1_trans_y = full_depth/2 - stem_height/2 + eps;
+    left1_trans_y = full_depth/2 - join_plug_depth/2 + eps;
+
     full_inner_height = bottom_inner_height + outer_wall_thickness + extra_bottom_thickness;
-    left1_trans_z_0 = full_inner_height/2;
+    left1_trans_z_0 = full_inner_height*.70;
+    left1_trans_z_1 = full_inner_height*.35;
+
     
     
     union () {
         //first half
         difference(){
-            box_bottom(center=false, div_locs=[0, 7, 14], extra_bottom_thickness=extra_bottom_thickness);
+            box_bottom(
+                width=width,
+                outer_height=outer_height, 
+                inner_height=inner_height, 
+                inner_wall_thickness=inner_wall_thickness, 
+                outer_wall_thickness=outer_wall_thickness, 
+                snap_plug_block_height=snap_plug_block_height, 
+                snap_plug_width=snap_plug_width, 
+                div_locs=div_locs, 
+                extra_bottom_thickness=extra_bottom_thickness, 
+                center=center
+            );          
             cube([full_width*1.2, full_depth/2, full_height*1.2], center=false);
         }
         translate([left1_trans_x, left1_trans_y, left1_trans_z_0]){
-            rotate([0, -90, 90]){
-                snap_fit_male(width=snap_male_width, stem_height=stem_height, stem_depth=stem_depth, block_height=snap_block_height, block_depth=snap_block_depth, taper=0.5, center=true);
-            }
+//            rotate([0, -90, 90]){
+//                double_snap_fit_plug(width=snap_plug_width, stem_height=stem_height, stem_depth=stem_depth, block_height=snap_block_height, block_depth=snap_block_depth, taper=0.5, center=true);
+//            }
+            cube([join_plug_width, join_plug_depth, join_plug_height], center=true);
+        }
+        translate([left1_trans_x, left1_trans_y, left1_trans_z_1]){
+            cube([join_plug_width, join_plug_depth, join_plug_height], center=true);
         }
         translate([right1_trans_x, left1_trans_y, left1_trans_z_0]){
-            rotate([0, -90, 90]){
-                snap_fit_male(width=snap_male_width, stem_height=stem_height, stem_depth=stem_depth, block_height=snap_block_height, block_depth=snap_block_depth, taper=0.5, center=true);
-            }
+            cube([join_plug_width, join_plug_depth, join_plug_height], center=true);
+        }
+        translate([right1_trans_x, left1_trans_y, left1_trans_z_1]){
+            cube([join_plug_width, join_plug_depth, join_plug_height], center=true);
         }
     }
-    
-    
-    
     
     
     
@@ -138,7 +153,18 @@ module box_bottom_two_halves () {
     translate([full_width*1.1,0,0]){
         
         difference(){
-            box_bottom(center=false, div_locs=[0, 7, 14], extra_bottom_thickness=extra_bottom_thickness);
+            box_bottom(
+                width=width,
+                outer_height=outer_height, 
+                inner_height=inner_height, 
+                inner_wall_thickness=inner_wall_thickness, 
+                outer_wall_thickness=outer_wall_thickness, 
+                snap_plug_block_height=snap_plug_block_height, 
+                snap_plug_width=snap_plug_width, 
+                div_locs=div_locs, 
+                extra_bottom_thickness=extra_bottom_thickness, 
+                center=center
+            );
             translate([0,full_depth/2,0]){
                 cube([full_width*1.2, full_depth/2, full_height*1.2], center=false);
             }
@@ -147,24 +173,35 @@ module box_bottom_two_halves () {
 
 }
 
-module box_bottom (center=false, div_locs=[], extra_bottom_thickness=0) { 
+module box_bottom (
+width,
+outer_height, 
+inner_height, 
+inner_wall_thickness, 
+outer_wall_thickness, 
+snap_plug_block_height, 
+snap_plug_width, 
+div_locs=[], 
+extra_bottom_thickness=0, 
+center=false
+) 
+{ 
  
-    outer_height = bottom_outer_height + extra_bottom_thickness;
-    inner_height = bottom_inner_height;
+    full_outer_height = outer_height + extra_bottom_thickness;
     
     cut_depth = inner_wall_thickness + outer_wall_thickness+2*eps;
-    cut_height =  snap_block_height + snap_female_tol;
-    cut_width = snap_male_width + snap_female_tol;
+    cut_height =  snap_block_height + snap_socket_tol;
+    cut_width = snap_plug_width + snap_socket_tol;
     
     cut_trans_x_left = 0 + cut_depth/2;
     cut_trans_x_right = width + inner_wall_thickness + outer_wall_thickness + cut_depth/2;
     cut_trans_y = depth/2  + inner_wall_thickness + outer_wall_thickness;
-    cut_trans_z = inner_height + outer_wall_thickness + extra_bottom_thickness/2  - cut_height/2 +eps ;//inner_height - outer_height/2 - cut_depth/2;
+    cut_trans_z = inner_height + outer_wall_thickness + extra_bottom_thickness/2  - cut_height/2 +eps ;
     
     
     center_trans_x = center ? -1*(width/2 + outer_wall_thickness + inner_wall_thickness) : 0;
     center_trans_y = center ? -1*(depth/2 + outer_wall_thickness + inner_wall_thickness) : 0;
-    center_trans_z = center ? -1*(height/2 + outer_wall_thickness/2 + extra_bottom_thickness/2) + eps : eps;
+    center_trans_z = center ? -1*(full_outer_height/2 + outer_wall_thickness/2 + extra_bottom_thickness/2) + eps : eps;
 
     bottom_full_width = width + 2*(outer_wall_thickness + inner_wall_thickness);
     div_trans_x = bottom_full_width/2 - div_width/2;
@@ -182,7 +219,7 @@ module box_bottom (center=false, div_locs=[], extra_bottom_thickness=0) {
 
             translate([0,0,extra_bottom_thickness/2]){
                 union () {
-                    open_box_with_lip(width=width, depth=depth, outer_height=outer_height, inner_height=inner_height, outer_wall_thickness=outer_wall_thickness, inner_wall_thickness=inner_wall_thickness, chamfer=chamfer, center=false);
+                    open_box_with_lip(width=width, depth=depth, outer_height=full_outer_height, inner_height=inner_height, outer_wall_thickness=outer_wall_thickness, inner_wall_thickness=inner_wall_thickness, chamfer=chamfer, center=false);
                     translate([extra_bottom_trans_x, extra_bottom_trans_y, extra_bottom_trans_z]) {
                         cube([width + eps, depth + eps, extra_bottom_thickness], center=false);
                     }
@@ -220,7 +257,7 @@ module box_lid (height, center=false) {
     inner_height = lid_inner_height;
     
     stem_depth = inner_wall_thickness;
-    stem_height = ((lid_outer_height - lid_inner_height) + (bottom_outer_height-bottom_inner_height)) + snap_block_height + snap_female_tol/2;
+    stem_height = ((lid_outer_height - lid_inner_height) + (bottom_outer_height-bottom_inner_height)) + snap_block_height + snap_socket_tol/2;
     
         
     snap_trans_x_left = 0 + outer_wall_thickness + stem_depth/2 -eps;
@@ -239,11 +276,11 @@ module box_lid (height, center=false) {
 
             translate([snap_trans_x_left, snap_trans_y, snap_trans_z]){
                 rotate([0, 0, 90])
-                snap_fit_male(width=snap_male_width, stem_height=stem_height, stem_depth=stem_depth, block_height=snap_block_height, block_depth=snap_block_depth);
+                snap_fit_plug(width=snap_plug_width, stem_height=stem_height, stem_depth=stem_depth, block_height=snap_block_height, block_depth=snap_block_depth);
             }
             translate([snap_trans_x_right, snap_trans_y ,snap_trans_z]){
                 rotate([0, 0, -90])
-                snap_fit_male(width=snap_male_width, stem_height=stem_height, stem_depth=stem_depth, block_height=snap_block_height, block_depth=snap_block_depth);
+                snap_fit_plug(width=snap_plug_width, stem_height=stem_height, stem_depth=stem_depth, block_height=snap_block_height, block_depth=snap_block_depth);
             }
         
         } 
@@ -251,58 +288,6 @@ module box_lid (height, center=false) {
 } 
    
 
-//module snap_fit_male(width, stem_height, stem_depth, block_height, block_depth){
-//
-//    union() {
-//        //stem
-//        cube([width, stem_depth, stem_height], center=true);
-//
-//        translate([0, block_depth/2 + stem_depth/2 - eps, stem_height/2 - block_height/2]){
-//            rotate([0,0,90])
-//            rotate([0, 90, 0])
-//                trapezoid_prism(width_lower=block_height, width_upper=block_height/2, depth=width, height=block_depth, center=true, square_right=true);
-//        }
-//    }
-//}
-
-
-module divider(text, width, height, thickness, text_height, sidebar_width, bottomless=false) {
-    div_width = width;
-    div_height = height;
-    div_thickness = thickness;
-    text_height=text_height;
-    div_sidebar_width = sidebar_width;
-    
-    
-    text_thickness = div_thickness*1.1; //div_thickness/2;
-    text_buffer = max(1.5, text_height/10);
-    text_spacing = max(1.2, 1 + text_buffer/10);
-    
-    
-    
-    empty_width = div_width - div_sidebar_width*2;
-    empty_height = div_height - max(text_height + text_buffer*2, div_sidebar_width)*2;
-    
-    
-    
-    text_trans_y = div_height/2 - text_height/2 - text_buffer;
-    text_trans_z = text_thickness/2 * -1;
-
-    difference() {
-        cube([div_width,div_height,div_thickness], center=true);
-        translate([0, text_trans_y, text_trans_z]){
-            linear_extrude(text_thickness)
-            text(text, size=text_height, font="Helvetica:style=Bold", halign="center", valign="center", spacing=text_spacing);
-        }
-        cube([empty_width, empty_height, div_thickness], center=true);
-    
-        if (bottomless){
-            translate([0,-1*empty_height/2,0])
-            cube([empty_width, empty_height, div_thickness], center=true);
-        }
-    }
-    
-}
 
 
 
@@ -352,3 +337,46 @@ module divider2(text, width, height, thickness, text_height, top_bar_width_perce
     }
     
 }
+
+
+module divider(text, width, height, thickness, text_height, sidebar_width, bottomless=false) {
+    div_width = width;
+    div_height = height;
+    div_thickness = thickness;
+    text_height=text_height;
+    div_sidebar_width = sidebar_width;
+    
+    
+    text_thickness = div_thickness*1.1; //div_thickness/2;
+    text_buffer = max(1.5, text_height/10);
+    text_spacing = max(1.2, 1 + text_buffer/10);
+    
+    
+    
+    empty_width = div_width - div_sidebar_width*2;
+    empty_height = div_height - max(text_height + text_buffer*2, div_sidebar_width)*2;
+    
+    
+    
+    text_trans_y = div_height/2 - text_height/2 - text_buffer;
+    text_trans_z = text_thickness/2 * -1;
+
+    difference() {
+        cube([div_width,div_height,div_thickness], center=true);
+        translate([0, text_trans_y, text_trans_z]){
+            linear_extrude(text_thickness)
+            text(text, size=text_height, font="Helvetica:style=Bold", halign="center", valign="center", spacing=text_spacing);
+        }
+        cube([empty_width, empty_height, div_thickness], center=true);
+    
+        if (bottomless){
+            translate([0,-1*empty_height/2,0])
+            cube([empty_width, empty_height, div_thickness], center=true);
+        }
+    }
+    
+}
+
+
+
+

@@ -6,31 +6,33 @@ eps = 0.001;
 width = 3;
 stem_height=6;
 block_height=2; 
-block_depth=3;
-taper=0.5;
-stem_depth=1;
-center=false;
+block_depth=1;
+taper=0.1;
+stem_depth=2;
+center=true;
 
-double_snap_fit_plug(width=width, stem_height=stem_height, stem_depth=stem_depth, block_height=block_height, block_depth=block_depth, taper=0.5, center=center);
+double_snap_fit_plug(width=width, stem_height=stem_height, stem_depth=stem_depth, block_height=block_height, block_depth=block_depth, taper=taper, center=center);
 
 translate([0,width + 0.1,0])
-double_snap_fit_socket_inverse(width=width, stem_height=stem_height, stem_depth=stem_depth, block_height=block_height, block_depth=block_depth, taper=0.5, center=center);
+double_snap_fit_socket_inverse(width=width, stem_height=stem_height, stem_depth=stem_depth, block_height=block_height, block_depth=block_depth, taper=taper, center=center);
 
 
-module double_snap_fit_socket_inverse(width, stem_height, stem_depth, block_height, block_depth, taper=1.0, center=false){
+module double_snap_fit_socket_inverse(movement_factor=1.0, tol=0.5, space_diff=1, width, stem_height, stem_depth, block_height, block_depth, taper=1.0, center=false){
 
     //empty_space = plug_full_depth/2 + stem_depth/2;
     plug_full_depth = stem_depth + block_depth;
     plug_full_height = stem_height;
     plug_full_width = width;
     
-    empty_space = stem_depth;
+    plug_upper_depth = stem_depth * taper;
+    block_movement_dist = (stem_depth - plug_upper_depth) * movement_factor;
+   
     
-    socket_max_width = (stem_depth + block_depth)*2 + empty_space;
-    socket_min_width = socket_max_width - empty_space;
-    socket_all_depth = plug_full_width;
-    socket_min_height = plug_full_height - block_height;
-    socket_max_height = block_height;
+    socket_max_width = (stem_depth + block_depth)*2 + space_diff + tol;
+    socket_min_width = socket_max_width - block_movement_dist*2 + tol;
+    socket_all_depth = plug_full_width + tol;
+    socket_min_height = plug_full_height - block_height + tol;
+    socket_max_height = block_height + tol;
     
     
     trans_x = center ? 0 : socket_max_width/2;
@@ -48,10 +50,10 @@ module double_snap_fit_socket_inverse(width, stem_height, stem_depth, block_heig
 
 
 
-module double_snap_fit_plug(width, stem_height, stem_depth, block_height, block_depth, taper=1.0, center=false){
+module double_snap_fit_plug(space_diff=1, width, stem_height, stem_depth, block_height, block_depth, taper=1.0, center=false){
 
     full_depth = stem_depth + block_depth;
-    empty_space = stem_depth;
+    empty_space = min(stem_depth, space_diff);
     trans_x = center ? -1*(full_depth/2 + empty_space/2) : full_depth/2;
     trans_y = center ? 0 : width/2;
     trans_z = center ? 0 : stem_height/2;
