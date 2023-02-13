@@ -1,4 +1,6 @@
 use <boxes/dominion_set_box.scad>
+use <BOSL2/std.scad>
+
 
 num_coppers = 60;
 num_silvers = 40;
@@ -10,21 +12,44 @@ num_duchy = 12;
 num_province=12;
 num_colony = 12;
 
-card_width = 0.35;
+num_piles = 8;
 
+card_thickness = 0.35;
+div_thickness=1.0;
+
+
+depth = (
+    card_thickness * (
+        num_coppers + 
+        num_silvers + 
+        num_gold + 
+        num_platinum + 
+        num_estate + 
+        num_duchy + 
+        num_province +
+        num_colony 
+    ) +
+    num_piles * div_thickness
+);
+
+div_sizes = [
+    card_thickness * num_coppers + div_thickness,
+    card_thickness * num_silvers + div_thickness,
+    card_thickness * num_gold + div_thickness,
+    card_thickness * num_platinum + div_thickness,
+    card_thickness * num_estate + div_thickness,
+    card_thickness * num_duchy + div_thickness,
+    card_thickness * num_province + div_thickness,
+    card_thickness * num_colony + div_thickness,
+];
+div_locs = cumsum(div_sizes);
+//div_locs = [  for (idx = [0: 1: len(div_locs_sizes)]) div_locs_sizes[idx]];
 
 
 
 box_bottom_two_halves(
-    width=width,
     depth=depth,
-    outer_height=bottom_outer_height, 
-    inner_height=bottom_inner_height, 
-    inner_wall_thickness=inner_wall_thickness, 
-    outer_wall_thickness=outer_wall_thickness, 
-    snap_plug_block_height=snap_block_height, 
-    snap_plug_width=snap_plug_width, 
-    div_locs=[0], 
-    extra_bottom_thickness=extra_bottom_thickness, 
+    div_locs=div_locs,
+    div_thickness=div_thickness,
     center=false
 ); 
