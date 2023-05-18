@@ -11,8 +11,8 @@ taper=0.1;
 stem_depth=2;
 center=true;
 
-double_snap_fit_plug(width=width, stem_height=stem_height, stem_depth=stem_depth, block_height=block_height, block_depth=block_depth, taper=taper, center=center);
-
+//double_snap_fit_plug(width=width, stem_height=stem_height, stem_depth=stem_depth, block_height=block_height, block_depth=block_depth, taper=taper, center=center);
+snap_fit_plug(width=width, stem_height=stem_height, stem_depth=stem_depth, block_height=block_height, block_depth=block_depth, taper=taper, center=center);
 translate([0,width + 0.1,0])
 double_snap_fit_socket_inverse(width=width, stem_height=stem_height, stem_depth=stem_depth, block_height=block_height, block_depth=block_depth, taper=taper, center=center);
 
