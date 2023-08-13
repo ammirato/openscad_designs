@@ -9,11 +9,18 @@ eps=0.001;
 //box_bottom_two_halves(depth=25, div_locs=[0, 10, 20]);
 //box_bottom(depth=25, div_locs=[0, 10, 20], name_text="prosperity");
 
-box_lid(depth=25, name_text="test_text");
+//box_lid(depth=25, name_text="test_text");
 
 //translate([-0.50 + 93 + 1.5 + 3.75 + 3.75, 20, 20]){
 //cube([1,1,1], center=true);
 //}
+
+divider(text="test text", thickness=1.0);
+
+translate([100, 0, 0]){
+    divider2(text="test text", thickness=1.0);
+}
+
 
 //box params
 default_width=93;
@@ -28,7 +35,7 @@ default_chamfer=2.0;
 default_div_thickness=1.0;
 default_div_extra_width=1.0;
 default_div_tol=0.7;
-default_div_tol_thickness=0.25;
+default_div_tol_thickness=0.5;
 default_div_z_indent=0.5;
 default_extra_bottom_thickness=1.0; 
 default_center=false;
@@ -323,9 +330,10 @@ center=default_center,
 stem_extra_height=default_lid_stem_extra_height,
 stem_plug_taper=default_lid_stem_plug_taper,
 name_text=default_name,
+extra_height=0,
 ) {
 
-    
+    height = height + extra_height;
     
     //stem_height1 = (outer_height - inner_height)*2 + inner_height + snap_plug_block_height + snap_socket_tol/2;
     //stem_height1 = height + height*.2 +  snap_plug_block_height + snap_socket_tol;
@@ -374,7 +382,7 @@ name_text=default_name,
                 }    
             }
             //text name
-            text_depth = outer_wall_thickness/3;
+            text_depth = outer_wall_thickness*.90;
             box_full_depth = depth + outer_wall_thickness*2 + inner_wall_thickness*2;
             wall_offset = 1.1*(outer_wall_thickness + inner_wall_thickness);
             translate([wall_offset, box_full_depth/2, text_depth-eps]){
@@ -446,3 +454,55 @@ top_bar_width_percentage=0.55
     }  
 }
 
+module divider2(
+text, 
+width=default_div_width, 
+height=default_div_height, 
+thickness=default_div_thickness, 
+text_height=default_div_text_height, 
+top_bar_width_percentage=0.55
+) 
+{
+    text_thickness = thickness*0.80;
+    text_buffer = max(1.5, text_height/10);
+    text_spacing = max(1.15, 1 + text_buffer/10);
+    
+    top_bar_height = text_height + text_buffer*2;
+    top_bar_width = width*top_bar_width_percentage; // TODO: change
+    bottom_bar_height = top_bar_height;
+    bottom_bar_width = width;
+    
+       
+    vbar_height = height - top_bar_height - bottom_bar_height + 0.001;
+    vbar_width = bottom_bar_height;
+    
+    top_bar_trans_y = height/2 - top_bar_height/2;
+    text_trans_y = top_bar_trans_y;// - text_buffer;
+    text_trans_z = (text_thickness - thickness/2)*-1;///2 * -1;
+    bottom_bar_trans_y = -1 * (height/2 - bottom_bar_height/2);
+    second_bottom_bar_trans_y = bottom_bar_trans_y + bottom_bar_height*2;
+
+    union() {
+        difference() {
+            translate([0, top_bar_trans_y, 0]) {
+                cube([top_bar_width,top_bar_height, thickness], center=true);
+            }
+            translate([0, text_trans_y, text_trans_z]){
+                linear_extrude(text_thickness)
+                //text(text, size=text_height, font= "Comic Sans MS:style=Bold", halign="center", valign="center", spacing=text_spacing);
+                text(text, size=text_height, font="Helvetica:style=Bold", halign="center", valign="center", spacing=text_spacing);
+
+            }
+        }
+        
+        //vertical bars
+        cube([vbar_width, vbar_height, thickness], center=true);
+
+        translate([0,bottom_bar_trans_y,0]){
+            cube([bottom_bar_width, bottom_bar_height, thickness], center=true);
+        }
+        translate([0,second_bottom_bar_trans_y,0]){
+            cube([bottom_bar_width, bottom_bar_height, thickness], center=true);
+        }
+    }  
+}

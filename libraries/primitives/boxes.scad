@@ -16,11 +16,52 @@ eps=0.001;
 //}
 //}
 
+closed_box_with_hinge(
+    width=10, 
+    depth=15, 
+    outer_height=8, 
+    inner_height=4, 
+    outer_wall_thickness=2, 
+    inner_wall_thickness=5, 
+    chamfer=.5, 
+    center=false
+);
+
 
 
 //translate([19.5, 12, 5])
 //cube([5, 5, 5], center=true);
 
+
+
+module closed_box_with_hinge(width, depth, outer_height, inner_height, outer_wall_thickness, inner_wall_thickness, center=false, chamfer=0) {
+    
+    outer_wall_offset = (inner_wall_thickness*2);
+    
+    inner_trans_z_center = -1* ((outer_height - inner_height) /2  + eps);
+    inner_trans_z_no_center = outer_wall_thickness  + eps;
+    inner_trans_z = center ? inner_trans_z_center : inner_trans_z_no_center;
+    
+    inner_trans_x = center ? 0 : outer_wall_thickness;
+    inner_trans_y = center ? 0 : outer_wall_thickness;
+    
+    union() {
+        open_box(width=width, depth=depth+outer_wall_offset, height=outer_height, wall_thickness=outer_wall_thickness, chamfer=chamfer, center=center);
+        translate([inner_trans_x, inner_trans_y, inner_trans_z])
+        open_box(
+            width=width + eps, 
+            depth=depth+ eps, 
+            height=inner_height, 
+            wall_thickness=inner_wall_thickness, 
+            chamfer=0, 
+            bottomless=true, 
+            left_wall_thickness=0,
+            right_wall_thickness=0,
+            center=center
+        );
+
+    }
+    }
 
 
 module open_box_with_lip(width, depth, outer_height, inner_height, outer_wall_thickness, inner_wall_thickness, center=false, chamfer=0) {
@@ -45,7 +86,20 @@ module open_box_with_lip(width, depth, outer_height, inner_height, outer_wall_th
 
 
 
-module open_box(width, depth, height, wall_thickness, center=false, chamfer=0, bottomless=false){
+module open_box(
+    width, 
+    depth, 
+    height, 
+    wall_thickness, 
+    center=false, 
+    chamfer=0,
+    right_wall_thickness=-1,
+    left_wall_thickness=-1,
+    front_wall_thickness=-1,
+    back_wall_thickness=-1,
+    bottom_wall_thickness=-1, 
+    bottomless=false
+){
 /* A box without a top (or optionally without a bottom).
     
     width: width of the inside (not the outside walls)
@@ -53,33 +107,41 @@ module open_box(width, depth, height, wall_thickness, center=false, chamfer=0, b
     height: same as height
     wall_thickness: 
 */
-    full_width = width + wall_thickness*2 + eps;
-    full_depth =  depth + wall_thickness*2 + eps;
-    full_height = height + wall_thickness*2 + eps;
     
-    trans_z_no_center = bottomless ? (full_height/2 - wall_thickness) : (full_height/2);
-    trans_z_center = bottomless ? 0 : wall_thickness/2;
+    right_wall_thickness = right_wall_thickness >= 0 ? right_wall_thickness : wall_thickness;
+    left_wall_thickness = left_wall_thickness >= 0 ? left_wall_thickness : wall_thickness;
+    front_wall_thickness = front_wall_thickness >= 0 ? front_wall_thickness : wall_thickness;
+    back_wall_thickness = back_wall_thickness >= 0 ? back_wall_thickness : wall_thickness;
+    bottom_wall_thickness = bottom_wall_thickness >= 0 ? bottom_wall_thickness : wall_thickness;    
+    
+    full_width = width + left_wall_thickness + right_wall_thickness + eps;
+    full_depth =  depth + front_wall_thickness + back_wall_thickness + eps;
+    full_height = height + bottom_wall_thickness*2 + eps;
+    
+    trans_z_no_center = bottomless ? (full_height/2 - bottom_wall_thickness) : (full_height/2);
+    trans_z_center = bottomless ? 0 : bottom_wall_thickness/2;
     trans_z = center ? trans_z_center : trans_z_no_center;
     
     trans_x = center ? 0 : full_width/2;
     trans_y = center ? 0 : full_depth/2;
 
     translate([trans_x,trans_y,trans_z])
-    difference() {
-        
-        
+    difference() { 
         //this is centered by default.
-        cuboid([full_width, full_depth, full_height], chamfer=chamfer);
+         cuboid([full_width, full_depth, full_height], chamfer=chamfer);
         
         //cut out middle
-        //translate([0,0,0])
-        cube([width+eps, depth+eps, height+eps], center=true);
+        shift_x = (left_wall_thickness - right_wall_thickness)/2;
+        shift_y = (back_wall_thickness - front_wall_thickness)/2;
+        translate([shift_x, shift_y, 0]){
+            cube([width+eps, depth+eps, height+eps], center=true);
+        }
         
         
-        chop_trans_z = height/2 + wall_thickness/2 ;
+        chop_trans_z = height/2 + bottom_wall_thickness/2 ;
         //chop off top
         translate([0,0,chop_trans_z]){
-            cube([full_width, full_depth, wall_thickness + eps],center=true);
+            cube([full_width, full_depth, bottom_wall_thickness + eps],center=true);
         }
         
         // chop off bottom
