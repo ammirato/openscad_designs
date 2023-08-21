@@ -37,6 +37,10 @@ function _unique_groups(m) = [
 
 
 // Module: regular_polyhedron()
+// Synopsis: Creates a regular polyhedron with optional rounding.
+// SynTags: Geom
+// Topics: Polyhedra, Shapes, Parts
+// See Also: regular_polyhedron_info()
 // Usage: Selecting a polyhedron
 //   regular_polyhedron([name],[index=],[type=],[faces=],[facetype=],[hasfaces=],...) [CHILDREN];
 // Usage: Controlling the size and position of the polyhedron
@@ -326,37 +330,38 @@ module regular_polyhedron(
     faces = entry[3];
     face_normals = entry[4];
     in_radius = entry[5];
-    if (draw){
-        if (rounding==0)
-            polyhedron(move(translation, p=scaled_points), faces = face_triangles);
-        else {
-            fn = segs(rounding);
-            rounding = rounding/cos(180/fn);
-            adjusted_scale = 1 - rounding / in_radius;
-            minkowski(){
-                sphere(r=rounding, $fn=fn);
-                polyhedron(move(translation,p=adjusted_scale*scaled_points), faces = face_triangles);
+    translate(translation){
+        if (draw){
+            if (rounding==0)
+                polyhedron(scaled_points, faces = face_triangles);
+            else {
+                fn = segs(rounding);
+                rounding = rounding/cos(180/fn);
+                adjusted_scale = 1 - rounding / in_radius;
+                minkowski(){
+                    sphere(r=rounding, $fn=fn);
+                    polyhedron(adjusted_scale*scaled_points, faces = face_triangles);
+                }
             }
         }
-    }
-    translate(translation)
-    if ($children>0) {
-        maxrange = repeat ? len(faces)-1 : $children-1;
-        for(i=[0:1:maxrange]) {
-            // Would like to orient so an edge (longest edge?) is parallel to x axis
-            facepts = select(scaled_points, faces[i]);
-            $center = -mean(facepts);
-            cfacepts = move($center, p=facepts);
-            $face = rotate_children
-                      ? path2d(frame_map(z=face_normals[i], x=facepts[0]-facepts[1], reverse=true, p=cfacepts))
-                      : cfacepts;
-            $faceindex = i;
-            translate(-$center)
-            if (rotate_children) {
-                frame_map(z=face_normals[i], x=facepts[0]-facepts[1])
-                children(i % $children);
-            } else {
-                children(i % $children);
+        if ($children>0) {
+            maxrange = repeat ? len(faces)-1 : $children-1;
+            for(i=[0:1:maxrange]) {
+                // Would like to orient so an edge (longest edge?) is parallel to x axis
+                facepts = select(scaled_points, faces[i]);
+                $center = -mean(facepts);
+                cfacepts = move($center, p=facepts);
+                $face = rotate_children
+                          ? path2d(frame_map(z=face_normals[i], x=facepts[0]-facepts[1], reverse=true, p=cfacepts))
+                          : cfacepts;
+                $faceindex = i;
+                translate(-$center)
+                if (rotate_children) {
+                    frame_map(z=face_normals[i], x=facepts[0]-facepts[1])
+                    children(i % $children);
+                } else {
+                    children(i % $children);
+                }
             }
         }
     }
@@ -550,6 +555,9 @@ _stellated_polyhedra_ = [
 
 
 // Function: regular_polyhedron_info()
+// Synopsis: Returns info used to create a regular polyhedron.
+// Topics: Polyhedra, Shapes, Parts
+// See Also: regular_polyhedron()
 //
 // Usage:
 //   info = regular_polyhedron_info(info, ...);

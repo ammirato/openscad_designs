@@ -13,6 +13,10 @@
 // Section: Ball Bearing Models
 
 // Module: ball_bearing()
+// Synopsis: Creates a standardized ball bearing assembly.
+// SynTags: Geom
+// Topics: Parts, Bearings
+// See Also: linear_bearing(), lmXuu_bearing(), lmXuu_housing()
 // Description:
 //   Creates a model of a ball bearing assembly.
 // Arguments:
@@ -24,13 +28,13 @@
 //   spin = Rotate this many degrees around the Z axis after anchor.  See [spin](attachments.scad#subsection-spin).  Default: `0`
 //   orient = Vector to rotate top towards, after spin.  See [orient](attachments.scad#subsection-orient).  Default: `UP`
 // Example:
-//   ball_bearing("608");
+//   ball_bearing("608", $fn=72);
 // Example:
-//   ball_bearing("608ZZ");
+//   ball_bearing("608ZZ", $fn=72);
 // Example:
-//   ball_bearing("R8");
+//   ball_bearing("R8", $fn=72);
 // Example:
-//   ball_bearing(id=12,od=32,width=10,shield=false);
+//   ball_bearing(id=12,od=32,width=10,shield=false, $fn=72);
 module ball_bearing(trade_size, id, od, width, shield=true, anchor=CTR, spin=0, orient=UP) {
     info = is_undef(trade_size)? [id, od, width, shield] :
         ball_bearing_info(trade_size);
@@ -70,6 +74,9 @@ module ball_bearing(trade_size, id, od, width, shield=true, anchor=CTR, spin=0, 
 
 
 // Function: ball_bearing_info()
+// Synopsis: Returns size info for a standardized ball bearing assembly.
+// Topics: Parts, Bearings
+// See Also: ball_bearing(), linear_bearing(), lmXuu_info()
 // Description:
 //   Get dimensional info for a standard metric ball bearing cartridge.
 //   Returns `[SHAFT_DIAM, OUTER_DIAM, WIDTH, SHIELDED]` for the cylindrical cartridge.

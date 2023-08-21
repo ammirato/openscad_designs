@@ -8,7 +8,8 @@ things with attachable shapes:
 
 * Control where the shape appears and how it is oriented by anchoring and specifying orientation and spin
 * Position or attach shapes relative to parent objects
-* Tag objects and then color them or control boolean operations based on their tags.
+* Tag objects and then control boolean operations based on their tags.
+* Change the color of objects so that child objects are different colors than their parents
 
 The various attachment features may seem complex at first, but 
 attachability is one of the most important features of the BOSL2
@@ -18,8 +19,13 @@ It makes models simpler, more intuitive, and easier to maintain.
 
 Almost all objects defined by BOSL2 are attachable.  In addition,
 BOSL2 overrides the built-in definitions for `cube()`, `cylinder()`,
-`sphere()`, `square()`, and `circle()` and makes them attachable as
-well.
+`sphere()`, `square()`, `circle()` and `text()` and makes them attachable as
+well.  However, some basic OpenSCAD built-in definitions are not
+attachable and will not work with the features described in this
+tutorial.  The non-attachables are `polyhedron()`, `linear_extrude()`,
+`rotate_extrude()`, `surface()`, `projection()` and `polygon()`.
+Some of these have attachable alternatives: `vnf_polyhedron()`,
+`linear_sweep()`, `rotate_sweep()`, and `region()`.  
 
 
 ## Anchoring
@@ -320,7 +326,7 @@ but the cylinder's bottom is placed at the center of the cube.
 ```openscad-3D
 include <BOSL2/std.scad>
 cube(50)
-    cylinder(d=25,l=75);
+    cylinder(d=25,h=75);
 ```
 
 If you explicitly anchor the child object then the anchor you choose will be aligned
@@ -331,7 +337,7 @@ side of the cylinder is aligned with the center of the cube.
 ```openscad-3D
 include <BOSL2/std.scad>
 cube(50,anchor=FRONT)     
-    cylinder(d=25,l=95,anchor=RIGHT);
+    cylinder(d=25,h=95,anchor=RIGHT);
 ```
 
 The `position()` module enables you to specify where on the parent to
@@ -343,7 +349,7 @@ RIGHT anchor of the cube.
 ```openscad-3D
 include <BOSL2/std.scad>
 cube(50,anchor=FRONT)     
-    position(RIGHT) cylinder(d=25,l=75,anchor=LEFT);
+    position(RIGHT) cylinder(d=25,h=75,anchor=LEFT);
 ```
 
 Using this mechanism you can position objects relative to other
@@ -355,7 +361,7 @@ include <BOSL2/std.scad>
 cube([50,50,30],center=true)
     position(TOP+RIGHT) cube([25,40,10], anchor=RIGHT+BOT)
        position(LEFT+FRONT+TOP) cube([12,12,8], anchor=LEFT+FRONT+BOT)
-         cylinder(l=10,r=3);
+         cylinder(h=10,r=3);
 ```
 
 The positioning mechanism is not magical: it simply applies a
@@ -368,6 +374,7 @@ include<BOSL2/std.scad>
 cube([50,50,20],center=true)
     position(TOP+RIGHT) left(5) cube([4,50,10], anchor=RIGHT+BOT);
 ```
+
 
 
 Positioning objects works the same way in 2D.
@@ -385,19 +392,18 @@ orient the object relative to some face other than the TOP face that
 meets at that edge or corner.  You can always apply a `rotation()` to 
 change the orientation of the child object, but in order to do this,
 you need to figure out the correct rotation.  The `orient()` module provides a
-mechanism for re-orienting the child() that eases this burden.
-Using its `anchor=` argument you can orient the
-child relative to the parent anchor directions.  This is different
+mechanism for re-orienting the child() that eases this burden: 
+it can orient the child relative to the parent anchor directions.  This is different
 than giving an `orient=` argument to the child, because that orients
 relative to the parent's global coordinate system by just using the vector
-directly instead of orienting to the parent's anchor, which takes
+directly, instead of orienting to the parent's anchor, which takes
 account of face orientation.  A series of three
 examples shows the different results.  In the first example, we use
 only `position()`.  The child cube is erected pointing upwards, in the
 Z direction.  In the second example we use `orient=RIGHT` in the child
 and the result is that the child object points in the X+ direction,
 without regard for the shape of the parent object.  In the final
-example we apply `orient(anchor=RIGHT)` and the child is oriented
+example we apply `orient(RIGHT)` and the child is oriented
 relative to the slanted right face of the parent using the parent
 RIGHT anchor.   
 
@@ -421,7 +427,7 @@ prismoid([50,50],[30,30],h=40)
 include<BOSL2/std.scad>
 prismoid([50,50],[30,30],h=40)
   position(RIGHT+TOP)
-     orient(anchor=RIGHT)
+     orient(RIGHT)
         cube([15,15,25],anchor=BACK+BOT);
 ```
 
@@ -454,15 +460,107 @@ prismoid([50,50],[30,30],h=40)
 include<BOSL2/std.scad>
 prismoid([50,50],[30,30],h=40)
   position(RIGHT+TOP)
-     orient(anchor=RIGHT)
+     orient(RIGHT)
         anchor_arrow(40);
 ```
 
 
-Note also that `orient()` can be used to orient the child relative to
-the parent global coordinate system using its first argument, `dir=`.  This
-use of `orient()` is the same as using the `orient=` argument for the
-child object.    
+## Aligning children with align()
+
+You may have noticed that with position() and orient(), specifying the
+child anchors to position objects flush with their parent can be
+annoying, or sometimes even tricky.  You can simplify this task by
+using the align() module.  This module positions children at specified
+anchor points on the parent while picking the correct anchor points on
+the children so that they line up with faces on the parent object.
+
+In the simplest case, if you want to place a child on the RIGHT side
+of its parent, you need to anchor the child to its LEFT anchor:
+
+```openscad-3D
+include<BOSL2/std.scad>
+cuboid([50,40,15])
+    position(RIGHT)
+        color("lightblue")cuboid(5,anchor=LEFT);
+```
+
+Using align(), the determination of the anchor is automatic.  Any
+anchor you do specify is ignored.
+
+```openscad-3D
+include<BOSL2/std.scad>
+cuboid([50,40,15])
+    align(RIGHT)
+        color("lightblue")cuboid(5);
+```
+
+To place the child on top of the parent in the corner you can do use
+align as shown below instead of specifying the RIGHT+FRONT+BOT anchor
+with position(): 
+
+```openscad-3D
+include<BOSL2/std.scad>
+cuboid([50,40,15])
+    align(RIGHT+FRONT+TOP)
+        color("lightblue")prismoid([10,5],[7,4],height=4);
+```
+
+Both position() and align() can accept a list of anchor locations and
+makes several copies of the children, but
+if you want the children positioned flush, each copy 
+requires a different anchor, so it is impossible to do this with a
+singlke call to position(), but easily done using align():
+
+```openscad-3D
+include<BOSL2/std.scad>
+cuboid([50,40,15])
+    align([RIGHT+TOP,LEFT+TOP])
+        color("lightblue")prismoid([10,5],[7,4],height=4);
+```
+
+Align also accepts a spin argument, which lets you spin the child
+while still aligning it:
+
+```openscad-3D
+include<BOSL2/std.scad>
+cuboid([50,40,15])
+    align(RIGHT+TOP,spin=90)
+        color("lightblue")prismoid([10,5],[7,4],height=4);
+```
+
+Note that this is different than using the spin argument to the child
+object, which will apply after alignment has been done.
+
+
+```openscad-3D
+include<BOSL2/std.scad>
+cuboid([50,40,15])
+    align(RIGHT+TOP)
+        color("lightblue")prismoid([10,5],[7,4],height=4,spin=90);
+```
+
+If you orient the object DOWN it will be attached from its top anchor:
+
+```openscad-3D
+include<BOSL2/std.scad>
+cuboid([50,40,15])
+    align(RIGHT+TOP,DOWN)
+        color("lightblue")prismoid([10,5],[7,4],height=4);
+```
+
+When placing children on the RIGHT and LEFT, there is a spin applied.
+This means that setting spin=0 changes the orientation.  Here we have
+one object with the default and one object with zero spin:
+
+```openscad-3D
+include<BOSL2/std.scad>
+prismoid(50,30,25){
+  align(RIGHT+TOP,RIGHT,spin=0)
+    color("lightblue")prismoid([10,5],[7,4],height=4);
+  align(RIGHT+BOT,RIGHT)
+    color("green")prismoid([10,5],[7,4],height=4);
+}
+```
 
 
 ## Attachment overview
@@ -483,14 +581,14 @@ point on the sphere.
 ```openscad-3D
 include<BOSL2/std.scad>
 sphere(40)
-    position(RIGHT+TOP) cylinder(r=8,l=20);
+    position(RIGHT+TOP) cylinder(r=8,h=20);
 ```
 
 
 ```openscad-3D
 include<BOSL2/std.scad>
 sphere(40)
-    attach(RIGHT+TOP) cylinder(r=8,l=20);
+    attach(RIGHT+TOP) cylinder(r=8,h=20);
 ```
 
 In the example above, the cylinder's center point is attached to the
@@ -572,19 +670,19 @@ case.
 ```openscad-3D
 include <BOSL2/std.scad>
 cube(50,center=true)
-    attach(RIGHT)cylinder(d1=30,d2=15,l=25);
+    attach(RIGHT)cylinder(d1=30,d2=15,h=25);
 ```
 
 ```openscad-3D
 include <BOSL2/std.scad>
 cube(50,center=true)
-    attach(RIGHT+TOP)cylinder(d1=30,d2=15,l=25);
+    attach(RIGHT+TOP)cylinder(d1=30,d2=15,h=25);
 ```
 
 In the second example, the child object points diagonally away
 from the cube.  If you want the child at at edge of the parent it's
 likely that this result will not be what you want.  To get a different
-result, use `position()` with `orient(anchor=)`, if needed. 
+result, use `position()` with `orient()`, if needed. 
 
 If you give an anchor point to the child object it moves the child
 around (in the attached coordinate system).  Or alternatively you can
@@ -593,7 +691,7 @@ think that it moves the object first, and then it gets attached.
 ```openscad-3D
 include <BOSL2/std.scad>
 cube(50,center=true)
-    attach(RIGHT)cylinder(d1=30,d2=15,l=25,anchor=FRONT);
+    attach(RIGHT)cylinder(d1=30,d2=15,h=25,anchor=FRONT);
 ```
 
 In the above example we anchor the child to its FRONT and then attach
@@ -624,14 +722,14 @@ when doing differences.
 include <BOSL2/std.scad>
 cube(50,center=true)
     attach(TOP,overlap=10)
-        cylinder(d=20,l=20);
+        cylinder(d=20,h=20);
 ```
 
 ```openscad-3D
 include <BOSL2/std.scad>
 cube(50,center=true)
     attach(TOP,overlap=-20)
-        cylinder(d=20,l=20);
+        cylinder(d=20,h=20);
 ```
 
 As with `position()`, you can still apply your own translations and
@@ -645,7 +743,7 @@ include <BOSL2/std.scad>
 cube(50,center=true)
     up(13)
         attach(RIGHT)
-            cylinder(d1=30,d2=15,l=25);
+            cylinder(d1=30,d2=15,h=25);
 ```
 
 On the other hand, if you put the translation between the attach and
@@ -657,7 +755,7 @@ include <BOSL2/std.scad>
 cube(50,center=true)
     attach(RIGHT)
         up(13)
-            cylinder(d1=30,d2=15,l=25);
+            cylinder(d1=30,d2=15,h=25);
 ```
 
 
@@ -676,25 +774,25 @@ attaching with those anchors.
 ```openscad-3D
 include <BOSL2/std.scad>
 cube(50,anchor=BOT) attach(TOP) anchor_arrow(30);
-right(60)cylinder(d1=30,d2=15,l=25) attach(TOP) anchor_arrow(30);
+right(60)cylinder(d1=30,d2=15,h=25) attach(TOP) anchor_arrow(30);
 ```
 
 ```openscad-3D
 include <BOSL2/std.scad>
 cube(50,anchor=BOT)
-  attach(TOP,TOP) cylinder(d1=30,d2=15,l=25);
+  attach(TOP,TOP) cylinder(d1=30,d2=15,h=25);
 ```
 
 ```openscad-3D
 include <BOSL2/std.scad>
 cube(50,center=true) attach(RIGHT) anchor_arrow(30);
-right(80)cylinder(d1=30,d2=15,l=25) attach(LEFT) anchor_arrow(30);
+right(80)cylinder(d1=30,d2=15,h=25) attach(LEFT) anchor_arrow(30);
 ```
 
 ```openscad-3D
 include <BOSL2/std.scad>
 cube(50,center=true)
-  attach(RIGHT,LEFT) cylinder(d1=30,d2=15,l=25);
+  attach(RIGHT,LEFT) cylinder(d1=30,d2=15,h=25);
 ```
 
 Note that when you attach with two anchors like this, the attachment
@@ -710,15 +808,15 @@ hidden in the middle of the objects.
 
 ```openscad-3D
 include <BOSL2/std.scad>
-cylinder(d1=30,d2=15,l=25) attach(CENTER) anchor_arrow(40);
-right(40)cylinder(d1=30,d2=15,l=25) attach(CENTER) anchor_arrow(40);
+cylinder(d1=30,d2=15,h=25) attach(CENTER) anchor_arrow(40);
+right(40)cylinder(d1=30,d2=15,h=25) attach(CENTER) anchor_arrow(40);
 ```
 
 ```openscad-3D
 include <BOSL2/std.scad>
-cylinder(d1=30,d2=15,l=25)
+cylinder(d1=30,d2=15,h=25)
     attach(CENTER,CENTER)
-        cylinder(d1=30,d2=15,l=25);
+        cylinder(d1=30,d2=15,h=25);
 ```
 
 
@@ -729,8 +827,8 @@ You can attach or position more than one child at a time by enclosing them all i
 ```openscad-3D
 include <BOSL2/std.scad>
 cube(50, center=true) {
-    attach(TOP) cylinder(d1=50,d2=20,l=20);
-    position(RIGHT) cylinder(d1=50,d2=20,l=20);
+    attach(TOP) cylinder(d1=50,d2=20,h=20);
+    position(RIGHT) cylinder(d1=50,d2=20,h=20);
 }
 ```
 
@@ -740,13 +838,13 @@ desired anchors as a list to the `attach()` or `position()` modules:
 ```openscad-3D
 include <BOSL2/std.scad>
 cube(50, center=true)
-    attach([RIGHT,FRONT],TOP) cylinder(d1=35,d2=20,l=25);
+    attach([RIGHT,FRONT],TOP) cylinder(d1=35,d2=20,h=25);
 ```
 
 ```openscad-3D
 include <BOSL2/std.scad>
 cube(50, center=true)
-    position([TOP,RIGHT,FRONT]) cylinder(d1=35,d2=20,l=25);
+    position([TOP,RIGHT,FRONT]) cylinder(d1=35,d2=20,h=25);
 ```
 
 
@@ -987,7 +1085,7 @@ module round_corner(r) difference() {
     translate(-[1,1,1])
         cube(r+1);
     translate([r,r,r])
-        sphere(r=r, style="aligned", $fn=quantup(segs(r),4));
+        spheroid(r=r, style="aligned", $fn=quantup(segs(r),4));
 }
 round_corner(r=10);
 ```
@@ -1000,7 +1098,7 @@ module round_corner(r) difference() {
     translate(-[1,1,1])
         cube(r+1);
     translate([r,r,r])
-        sphere(r=r, style="aligned", $fn=quantup(segs(r),4));
+        spheroid(r=r, style="aligned", $fn=quantup(segs(r),4));
 }
 diff()
 cube([50,60,70],center=true)
@@ -1017,7 +1115,7 @@ module round_corner(r) difference() {
     translate(-[1,1,1])
         cube(r+1);
     translate([r,r,r])
-        sphere(r=r, style="aligned", $fn=quantup(segs(r),4));
+        spheroid(r=r, style="aligned", $fn=quantup(segs(r),4));
 }
 module round_edge(l,r) difference() {
     translate([-1,-1,-l/2])
@@ -1101,8 +1199,8 @@ color("red") spheroid(d=3) {
 }
 ```
 
-If you use the `recolor()` module, however, the child's color overrides the color of the parent.
-This is probably easier to understand by example:
+If you use the `recolor()` module, however, the child's color
+overrides the color of the parent.  This is probably easier to understand by example:
 
 ```openscad-3D
 include <BOSL2/std.scad>
@@ -1113,6 +1211,31 @@ recolor("red") spheroid(d=3) {
     }
 }
 ```
+
+Be aware that `recolor()` will only work if you avoid using the native
+`color()` module.  Also note that `recolor()` still affects all its
+children.  If you want to color an object without affecting the
+children you can use `color_this()`.  See the difference below:
+
+```openscad-3D
+include <BOSL2/std.scad>
+$fn = 24;
+recolor("red") spheroid(d=3) {
+    attach(CENTER,BOT) recolor("white") cyl(h=10, d=1) {
+        attach(TOP,BOT)  cyl(h=5, d1=3, d2=0);
+    }
+}
+right(5)
+recolor("red") spheroid(d=3) {
+    attach(CENTER,BOT) color_this("white") cyl(h=10, d=1) {
+        attach(TOP,BOT)  cyl(h=5, d1=3, d2=0);
+    }
+}
+```
+
+As with all of the attachable features, these color modules only work
+on attachable objects, so they will have no effect on objects you
+create using `linear_extrude()` or `rotate_extrude()`.  
 
 
 ## Making Attachables

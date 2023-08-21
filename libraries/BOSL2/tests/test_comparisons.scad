@@ -81,6 +81,26 @@ test_unique_count();
 
 
 
+
+module test_list_wrap() {
+    assert(list_wrap([[1,2,3],[4,5,6],[1,8,9]]) == [[1,2,3],[4,5,6],[1,8,9],[1,2,3]]);
+    assert(list_wrap([[1,2,3],[4,5,6],[1,8,9],[1,2,3]]) == [[1,2,3],[4,5,6],[1,8,9],[1,2,3]]);
+    assert(list_wrap([])==[]);
+    assert(list_wrap([3])==[3]);
+}
+test_list_wrap();
+
+
+module test_list_unwrap() {
+    assert(list_unwrap([[1,2,3],[4,5,6],[1,8,9]]) == [[1,2,3],[4,5,6],[1,8,9]]);
+    assert(list_unwrap([[1,2,3],[4,5,6],[1,8,9],[1,2,3]]) == [[1,2,3],[4,5,6],[1,8,9]]);
+    assert(list_unwrap([])==[]);
+    assert(list_unwrap([3])==[3]);
+}
+test_list_unwrap();
+
+
+
 module test_is_increasing() {
     assert(is_increasing([1,2,3,4]) == true);
     assert(is_increasing([1,2,2,2]) == true);
@@ -119,6 +139,18 @@ module test_is_decreasing() {
     assert(is_decreasing("ZYWRA")==true);    
 }
 test_is_decreasing();
+
+
+
+module test_are_ends_equal() {
+    assert(!are_ends_equal([[1,2,3],[4,5,6],[1,8,9]]));
+    assert(are_ends_equal([[1,2,3],[4,5,6],[1,8,9],[1,2,3]]));
+    assert(are_ends_equal([1,2,3,1.00004],eps=1e-2));
+    assert(are_ends_equal([3]));
+}
+test_are_ends_equal();
+
+
 
 
 module test_find_approx() {

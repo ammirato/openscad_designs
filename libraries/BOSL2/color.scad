@@ -16,16 +16,22 @@ use <builtins.scad>
 // Section: Coloring Objects
 
 // Module: recolor()
+// Synopsis:  Sets the color for attachable children and their descendants.
+// SynTags: Trans
+// Topics: Attachments
+// See Also: color_this(), hsl(), hsv()
 // Usage:
 //   recolor([c]) CHILDREN;
-// Topics: Attachments
-// See Also: color_this()
 // Description:
-//   Sets the color for attachable children and all their descendants.  This only works with attachables and you cannot
-//   have any color() modules above it in any parents, only other recolor() or color_this() modules.
-//   This works by setting the special `$color` variable, which attachable objects make use of to set the color. 
+//   Sets the color for attachable children and their descendants, down until another {{recolor()}}
+//   or {{color_this()}}.  This only works with attachables and you cannot have any color() modules
+//   above it in any parents, only other {{recolor()}} or {{color_this()}} modules.  This works by
+//   setting the special `$color` variable, which attachable objects make use of to set the color. 
 // Arguments:
 //   c = Color name or RGBA vector.  Default: The default color in your color scheme. 
+// Side Effects:
+//   Changes the value of `$color`.
+//   Sets the color of child attachments.
 // Example:
 //   cuboid([10,10,5])
 //     recolor("green")attach(TOP,BOT) cuboid([9,9,4.5])
@@ -43,10 +49,12 @@ module recolor(c="default")
 
 
 // Module: color_this()
+// Synopsis: Sets the color for children at the current level only.
+// SynTags: Trans
+// Topics: Attachments
+// See Also: recolor(), hsl(), hsv()
 // Usage:
 //   color_this([c]) CHILDREN;
-// Topics: Attachments
-// See Also: recolor()
 // Description:
 //   Sets the color for children at one level, reverting to the previous color for further descendants.
 //   This works only with attachables and you cannot have any color() modules above it in any parents,
@@ -54,6 +62,9 @@ module recolor(c="default")
 //   which attachable objects make use of to set the color. 
 // Arguments:
 //   c = Color name or RGBA vector.  Default: the default color in your color scheme
+// Side Effects:
+//   Changes the value of `$color` and `$save_color`.
+//   Sets the color of child attachments.
 // Example:
 //   cuboid([10,10,5])
 //     color_this("green")attach(TOP,BOT) cuboid([9,9,4.5])
@@ -72,6 +83,10 @@ module color_this(c="default")
 
 
 // Module: rainbow()
+// Synopsis: Iterates through a list, displaying children in different colors.
+// SynTags: Trans
+// Topics: List Handling
+// See Also: hsl(), hsv()
 // Usage:
 //   rainbow(list,[stride],[maxhues],[shuffle],[seed]) CHILDREN;
 // Description:
@@ -108,21 +123,67 @@ module rainbow(list, stride=1, maxhues, shuffle=false, seed)
 }
 
 
+// Module: color_overlaps()
+// Synopsis: Shows ghostly children, with overlaps highlighted in color.
+// SynTags: Trans
+// Topics: Debugging
+// See Also: rainbow(), debug_vnf()
+// Usage:
+//   color_overlaps([color]) CHILDREN;
+// Description:
+//   Displays the given children in ghostly transparent gray, while the places where the
+//   they overlap are highlighted with the given color.
+// Arguments:
+//   color = The color to highlight overlaps with.  Default: "red"
+// Example(2D): 2D Overlaps
+//   color_overlaps() {
+//       circle(d=50);
+//       left(20) circle(d=50);
+//       right(20) circle(d=50);
+//   }
+// Example(): 3D Overlaps
+//   color_overlaps() {
+//       cuboid(50);
+//       left(30) sphere(d=50);
+//       right(30) sphere(d=50);
+//       xcyl(d=10,l=120);
+//   }
+module color_overlaps(color="red") {
+    pairs = [for (i=[0:1:$children-1], j=[i+1:1:$children-1]) [i,j]];
+    for (p = pairs) {
+        color(color) {
+            intersection() {
+                children(p.x);
+                children(p.y);
+            }
+        }
+    }
+    %children();
+}
+
+
 // Section: Colorspace Conversion
 
 // Function&Module: hsl()
+// Synopsis: Sets the color of children to a specified hue, saturation, lightness and optional alpha channel value.
+// SynTags: Trans
+// See Also: hsv(), recolor(), color_this()
+// Topics: Colors, Colorspace
 // Usage:
 //   hsl(h,[s],[l],[a]) CHILDREN;
 //   rgb = hsl(h,[s],[l],[a]);
 // Description:
-//   When called as a function, returns the [R,G,B] color for the given hue `h`, saturation `s`, and lightness `l` from the HSL colorspace. If you supply
-//   the `a` value then you'll get a length 4 list [R,G,B,A].  
-//   When called as a module, sets the color using the color() module to the given hue `h`, saturation `s`, and lightness `l` from the HSL colorspace.
+//   When called as a function, returns the `[R,G,B]` color for the given hue `h`, saturation `s`, and
+//   lightness `l` from the HSL colorspace.  If you supply the `a` value then you'll get a length 4
+//   list `[R,G,B,A]`.  When called as a module, sets the color using the color() module to the given
+//   hue `h`, saturation `s`, and lightness `l` from the HSL colorspace.
 // Arguments:
 //   h = The hue, given as a value between 0 and 360.  0=red, 60=yellow, 120=green, 180=cyan, 240=blue, 300=magenta.
 //   s = The saturation, given as a value between 0 and 1.  0 = grayscale, 1 = vivid colors.  Default: 1
 //   l = The lightness, between 0 and 1.  0 = black, 0.5 = bright colors, 1 = white.  Default: 0.5
 //   a = Specifies the alpha channel as a value between 0 and 1.  0 = fully transparent, 1=opaque.  Default: 1
+// Side Effects:
+//   When called as a module, sets the color of all children.
 // Example:
 //   hsl(h=120,s=1,l=0.5) sphere(d=60);
 // Example:
@@ -146,18 +207,25 @@ module hsl(h,s=1,l=0.5,a=1)
 
 
 // Function&Module: hsv()
+// Synopsis: Sets the color of children to a hue, saturation, value and optional alpha channel value.
+// SynTags: Trans
+// See Also: hsl(), recolor(), color_this()
+// Topics: Colors, Colorspace
 // Usage:
 //   hsv(h,[s],[v],[a]) CHILDREN;
 //   rgb = hsv(h,[s],[v],[a]);
 // Description:
-//   When called as a function, returns the [R,G,B] color for the given hue `h`, saturation `s`, and value `v` from the HSV colorspace.  If you supply
-//   the `a` value then you'll get a length 4 list [R,G,B,A].  
-//   When called as a module, sets the color using the color() module to the given hue `h`, saturation `s`, and value `v` from the HSV colorspace.
+//   When called as a function, returns the `[R,G,B]` color for the given hue `h`, saturation `s`, and
+//   value `v` from the HSV colorspace.  If you supply the `a` value then you'll get a length 4 list
+//   `[R,G,B,A]`.  When called as a module, sets the color using the color() module to the given hue
+//   `h`, saturation `s`, and value `v` from the HSV colorspace.
 // Arguments:
 //   h = The hue, given as a value between 0 and 360.  0=red, 60=yellow, 120=green, 180=cyan, 240=blue, 300=magenta.
 //   s = The saturation, given as a value between 0 and 1.  0 = grayscale, 1 = vivid colors.  Default: 1
 //   v = The value, between 0 and 1.  0 = darkest black, 1 = bright.  Default: 1
 //   a = Specifies the alpha channel as a value between 0 and 1.  0 = fully transparent, 1=opaque.  Default: 1
+// Side Effects:
+//   When called as a module, sets the color of all children.
 // Example:
 //   hsv(h=120,s=1,v=1) sphere(d=60);
 // Example:

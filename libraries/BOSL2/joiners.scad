@@ -16,11 +16,14 @@ include <rounding.scad>
 
 
 // Function&Module: half_joiner_clear()
+// Synopsis: Creates a mask to clear space for a {{half_joiner()}}.
+// SynTags: Geom, VNF
+// Topics: Joiners, Parts
+// See Also: half_joiner_clear(), half_joiner(), half_joiner2(), joiner_clear(), joiner(), snap_pin(), rabbit_clip(), dovetail()
 // Usage: As Module
 //   half_joiner_clear(l, w, [ang=], [clearance=], [overlap=]) [ATTACHMENTS];
 // Usage: As Function
 //   vnf = half_joiner_clear(l, w, [ang=], [clearance=], [overlap=]);
-// Topics: Joiners, Parts
 // Description:
 //   Creates a mask to clear an area so that a half_joiner can be placed there.
 // Arguments:
@@ -33,7 +36,6 @@ include <rounding.scad>
 //   anchor = Translate so anchor point is at origin (0,0,0).  See [anchor](attachments.scad#subsection-anchor).  Default: `CENTER`
 //   spin = Rotate this many degrees around the Z axis after anchor.  See [spin](attachments.scad#subsection-spin).  Default: `0`
 //   orient = Vector to rotate top towards, after spin.  See [orient](attachments.scad#subsection-orient).  Default: `UP`
-// See Also: half_joiner_clear(), half_joiner(), half_joiner2(), joiner_clear(), joiner()
 // Example:
 //   half_joiner_clear();
 function half_joiner_clear(l=20, w=10, ang=30, clearance=0, overlap=0.01, anchor=CENTER, spin=0, orient=UP) =
@@ -60,11 +62,14 @@ module half_joiner_clear(l=20, w=10, ang=30, clearance=0, overlap=0.01, anchor=C
 
 
 // Function&Module: half_joiner()
+// Synopsis: Creates a half-joiner shape to mate with a {{half_joiner2()}} shape..
+// SynTags: Geom, VNF
+// Topics: Joiners, Parts
+// See Also: half_joiner_clear(), half_joiner(), half_joiner2(), joiner_clear(), joiner(), snap_pin(), rabbit_clip(), dovetail()
 // Usage: As Module
 //   half_joiner(l, w, [base=], [ang=], [screwsize=], [$slop=]) [ATTACHMENTS];
 // Usage: As Function
 //   vnf = half_joiner(l, w, [base=], [ang=], [screwsize=], [$slop=]);
-// Topics: Joiners, Parts
 // Description:
 //   Creates a half_joiner object that can be attached to a matching half_joiner2 object.
 // Arguments:
@@ -78,7 +83,6 @@ module half_joiner_clear(l=20, w=10, ang=30, clearance=0, overlap=0.01, anchor=C
 //   spin = Rotate this many degrees around the Z axis after anchor.  See [spin](attachments.scad#subsection-spin).  Default: `0`
 //   orient = Vector to rotate top towards, after spin.  See [orient](attachments.scad#subsection-orient).  Default: `UP`
 //   $slop = Printer specific slop value to make parts fit more closely.
-// See Also: half_joiner_clear(), half_joiner(), half_joiner2(), joiner_clear(), joiner()
 // Examples(FlatSpin,VPD=75):
 //   half_joiner(screwsize=3);
 //   half_joiner(l=20,w=10,base=10);
@@ -120,28 +124,28 @@ function half_joiner(l=20, w=10, base=10, ang=30, screwsize, anchor=CENTER, spin
 
             [-w/6, -snap.y/2, -snap.z/2],
             [-w/6, -snap.y/2, -guide.z/2],
-            [-snap.x/2, 0, snap_top-guide.z/2],
+            [-snap.x/2, 0, min(snap_top-guide.z/2,-default(screwsize,0)*1.1/2)],
             [-w/6,  snap.y/2, -guide.z/2],
             [-w/6,  snap.y/2, -snap.z/2],
             [-snap.x/2, 0, snap_top-snap.z/2],
 
             [-w/6, -snap.y/2, snap.z/2],
             [-w/6, -snap.y/2, guide.z/2],
-            [-snap.x/2, 0, guide.z/2-snap_top],
+            [-snap.x/2, 0, max(guide.z/2-snap_top, default(screwsize,0)*1.1/2)],
             [-w/6,  snap.y/2, guide.z/2],
             [-w/6,  snap.y/2, snap.z/2],
             [-snap.x/2, 0, snap.z/2-snap_top],
 
             [ w/6, -snap.y/2, snap.z/2],
             [ w/6, -snap.y/2, guide.z/2],
-            [ snap.x/2, 0, guide.z/2-snap_top],
+            [ snap.x/2, 0, max(guide.z/2-snap_top, default(screwsize,0)*1.1/2)],
             [ w/6,  snap.y/2, guide.z/2],
             [ w/6,  snap.y/2, snap.z/2],
             [ snap.x/2, 0, snap.z/2-snap_top],
 
             [ w/6, -snap.y/2, -snap.z/2],
             [ w/6, -snap.y/2, -guide.z/2],
-            [ snap.x/2, 0, snap_top-guide.z/2],
+            [ snap.x/2, 0, min(snap_top-guide.z/2,-default(screwsize,0)*1.1/2)],
             [ w/6,  snap.y/2, -guide.z/2],
             [ w/6,  snap.y/2, -snap.z/2],
             [ snap.x/2, 0, snap_top-snap.z/2],
@@ -207,14 +211,14 @@ function half_joiner(l=20, w=10, base=10, ang=30, screwsize, anchor=CENTER, spin
                 [14,24,47], [14,23,24], [14,13,23], [47,24,25], [46,47,25],
                 [47,30,14], [14,30,29], [14,29,15], [47,31,30], [47,48,31],
             ] else each [
-                [20,19,56], [20,56,57], [20,57,58], [20,58,42], [20,42,41],
-                [50,51,52], [51,59,52], [51,58,59], [51,42,58], [51,43,42],
-                [49,50,52], [49,52,53], [49,53,54], [49,54,36], [49,36,37],
-                [56,19,18], [18,55,56], [18,54,55], [18,36,54], [18,35,36],
-                [14,64,15], [15,64,63], [15,63,62], [15,62,30], [15,30,29],
-                [48,31,30], [48,30,62], [48,62,61], [48,61,60], [60,47,48],
-                [13,23,24], [13,24,66], [13,66,65], [13,65,64], [64,14,13],
-                [46,47,60], [46,60,67], [46,67,66], [46,66,24], [46,24,25],
+                [20,19,56], [20,56,57], [20,57,58], [41,58,42], [20,58,41],
+                [50,51,52], [51,59,52], [51,58,59], [43,42,58], [51,43,58],
+                [49,50,52], [49,52,53], [49,53,54], [37,54,36], [49,54,37],
+                [56,19,18], [18,55,56], [18,54,55], [35,36,54], [18,35,54],
+                [14,64,15], [15,64,63], [15,63,62], [29,62,30], [15,62,29],
+                [48,31,62], [31,30,62], [48,62,61], [48,61,60], [60,47,48],
+                [13,23,66], [23,24,66], [13,66,65], [13,65,64], [64,14,13],
+                [46,47,60], [46,60,67], [46,67,66], [46,66,25], [66,24,25],
                 for (i=[0:7]) let(b=52) [b+i, b+8+i, b+8+(i+1)%8],
                 for (i=[0:7]) let(b=52) [b+i, b+8+(i+1)%8, b+(i+1)%8],
             ],
@@ -241,11 +245,14 @@ module half_joiner(l=20, w=10, base=10, ang=30, screwsize, anchor=CENTER, spin=0
 
 
 // Function&Module: half_joiner2()
+// Synopsis: Creates a half_joiner2 shape to mate with a {{half_joiner()}} shape..
+// SynTags: Geom, VNF
+// Topics: Joiners, Parts
+// See Also: half_joiner_clear(), half_joiner(), half_joiner2(), joiner_clear(), joiner(), snap_pin(), rabbit_clip(), dovetail()
 // Usage: As Module
 //   half_joiner2(l, w, [base=], [ang=], [screwsize=])
 // Usage: As Function
 //   vnf = half_joiner2(l, w, [base=], [ang=], [screwsize=])
-// Topics: Joiners, Parts
 // Description:
 //   Creates a half_joiner2 object that can be attached to half_joiner object.
 // Arguments:
@@ -258,7 +265,6 @@ module half_joiner(l=20, w=10, base=10, ang=30, screwsize, anchor=CENTER, spin=0
 //   anchor = Translate so anchor point is at origin (0,0,0).  See [anchor](attachments.scad#subsection-anchor).  Default: `CENTER`
 //   spin = Rotate this many degrees around the Z axis after anchor.  See [spin](attachments.scad#subsection-spin).  Default: `0`
 //   orient = Vector to rotate top towards, after spin.  See [orient](attachments.scad#subsection-orient).  Default: `UP`
-// See Also: half_joiner_clear(), half_joiner(), half_joiner2(), joiner_clear(), joiner()
 // Examples(FlatSpin,VPD=75):
 //   half_joiner2(screwsize=3);
 //   half_joiner2(w=10,base=10,l=20);
@@ -274,6 +280,8 @@ function half_joiner2(l=20, w=10, base=10, ang=30, screwsize, anchor=CENTER, spi
         snap = [guide.x+snap_h, 2*snap_h, l*0.6],
         slope = guide.z/2/(w/8),
         snap_top = slope * (snap.x-guide.x)/2,
+        s1 = min(snap_top-guide.z/2,-default(screwsize,0)*1.1/2),
+        s2 = max(guide.z/2-snap_top, default(screwsize,0)*1.1/2),
 
         verts = [
             [-w/2,-base,-l/2], [-w/2,-base,l/2], [w/2,-base,l/2], [w/2,-base,-l/2],
@@ -300,28 +308,28 @@ function half_joiner2(l=20, w=10, base=10, ang=30, screwsize, anchor=CENTER, spi
 
             [-w/6, -snap.y/2, -snap.z/2],
             [-w/6, -snap.y/2, -guide.z/2],
-            [-snap.x/2, 0, snap_top-guide.z/2],
+            [-snap.x/2, 0, s1],
             [-w/6,  snap.y/2, -guide.z/2],
             [-w/6,  snap.y/2, -snap.z/2],
             [-snap.x/2, 0, snap_top-snap.z/2],
 
             [-w/6, -snap.y/2, snap.z/2],
             [-w/6, -snap.y/2, guide.z/2],
-            [-snap.x/2, 0, guide.z/2-snap_top],
+            [-snap.x/2, 0, s2],
             [-w/6,  snap.y/2, guide.z/2],
             [-w/6,  snap.y/2, snap.z/2],
             [-snap.x/2, 0, snap.z/2-snap_top],
 
             [ w/6, -snap.y/2, snap.z/2],
             [ w/6, -snap.y/2, guide.z/2],
-            [ snap.x/2, 0, guide.z/2-snap_top],
+            [ snap.x/2, 0, s2],
             [ w/6,  snap.y/2, guide.z/2],
             [ w/6,  snap.y/2, snap.z/2],
             [ snap.x/2, 0, snap.z/2-snap_top],
 
             [ w/6, -snap.y/2, -snap.z/2],
             [ w/6, -snap.y/2, -guide.z/2],
-            [ snap.x/2, 0, snap_top-guide.z/2],
+            [ snap.x/2, 0, s1],
             [ w/6,  snap.y/2, -guide.z/2],
             [ w/6,  snap.y/2, -snap.z/2],
             [ snap.x/2, 0, snap_top-snap.z/2],
@@ -399,14 +407,14 @@ function half_joiner2(l=20, w=10, base=10, ang=30, screwsize, anchor=CENTER, spi
                 [6,77,76], [6,78,77], [6,7,78],
                 [7,1,78], [1,79,78], [1,80,79],
 
-                [20,56,19], [20,57,56], [20,58,57], [20,42,58], [20,41,42],
-                [50,52,51], [51,52,59], [51,59,58], [51,58,42], [51,42,43],
-                [49,52,50], [49,53,52], [49,54,53], [49,36,54], [49,37,36],
-                [56,18,19], [18,56,55], [18,55,54], [18,54,36], [18,36,35],
-                [14,15,64], [15,63,64], [15,62,63], [15,30,62], [15,29,30],
-                [48,30,31], [48,62,30], [48,61,62], [48,60,61], [60,48,47],
-                [13,24,23], [13,66,24], [13,65,66], [13,64,65], [64,13,14],
-                [46,60,47], [46,67,60], [46,66,67], [46,24,66], [46,25,24],
+                [20,56,19], [20,57,56], [20,41,57], [41,58,57], [41,42,58],
+                [50,52,51], [51,52,59], [43,59,58], [43,58,42], [51,59,43],
+                [49,52,50], [49,53,52], [49,37,53], [37,36,54], [54,53,37],
+                [56,18,19], [18,56,55], [18,55,35], [35,55,54], [36,35,54],
+                [14,15,64], [15,63,64], [15,29,63], [29,62,63], [29,30,62],
+                [31,48,61], [31,61,62], [30,31,62], [48,60,61], [60,48,47],
+                [23,13,65], [65,66,23], [24,23,66], [13,64,65], [64,13,14],
+                [46,60,47], [46,67,60], [46,25,67], [66,67,25], [25,24,66],
 
                 for (i=[0:7]) let(b=52) each [
                     [b+i, b+16+(i+1)%8, b+16+i],
@@ -418,7 +426,16 @@ function half_joiner2(l=20, w=10, base=10, ang=30, screwsize, anchor=CENTER, spi
                 ],
             ],
         ],
-        pvnf = [verts, faces],
+        verts2 = [
+            for (i = idx(verts))
+            !approx(s2, verts[54].z)? verts[i] :
+            i==54? [ snap.x/2-0.01, verts[i].y, verts[i].z] :
+            i==58? [ snap.x/2-0.01, verts[i].y, verts[i].z] :
+            i==62? [-snap.x/2+0.01, verts[i].y, verts[i].z] :
+            i==66? [-snap.x/2+0.01, verts[i].y, verts[i].z] :
+            verts[i]
+        ],
+        pvnf = [verts2, faces],
         vnf = xrot(90, p=pvnf)
     ) reorient(anchor,spin,orient, size=[w,l,base*2], p=vnf);
 
@@ -444,11 +461,14 @@ module half_joiner2(l=20, w=10, base=10, ang=30, screwsize, anchor=CENTER, spin=
 
 
 // Module: joiner_clear()
+// Synopsis: Creates a mask to clear space for a {{joiner()}} shape.
+// SynTags: Geom
+// Topics: Joiners, Parts
+// See Also: half_joiner_clear(), half_joiner(), half_joiner2(), joiner_clear(), joiner(), snap_pin(), rabbit_clip(), dovetail()
 // Description:
 //   Creates a mask to clear an area so that a joiner can be placed there.
 // Usage:
 //   joiner_clear(l, w, [ang=], [clearance=], [overlap=]) [ATTACHMENTS];
-// Topics: Joiners, Parts
 // Arguments:
 //   l = Length of the joiner to clear space for.
 //   w = Width of the joiner to clear space for.
@@ -459,7 +479,6 @@ module half_joiner2(l=20, w=10, base=10, ang=30, screwsize, anchor=CENTER, spin=
 //   anchor = Translate so anchor point is at origin (0,0,0).  See [anchor](attachments.scad#subsection-anchor).  Default: `CENTER`
 //   spin = Rotate this many degrees around the Z axis after anchor.  See [spin](attachments.scad#subsection-spin).  Default: `0`
 //   orient = Vector to rotate top towards, after spin.  See [orient](attachments.scad#subsection-orient).  Default: `UP`
-// See Also: half_joiner_clear(), half_joiner(), half_joiner2(), joiner_clear(), joiner()
 // Example:
 //   joiner_clear();
 function joiner_clear(l=40, w=10, ang=30, clearance=0, overlap=0.01, anchor=CENTER, spin=0, orient=UP) = no_function("joiner_clear");
@@ -482,9 +501,12 @@ module joiner_clear(l=40, w=10, ang=30, clearance=0, overlap=0.01, anchor=CENTER
 
 
 // Module: joiner()
+// Synopsis: Creates a joiner shape that can mate with another rotated joiner shape.
+// SynTags: Geom
+// Topics: Joiners, Parts
+// See Also: half_joiner_clear(), half_joiner(), half_joiner2(), joiner_clear(), joiner(), snap_pin(), rabbit_clip(), dovetail()
 // Usage:
 //   joiner(l, w, base, [ang=], [screwsize=], [$slop=]) [ATTACHMENTS];
-// Topics: Joiners, Parts
 // Description:
 //   Creates a joiner object that can be attached to another joiner object.
 // Arguments:
@@ -498,7 +520,6 @@ module joiner_clear(l=40, w=10, ang=30, clearance=0, overlap=0.01, anchor=CENTER
 //   spin = Rotate this many degrees around the Z axis after anchor.  See [spin](attachments.scad#subsection-spin).  Default: `0`
 //   orient = Vector to rotate top towards, after spin.  See [orient](attachments.scad#subsection-orient).  Default: `UP`
 //   $slop = Printer specific slop value to make parts fit more closely.
-// See Also: half_joiner_clear(), half_joiner(), half_joiner2(), joiner_clear(), joiner()
 // Examples(FlatSpin,VPD=125):
 //   joiner(screwsize=3);
 //   joiner(l=40, w=10, base=10);
@@ -532,6 +553,10 @@ module joiner(l=40, w=10, base=10, ang=30, screwsize, anchor=CENTER, spin=0, ori
 // Section: Dovetails
 
 // Module: dovetail()
+// Synopsis: Creates a possibly tapered dovetail shape.
+// SynTags: Geom
+// Topics: Joiners, Parts
+// See Also: joiner(), snap_pin(), rabbit_clip()
 //
 // Usage:
 //   dovetail(gender, w=|width, h=|height, slide|thickness=, [slope=|angle=], [taper=|back_width=], [chamfer=], [r=|radius=], [round=], [extra=], [$slop=])
@@ -799,6 +824,10 @@ function _pin_size(size) =
 
 
 // Module: snap_pin()
+// Synopsis: Creates a snap-pin that can slot into a {{snap_pin_socket()}} to join two parts.
+// SynTags: Geom
+// Topics: Joiners, Parts
+// See Also: snap_pin_socket(), joiner(), dovetail(), snap_pin(), rabbit_clip()
 // Usage:
 //    snap_pin(size, [pointed=], [anchor=], [spin=], [orient]=) [ATTACHMENTS];
 //    snap_pin(r=|radius=|d=|diameter=, l=|length=, nub_depth=, snap=, thickness=, [clearance=], [preload=], [pointed=]) [ATTACHMENTS];
@@ -869,6 +898,10 @@ module snap_pin(size,r,radius,d,diameter, l,length, nub_depth, snap, thickness, 
 }
 
 // Module: snap_pin_socket()
+// Synopsis: Creates a snap-pin socket for a {{snap_pin()}} to slot into.
+// SynTags: Geom
+// Topics: Joiners, Parts
+// See Also: snap_pin(), joiner(), dovetail(), snap_pin(), rabbit_clip()
 // Usage:
 //   snap_pin_socket(size, [fixed=], [fins=], [pointed=], [anchor=], [spin=], [orient=]) [ATTACHMENTS];
 //   snap_pin_socket(r=|radius=|d=|diameter=, l=|length=, nub_depth=, snap=, [fixed=], [pointed=], [fins=]) [ATTACHMENTS];
@@ -939,6 +972,10 @@ module snap_pin_socket(size, r, radius, l,length, d,diameter,nub_depth, snap, fi
 
 
 // Module: rabbit_clip()
+// Synopsis: Creates a rabbit-eared clip that can snap into a slot.
+// SynTags: Geom
+// Topics: Joiners, Parts
+// See Also: snap_pin(), joiner(), dovetail(), snap_pin(), rabbit_clip()
 // Usage:
 //   rabbit_clip(type, length, width, snap, thickness, depth, [compression=], [clearance=], [lock=], [lock_clearance=], [splineteps=], [anchor=], [orient=], [spin=]) [ATTACHMENTS];
 // Description:

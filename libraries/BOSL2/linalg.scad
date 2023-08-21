@@ -31,6 +31,9 @@
 // Section: Matrix testing and display
 
 // Function: is_matrix()
+// Synopsis: Check if input is a numeric matrix, optionally of specified size
+// Topics: Matrices
+// See Also: is_matrix_symmetric(), is_rotation()
 // Usage:
 //   test = is_matrix(A, [m], [n], [square])
 // Description:
@@ -50,6 +53,9 @@ function is_matrix(A,m,n,square=false) =
 
 
 // Function: is_matrix_symmetric()
+// Synopsis: Checks if matrix is symmetric
+// Topics: Matrices
+// See Also: is_matrix(), is_rotation()
 // Usage:
 //   b = is_matrix_symmetric(A, [eps])
 // Description:
@@ -63,6 +69,9 @@ function is_matrix_symmetric(A,eps=1e-12) =
 
 
 // Function: is_rotation()
+// Synopsis: Check if a transformation matrix represents a rotation.
+// Topics: Affine, Matrices, Transforms
+// See Also: is_matrix(), is_matrix_symmetric(), is_rotation()
 // Usage:
 //   b = is_rotation(A, [dim], [centered])
 // Description:
@@ -90,6 +99,9 @@ function is_rotation(A,dim,centered=false) =
   
 
 // Function&Module: echo_matrix()
+// Synopsis: Print a matrix neatly to the console.
+// Topics: Matrices
+// See Also: is_matrix(), is_matrix_symmetric(), is_rotation()
 // Usage:
 //    echo_matrix(M, [description], [sig], [sep], [eps]);
 //    dummy = echo_matrix(M, [description], [sig], [sep], [eps]),
@@ -127,10 +139,11 @@ module echo_matrix(M,description,sig=4,sep=1,eps=1e-9)
 // Section: Matrix indexing
 
 // Function: column()
+// Synopsis: Extract a column from a matrix.
+// Topics: Matrices, List Handling, Arrays
+// See Also: select(), slice()
 // Usage:
 //   list = column(M, i);
-// Topics: Matrices, List Handling
-// See Also: select(), slice()
 // Description:
 //   Extracts entry `i` from each list in M, or equivalently column i from the matrix M, and returns it as a vector.  
 //   This function will return `undef` at all entry positions indexed by i not found in M.
@@ -153,10 +166,11 @@ function column(M, i) =
 
 
 // Function: submatrix()
+// Synopsis: Extract a submatrix from a matrix
+// Topics: Matrices, Arrays
+// See Also: column(), block_matrix(), submatrix_set()
 // Usage:
 //   mat = submatrix(M, idx1, idx2);
-// Topics: Matrices
-// See Also: column(), block_matrix(), submatrix_set()
 // Description:
 //   The input must be a list of lists (a matrix or 2d array).  Returns a submatrix by selecting the rows listed in idx1 and columns listed in idx2.
 // Arguments:
@@ -186,9 +200,11 @@ function submatrix(M,idx1,idx2) =
 // Section: Matrix construction and modification
 
 // Function: ident()
+// Synopsis: Return identity matrix.
+// Topics: Affine, Matrices, Transforms
+// See Also: IDENT, submatrix(), column()
 // Usage:
 //   mat = ident(n);
-// Topics: Affine, Matrices
 // Description:
 //   Create an `n` by `n` square identity matrix.
 // Arguments:
@@ -218,14 +234,15 @@ function ident(n) = [
 
 
 // Function: diagonal_matrix()
+// Synopsis: Make a diagonal matrix.
+// Topics: Affine, Matrices
+// See Also: column(), submatrix()
 // Usage:
 //   mat = diagonal_matrix(diag, [offdiag]);
-// Topics: Matrices
-// See Also: column(), submatrix()
 // Description:
 //   Creates a square matrix with the items in the list `diag` on
 //   its diagonal.  The off diagonal entries are set to offdiag,
-//   which is zero by default. 
+//   which is zero by default.
 // Arguments:
 //   diag = A list of items to put in the diagnal cells of the matrix.
 //   offdiag = Value to put in non-diagonal matrix cells.
@@ -235,10 +252,11 @@ function diagonal_matrix(diag, offdiag=0) =
 
 
 // Function: transpose()
+// Synopsis: Transpose a matrix
+// Topics: Linear Algebra, Matrices
+// See Also: submatrix(), block_matrix(), hstack(), flatten()
 // Usage:
 //    M = transpose(M, [reverse]);
-// Topics: Matrices
-// See Also: submatrix(), block_matrix(), hstack(), flatten()
 // Description:
 //    Returns the transpose of the given input matrix.  The input can be a matrix with arbitrary entries or
 //    a numerical vector.  If you give a vector then transpose returns it unchanged.  
@@ -313,10 +331,13 @@ function transpose(M, reverse=false) =
 
 
 // Function: outer_product()
+// Synopsis: Compute the outer product of two vectors. 
+// Topics: Linear Algebra, Matrices
+// See Also: submatrix(), determinant()
 // Usage:
 //   x = outer_product(u,v);
 // Description:
-//   Compute the outer product of two vectors, a matrix.  
+//   Compute the outer product of two vectors, which is a matrix.
 // Usage:
 //   M = outer_product(u,v);
 function outer_product(u,v) =
@@ -324,14 +345,15 @@ function outer_product(u,v) =
   [for(ui=u) ui*v];
 
 // Function: submatrix_set()
+// Synopsis: Takes a matrix as input and change values in a submatrix.
+// Topics: Matrices, Arrays
+// See Also: column(), submatrix()
 // Usage:
 //   mat = submatrix_set(M, A, [m], [n]);
-// Topics: Matrices
-// See Also: column(), submatrix()
 // Description:
 //   Sets a submatrix of M equal to the matrix A.  By default the top left corner of M is set to A, but
 //   you can specify offset coordinates m and n.  If A (as adjusted by m and n) extends beyond the bounds
-//   of M then the extra entries are ignored.  You can pass in A=[[]], a null matrix, and M will be
+//   of M then the extra entries are ignored.  You can pass in `A=[[]]`, a null matrix, and M will be
 //   returned unchanged.  This function works on arbitrary lists of lists and the input M need not be rectangular in shape.  
 // Arguments:
 //   M = Original matrix.
@@ -352,12 +374,13 @@ function submatrix_set(M,A,m=0,n=0) =
 
 
 // Function: hstack()
+// Synopsis: Make a new matrix by stacking matrices horizontally.
+// Topics: Matrices, Arrays
+// See Also: column(), submatrix(), block_matrix()
 // Usage: 
 //   A = hstack(M1, M2)
 //   A = hstack(M1, M2, M3)
 //   A = hstack([M1, M2, M3, ...])
-// Topics: Matrices
-// See Also: column(), submatrix(), block_matrix()
 // Description:
 //   Constructs a matrix by horizontally "stacking" together compatible matrices or vectors.  Vectors are treated as columsn in the stack.
 //   This command is the inverse of `column`.  Note: strings given in vectors are broken apart into lists of characters.  Strings given
@@ -406,10 +429,11 @@ function hstack(M1, M2, M3) =
 
 
 // Function: block_matrix()
+// Synopsis: Make a new matrix from a block of matrices. 
+// Topics: Matrices, Arrays
+// See Also: column(), submatrix()
 // Usage:
 //    bmat = block_matrix([[M11, M12,...],[M21, M22,...], ... ]);
-// Topics: Matrices
-// See Also: column(), submatrix()
 // Description:
 //    Create a block matrix by supplying a matrix of matrices, which will
 //    be combined into one unified matrix.  Every matrix in one row
@@ -453,6 +477,9 @@ function block_matrix(M) =
 // Section: Solving Linear Equations and Matrix Factorizations
 
 // Function: linear_solve()
+// Synopsis: Solve Ax=b or, for overdetermined case, solve the least square problem. 
+// Topics: Matrices, Linear Algebra
+// See Also: linear_solve3(), matrix_inverse(), rot_inverse(), back_substitute(), cholesky()
 // Usage:
 //   solv = linear_solve(A,b,[pivot])
 // Description:
@@ -463,7 +490,7 @@ function block_matrix(M) =
 //   want to solve Ax=b1 and Ax=b2 that you need to form the matrix `transpose([b1,b2])` for the right hand side and then
 //   transpose the returned value.  The solution is computed using QR factorization.  If `pivot` is set to true (the default) then
 //   pivoting is used in the QR factorization, which is slower but expected to be more accurate.
-// Usage:
+// Arguments:
 //   A = Matrix describing the linear system, which need not be square
 //   b = right hand side for linear system, which can be a matrix to solve several cases simultaneously.  Must be consistent with A.
 //   pivot = if true use pivoting when computing the QR factorization.  Default: true
@@ -489,6 +516,9 @@ function linear_solve(A,b,pivot=true) =
 
 
 // Function: linear_solve3()
+// Synopsis: Fast solution to Ax=b where A is 3x3.
+// Topics: Matrices, Linear Algebra
+// See Also: linear_solve(), matrix_inverse(), rot_inverse(), back_substitute(), cholesky()
 // Usage:
 //   x = linear_solve3(A,b)
 // Description:
@@ -513,6 +543,9 @@ function linear_solve3(A,b) =
 
 
 // Function: matrix_inverse()
+// Synopsis: General matrix inverse. 
+// Topics: Matrices, Linear Algebra
+// See Also: linear_solve(), linear_solve3(), matrix_inverse(), rot_inverse(), back_substitute(), cholesky()
 // Usage:
 //    mat = matrix_inverse(A)
 // Description:
@@ -526,6 +559,9 @@ function matrix_inverse(A) =
 
 
 // Function: rot_inverse()
+// Synopsis: Invert 2d or 3d rotation transformations. 
+// Topics: Matrices, Linear Algebra, Affine
+// See Also: linear_solve(), linear_solve3(), matrix_inverse(), rot_inverse(), back_substitute(), cholesky()
 // Usage:
 //   B = rot_inverse(A)
 // Description:
@@ -546,6 +582,9 @@ function rot_inverse(T) =
 
 
 // Function: null_space()
+// Synopsis: Return basis for the null space of A. 
+// Topics: Matrices, Linear Algebra
+// See Also: linear_solve(), linear_solve3(), matrix_inverse(), rot_inverse(), back_substitute(), cholesky()
 // Usage:
 //   x = null_space(A)
 // Description:
@@ -562,6 +601,9 @@ function null_space(A,eps=1e-12) =
     select(transpose(Q_R[0]), zrows);
 
 // Function: qr_factor()
+// Synopsis: Compute QR factorization of a matrix.
+// Topics: Matrices, Linear Algebra
+// See Also: linear_solve(), linear_solve3(), matrix_inverse(), rot_inverse(), back_substitute(), cholesky()
 // Usage:
 //   qr = qr_factor(A,[pivot]);
 // Description:
@@ -612,6 +654,9 @@ function _swap_matrix(n,i,j) =
 
 
 // Function: back_substitute()
+// Synopsis: Solve an upper triangular system, Rx=b.  
+// Topics: Matrices, Linear Algebra
+// See Also: linear_solve(), linear_solve3(), matrix_inverse(), rot_inverse(), back_substitute(), cholesky()
 // Usage:
 //   x = back_substitute(R, b, [transpose]);
 // Description:
@@ -643,6 +688,9 @@ function _back_substitute(R, b, x=[]) =
 
 
 // Function: cholesky()
+// Synopsis: Compute the Cholesky factorization of a matrix. 
+// Topics: Matrices, Linear Algebra
+// See Also: linear_solve(), linear_solve3(), matrix_inverse(), rot_inverse(), back_substitute(), cholesky()
 // Usage:
 //   L = cholesky(A);
 // Description:
@@ -678,6 +726,9 @@ function _cholesky(A,L,n) =
 // Section: Matrix Properties: Determinants, Norm, Trace
 
 // Function: det2()
+// Synopsis: Compute determinant of 2x2 matrix.
+// Topics: Matrices, Linear Algebra
+// See Also: det2(), det3(), det4(), determinant(), norm_fro(), matrix_trace()
 // Usage:
 //   d = det2(M);
 // Description:
@@ -693,6 +744,9 @@ function det2(M) =
 
 
 // Function: det3()
+// Synopsis: Compute determinant of 3x3 matrix.
+// Topics: Matrices, Linear Algebra
+// See Also: det2(), det3(), det4(), determinant(), norm_fro(), matrix_trace()
 // Usage:
 //   d = det3(M);
 // Description:
@@ -709,6 +763,9 @@ function det3(M) =
     M[2][0] * (M[0][1]*M[1][2]-M[1][1]*M[0][2]);
 
 // Function: det4()
+// Synopsis: Compute determinant of 4x4 matrix. 
+// Topics: Matrices, Linear Algebra
+// See Also: det2(), det3(), det4(), determinant(), norm_fro(), matrix_trace()
 // Usage:
 //   d = det4(M);
 // Description:
@@ -730,6 +787,9 @@ function det4(M) =
     - M[0][3]*M[1][0]*M[2][1]*M[3][2] - M[0][3]*M[1][1]*M[2][2]*M[3][0] - M[0][3]*M[1][2]*M[2][0]*M[3][1];
 
 // Function: determinant()
+// Synopsis: compute determinant of an arbitrary square matrix. 
+// Topics: Matrices, Linear Algebra
+// See Also: det2(), det3(), det4(), determinant(), norm_fro(), matrix_trace()
 // Usage:
 //   d = determinant(M);
 // Description:
@@ -762,6 +822,9 @@ function determinant(M) =
 
 
 // Function: norm_fro()
+// Synopsis: Compute Frobenius norm of a matrix
+// Topics: Matrices, Linear Algebra
+// See Also: det2(), det3(), det4(), determinant(), norm_fro(), matrix_trace()
 // Usage:
 //    norm_fro(A)
 // Description:
@@ -774,6 +837,9 @@ function norm_fro(A) =
 
 
 // Function: matrix_trace()
+// Synopsis: Compute the trace of a square matrix. 
+// Topics: Matrices, Linear Algebra
+// See Also: det2(), det3(), det4(), determinant(), norm_fro(), matrix_trace()
 // Usage:
 //   matrix_trace(M)
 // Description:
@@ -781,3 +847,8 @@ function norm_fro(A) =
 function matrix_trace(M) =
    assert(is_matrix(M,square=true), "Input to trace must be a square matrix")
    [for(i=[0:1:len(M)-1])1] * [for(i=[0:1:len(M)-1]) M[i][i]];
+
+
+
+// vim: expandtab tabstop=4 shiftwidth=4 softtabstop=4 nowrap
+

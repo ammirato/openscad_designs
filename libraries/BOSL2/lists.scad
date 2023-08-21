@@ -18,10 +18,11 @@
 
 // Function: is_homogeneous()
 // Alias: is_homogenous()
-// Usage:
-//   bool = is_homogeneous(list, [depth]);
+// Synopsis: Returns true if all members of a list are of the same type.
 // Topics: List Handling, Type Checking
 // See Also: is_vector(), is_matrix()
+// Usage:
+//   bool = is_homogeneous(list, [depth]);
 // Description:
 //   Returns true when the list has elements of same type up to the depth `depth`.
 //   Booleans and numbers are not distinguinshed as of distinct types. 
@@ -53,10 +54,11 @@ function _same_type(a,b, depth) =
   
 
 // Function: min_length()
-// Usage:
-//   llen = min_length(list);
+// Synopsis: Given a list of sublists, returns the length of the shortest sublist.
 // Topics: List Handling
 // See Also: max_length()
+// Usage:
+//   llen = min_length(list);
 // Description:
 //   Returns the length of the shortest sublist in a list of lists.
 // Arguments:
@@ -69,10 +71,11 @@ function min_length(list) =
 
 
 // Function: max_length()
-// Usage:
-//   llen = max_length(list);
+// Synopsis: Given a list of sublists, returns the length of the longest sublist.
 // Topics: List Handling
 // See Also: min_length()
+// Usage:
+//   llen = max_length(list);
 // Description:
 //   Returns the length of the longest sublist in a list of lists.
 // Arguments:
@@ -107,9 +110,11 @@ function _list_shape_recurse(v) =
 
 
 // Function: list_shape()
+// Synopsis: Returns the dimensions of an array.
+// Topics: Matrices, List Handling
+// See Also: is_homogenous()
 // Usage:
 //   dims = list_shape(v, [depth]);
-// Topics: Matrices, List Handling
 // Description:
 //   Returns the size of a multi-dimensional array, a list of the lengths at each depth.
 //   If the returned value has `dims[i] = j` then it means the ith index ranges of j items.
@@ -139,9 +144,11 @@ function list_shape(v, depth=undef) =
 
 
 // Function: in_list()
+// Synopsis: Returns true if a value is in a list.
+// Topics: List Handling
+// See Also: select(), slice()
 // Usage:
 //   bool = in_list(val, list, [idx]);
-// Topics: List Handling
 // Description:
 //   Returns true if value `val` is in list `list`. When `val==NAN` the answer will be false for any list.
 // Arguments:
@@ -177,7 +184,9 @@ function in_list(val,list,idx) =
 // Section: List Indexing
 
 // Function: select()
+// Synopsis: Returns one or more items from a list, with wrapping.
 // Topics: List Handling
+// See Also: slice(), column(), last()
 // Description:
 //   Returns a portion of a list, wrapping around past the beginning, if end<start. 
 //   The first item is index 0. Negative indexes are counted back from the end.
@@ -193,7 +202,6 @@ function in_list(val,list,idx) =
 //   list = The list to get the portion of.
 //   start = Either the index of the first item or an index range or a list of indices.
 //   end = The index of the last item when `start` is a number. When `start` is a list or a range, `end` should not be given.
-// See Also: slice(), column(), last()
 // Example:
 //   l = [3,4,5,6,7,8,9];
 //   a = select(l, 5, 6);   // Returns [8,9]
@@ -225,17 +233,20 @@ function select(list, start, end) =
 
 
 // Function: slice()
+// Synopsis: Returns part of a list without wrapping.
+// Topics: List Handling
+// See Also: select(), column(), last()
 // Usage:
 //   list = slice(list, s, e);
 // Description:
 //   Returns a slice of a list, from the first position `s` up to and including the last position `e`.
-//   The first item in the list is at index 0.  Negative indexes are counted back from the end.
-//   An index of -1 refers to the last list item.
+//   The first item in the list is at index 0.  Negative indexes are counted back from the end, with
+//   -1 referring to the last list item.  If `s` is after `e` then the empty list is returned.
+//   If an index is off the start/end of the list it will refer to the list start/end.  
 // Arguments:
 //   list = The list to get the slice of.
 //   start = The index of the first item to return.  Default: 0
 //   end = The index of the last item to return.  Default: -1 (last item)
-// See Also: select(), column(), last()
 // Example:
 //   a = slice([3,4,5,6,7,8,9], 3, 5);   // Returns [6,7,8]
 //   b = slice([3,4,5,6,7,8,9], 2, -1);  // Returns [5,6,7,8,9]
@@ -243,6 +254,8 @@ function select(list, start, end) =
 //   d = slice([3,4,5,6,7,8,9], 5);      // Returns [8,9]
 //   e = slice([3,4,5,6,7,8,9], 2, -2);  // Returns [5,6,7,8]
 //   f = slice([3,4,5,6,7,8,9], 4, 3;    // Returns []
+//   g = slice([3,4,5], 1, 5;            // Returns [4,5]
+//   h = slice([3,4,5], 5, 7);           // Returns []
 function slice(list,start=0,end=-1) =
     assert(is_list(list))
     assert(is_int(start))
@@ -250,17 +263,18 @@ function slice(list,start=0,end=-1) =
     !list? [] :
     let(
         l = len(list),
-        start = constrain(start + (start<0? l : 0), 0, l-1),
-        end = constrain(end + (end<0? l : 0), 0, l-1)
+        start = start+(start<0 ? l : 0),
+        end = end + (end<0? l : 0)
     )
-    [if (end>=start) for (i=[start:1:end]) list[i]];
+    [if (start<=end && end>=0 && start<=l) for (i=[max(start,0):1:min(end,l-1)]) list[i]];
 
 
 // Function: last()
-// Usage:
-//   item = last(list);
+// Synopsis: Returns the last item of a list.
 // Topics: List Handling
 // See Also: select(), slice(), column()
+// Usage:
+//   item = last(list);
 // Description:
 //   Returns the last element of a list, or undef if empty.
 // Arguments:
@@ -273,10 +287,11 @@ function last(list) =
 
 
 // Function: list_head()
-// Usage:
-//   list = list_head(list, [to]);
+// Synopsis: Returns the elements at the beginning of a list.
 // Topics: List Handling
 // See Also: select(), slice(), list_tail(), last()
+// Usage:
+//   list = list_head(list, [to]);
 // Description:
 //   Returns the head of the given list, from the first item up until the `to` index, inclusive.
 //   By default returns all but the last element of the list.  
@@ -301,10 +316,11 @@ function list_head(list, to=-2) =
 
 
 // Function: list_tail()
-// Usage:
-//   list = list_tail(list, [from]);
+// Synopsis: Returns the elements at the end of a list.
 // Topics: List Handling
 // See Also: select(), slice(), list_tail(), last()
+// Usage:
+//   list = list_tail(list, [from]);
 // Description:
 //   Returns the tail of the given list, from the `from` index up until the end of the list, inclusive.
 //   By default returns all but the first item.  
@@ -331,10 +347,11 @@ function list_tail(list, from=1) =
 
 
 // Function: bselect()
-// Usage:
-//   sublist = bselect(list, index);
+// Synopsis: Select list items using boolean index list.
 // Topics: List Handling
 // See Also: list_bset()
+// Usage:
+//   sublist = bselect(list, index);
 // Description:
 //   Returns the items in `list` whose matching element in `index` evaluates as true.  
 // Arguments:
@@ -353,14 +370,15 @@ function bselect(list,index) =
 
 
 // Function: repeat()
-// Usage:
-//   list = repeat(val, n);
+// Synopsis: Returns a list of repeated copies of a value.
 // Topics: List Handling
 // See Also: count(), lerpn()
+// Usage:
+//   list = repeat(val, n);
 // Description:
 //   Generates a list of `n` copies of the given value `val`.
 //   If the count `n` is given as a list of counts, then this creates a
-//   multi-dimensional array, filled with `val`.
+//   multi-dimensional array, filled with `val`.  If `n` is negative, returns the empty list. 
 // Arguments:
 //   val = The value to repeat to make the list or array.
 //   n = The number of copies to make of `val`.  Can be a list to make an array of copies.
@@ -369,6 +387,7 @@ function bselect(list,index) =
 //   b = repeat(8, [2,3]);    // Returns [[8,8,8], [8,8,8]]
 //   c = repeat(0, [2,2,3]);  // Returns [[[0,0,0],[0,0,0]], [[0,0,0],[0,0,0]]]
 //   d = repeat([1,2,3],3);   // Returns [[1,2,3], [1,2,3], [1,2,3]]
+//   e = repeat(4, -1);       // Returns []
 function repeat(val, n, i=0) =
     is_num(n)? [for(j=[1:1:n]) val] :
     assert( is_list(n), "Invalid count number.")
@@ -378,10 +397,11 @@ function repeat(val, n, i=0) =
 
 
 // Function: list_bset()
-// Usage:
-//   arr = list_bset(indexset, valuelist, [dflt]);
+// Synopsis: Returns a list where values are spread to locations indicated by a boolean index list.
 // Topics: List Handling
 // See Also: bselect()
+// Usage:
+//   arr = list_bset(indexset, valuelist, [dflt]);
 // Description:
 //   Opposite of `bselect()`.  Returns a list the same length as `indexlist`, where each item will
 //   either be 0 if the corresponding item in `indexset` is false, or the next sequential value
@@ -408,7 +428,9 @@ function list_bset(indexset, valuelist, dflt=0) =
 
 
 // Function: list()
+// Synopsis: Expands a range into a full list.
 // Topics: List Handling, Type Conversion
+// See Also: scalar_vec3(), force_list()
 // Usage:
 //   list = list(l)
 // Description:
@@ -416,7 +438,6 @@ function list_bset(indexset, valuelist, dflt=0) =
 //   If given a string, explodes it into a list of single letters.
 // Arguments:
 //   l = The value to expand.
-// See Also: scalar_vec3(), force_list()
 // Example:
 //   l1 = list([3:2:9]);  // Returns: [3,5,7,9]
 //   l2 = list([3,4,5]);  // Returns: [3,4,5]
@@ -426,10 +447,11 @@ function list(l) = is_list(l)? l : [for (x=l) x];
 
 
 // Function: force_list()
-// Usage:
-//   list = force_list(value, [n], [fill]);
+// Synopsis: Coerces non-list values into a list.
 // Topics: List Handling
 // See Also: scalar_vec3()
+// Usage:
+//   list = force_list(value, [n], [fill]);
 // Description:
 //   Coerces non-list values into a list.  Makes it easy to treat a scalar input
 //   consistently as a singleton list, as well as list inputs.
@@ -453,10 +475,11 @@ function force_list(value, n=1, fill) =
 // Section: List Modification
 
 // Function: reverse()
-// Usage:
-//   rlist = reverse(list);
+// Synopsis: Reverses the elements of a list.
 // Topics: List Handling
 // See Also: select(), list_rotate()
+// Usage:
+//   rlist = reverse(list);
 // Description:
 //   Reverses a list or string.
 // Arguments:
@@ -470,10 +493,11 @@ function reverse(list) =
 
 
 // Function: list_rotate()
-// Usage:
-//   rlist = list_rotate(list, [n]);
+// Synopsis: Rotates the ordering of a list.
 // Topics: List Handling
 // See Also: select(), reverse()
+// Usage:
+//   rlist = list_rotate(list, [n]);
 // Description:
 //   Rotates the contents of a list by `n` positions left, so that list[n] becomes the first entry of the list.
 //   If `n` is negative, then the rotation is `abs(n)` positions to the right.
@@ -507,10 +531,11 @@ function list_rotate(list,n=1) =
     
 
 // Function: shuffle()
-// Usage:
-//   shuffled = shuffle(list, [seed]);
+// Synopsis: Randomizes the order of a list.
 // Topics: List Handling
 // See Also: sort(), sortidx(), unique(), unique_count()
+// Usage:
+//   shuffled = shuffle(list, [seed]);
 // Description:
 //   Shuffles the input list into random order.
 //   If given a string, shuffles the characters within the string.
@@ -540,10 +565,11 @@ function shuffle(list,seed) =
 
 
 // Function: repeat_entries()
-// Usage:
-//   newlist = repeat_entries(list, N, [exact]);
+// Synopsis: Repeats list entries (as uniformly as possible) to make list of specified length.
 // Topics: List Handling
 // See Also: repeat()
+// Usage:
+//   newlist = repeat_entries(list, N, [exact]);
 // Description:
 //   Takes a list as input and duplicates some of its entries to produce a list
 //   with length `N`.  If the requested `N` is not a multiple of the list length then
@@ -581,10 +607,11 @@ function repeat_entries(list, N, exact=true) =
 
 
 // Function: list_pad()
-// Usage:
-//   newlist = list_pad(list, minlen, [fill]);
+// Synopsis: Extend list to specified length.
 // Topics: List Handling
 // See Also: force_list(), scalar_vec3()
+// Usage:
+//   newlist = list_pad(list, minlen, [fill]);
 // Description:
 //   If the list `list` is shorter than `minlen` length, pad it to length with the value given in `fill`.
 // Arguments:
@@ -600,14 +627,17 @@ function list_pad(list, minlen, fill) =
 
 
 // Function: list_set()
-// Usage:
-//   list = list_set(list, indices, values, [dflt], [minlen]);
+// Synopsis: Sets the value of specific list items.
 // Topics: List Handling
 // See Also: list_insert(), list_remove(), list_remove_values()
+// Usage:
+//   list = list_set(list, indices, values, [dflt], [minlen]);
 // Description:
 //   Takes the input list and returns a new list such that `list[indices[i]] = values[i]` for all of
 //   the (index,value) pairs supplied and unchanged for other indices.  If you supply `indices` that are 
-//   beyond the length of the list then the list is extended and filled in with the `dflt` value.  
+//   larger that the length of the list then the list is extended and filled in with the `dflt` value.
+//   If you specify indices smaller than zero then they index from the end, with -1 being the last element.
+//   Negative indexing does not wrap around: an error occurs if you give a value smaller than `-len(list)`.
 //   If you set `minlen` then the list is lengthed, if necessary, by padding with `dflt` to that length.  
 //   Repetitions in `indices` are not allowed. The lists `indices` and `values` must have the same length.  
 //   If `indices` is given as a scalar, then that index of the given `list` will be set to the scalar value of `values`.
@@ -620,39 +650,58 @@ function list_pad(list, minlen, fill) =
 // Example:
 //   a = list_set([2,3,4,5], 2, 21);  // Returns: [2,3,21,5]
 //   b = list_set([2,3,4,5], [1,3], [81,47]);  // Returns: [2,81,4,47]
-function list_set(list=[],indices,values,dflt=0,minlen=0) = 
+function list_set(list=[],indices,values,dflt=0,minlen=0) =
     assert(is_list(list))
-    !is_list(indices)? (
-        (is_finite(indices) && indices<len(list))
-          ? concat([for (i=idx(list)) i==indices? values : list[i]], repeat(dflt, minlen-len(list)))
-          : list_set(list,[indices],[values],dflt)
-    ) :
-    indices==[] && values==[]
+    !is_list(indices)?
+        assert(is_finite(indices))
+        let(
+            index = indices<0 ? indices+len(list) : indices
+        )
+        assert(index>=0, str("Index ",indices," is smaller than negative list length"))
+        (
+            index<len(list) ?
+                [
+                  for(i=[0:1:index-1]) list[i],
+                  values,
+                  for(i=[index+1:1:len(list)-1]) list[i],
+                  for(i=[len(list):1:minlen-1]) dflt
+                ]
+            : concat(list, repeat(dflt, index-len(list)), [values], repeat(dflt, minlen-index-1))
+        )
+  : indices==[] && values==[]
       ? concat(list, repeat(dflt, minlen-len(list)))
-      : assert(is_vector(indices) && is_list(values) && len(values)==len(indices),
-               "Index list and value list must have the same length")
-        let( midx = max(len(list)-1, max(indices)) )
-        [
-            for (i=[0:1:midx]) let(
-                j = search(i,indices,0),
-                k = j[0]
-            )
-            assert( len(j)<2, "Repeated indices are not allowed." )
-            k!=undef
-              ? values[k]
-              : i<len(list) ? list[i] : dflt,
-            each repeat(dflt, minlen-max(len(list),max(indices)))
-        ];
+  : assert(is_vector(indices) && is_list(values) && len(values)==len(indices),
+           "Index list and value list must have the same length")
+    let(  indices = [for(ind=indices) ind<0 ? ind+len(list) : ind],
+          midx = max(len(list)-1, max(indices))
+    )
+    assert(min(indices)>=0, "Index list contains value smaller than negative list length")
+    [
+       for (i=[0:1:midx])
+           let(
+               j = search(i,indices,0),
+               k = j[0]
+           )
+           assert( len(j)<2, "Repeated indices are not allowed." )
+           k!=undef ? values[k]
+         : i<len(list) ? list[i]
+         : dflt,
+       each repeat(dflt, minlen-max(len(list),max(indices)+1))
+    ];
+
 
 
 // Function: list_insert()
-// Usage:
-//   list = list_insert(list, indices, values);
+// Synopsis: Inserts values into the middle of a list.
 // Topics: List Handling
 // See Also: list_set(), list_remove(), list_remove_values()
+// Usage:
+//   list = list_insert(list, indices, values);
 // Description:
 //   Insert `values` into `list` before position `indices`.  The indices for insertion 
-//   are based on the original list, before any insertions have occurred.  
+//   are based on the original list, before any insertions have occurred.
+//   You can use negative indices to count from the end of the list.  Note that -1 refers
+//   to the last element, so the insertion will be *before* the last element.  
 // Arguments:
 //   list = list to insert items into
 //   indices = index or list of indices where values are inserted
@@ -663,7 +712,9 @@ function list_set(list=[],indices,values,dflt=0,minlen=0) =
 function list_insert(list, indices, values) = 
     assert(is_list(list))
     !is_list(indices) ?
-        assert( is_finite(indices) && is_finite(values), "Invalid indices/values." ) 
+        assert(is_finite(indices), "Invalid indices." )
+        let(indices = indices<0 ? indices+len(list) : indices)
+        assert(indices>=0, "Index is too small, must be >= len(list)")
         assert( indices<=len(list), "Indices must be <= len(list) ." )
         [
           for (i=idx(list)) each ( i==indices?  [ values, list[i] ] : [ list[i] ] ),
@@ -674,9 +725,13 @@ function list_insert(list, indices, values) =
            "Index list and value list must have the same length")
     assert( max(indices)<=len(list), "Indices must be <= len(list)." )
     let(
+        indices = [for(ind=indices) ind<0 ? ind+len(list) : ind],
         maxidx = max(indices),
         minidx = min(indices)
-    ) [
+    )
+    assert(minidx>=0, "Index list contains values that are too small")
+    assert(maxidx<=len(list), "Index list contains values that are too large")
+    [
         for (i=[0:1:minidx-1] ) list[i],
         for (i=[minidx : min(maxidx, len(list)-1)] )
             let(
@@ -690,10 +745,11 @@ function list_insert(list, indices, values) =
 
 
 // Function: list_remove()
-// Usage:
-//   list = list_remove(list, ind);
+// Synopsis: Removes items by index from a list.
 // Topics: List Handling
 // See Also: list_set(), list_insert(), list_remove_values()
+// Usage:
+//   list = list_remove(list, ind);
 // Description:
 //   If `ind` is a number remove `list[ind]` from the list.  If `ind` is a list of indices
 //   remove from the list the item all items whose indices appear in `ind`.  If you give
@@ -732,10 +788,11 @@ function list_remove(list, ind) =
 
 
 // Function: list_remove_values()
-// Usage:
-//   list = list_remove_values(list, values, [all]);
+// Synopsis: Removes items by value from a list.
 // Topics: List Handling
 // See Also: list_set(), list_insert(), list_remove()
+// Usage:
+//   list = list_remove_values(list, values, [all]);
 // Description:
 //   Removes the first, or all instances of the given value or list of values from the list.
 //   If you specify `all=false` and list a value twice then the first two instances will be removed.  
@@ -796,17 +853,19 @@ function list_remove_values(list,values=[],all=false) =
 
 
 
-
-// Section: Lists of Subsets
+// Section: List Iteration Index Helper
 
 // Function: idx()
-// Usage:
-//   rng = idx(list, [s=], [e=], [step=]);
-//   for(i=idx(list, [s=], [e=], [step=])) ...
+// Synopsis: Returns a range useful for iterating over a list.
 // Topics: List Handling, Iteration
-// See Also: pair(), triplet(), combinations(), permutations()
+// See Also: count()
+// Usage:
+//   range = idx(list, [s=], [e=], [step=]);
+//   for(i=idx(list, [s=], [e=], [step=])) ...
 // Description:
-//   Returns the range of indexes for the given list.
+//   Returns the range that gives the indices for a given list.  This makes is a little bit
+//   easier to loop over a list by index, when you need the index numbers and looping of list values isn't enough.
+//   Note that the return is a **range** not a list.  
 // Arguments:
 //   list = The list to returns the index range of.
 //   ---
@@ -826,13 +885,16 @@ function idx(list, s=0, e=-1, step=1) =
     ) [_s : step : _e];
 
 
+// Section: Lists of Subsets
+
 
 // Function: pair()
+// Synopsis: Returns a list of overlapping consecutive pairs in a list.
+// Topics: List Handling, Iteration
+// See Also: idx(), triplet(), combinations(), permutations()
 // Usage:
 //   p = pair(list, [wrap]);
 //   for (p = pair(list, [wrap])) ...  // On each iteration, p contains a list of two adjacent items.
-// Topics: List Handling, Iteration
-// See Also: idx(), triplet(), combinations(), permutations()
 // Description:
 //   Returns a list of all of the pairs of adjacent items from a list, optionally wrapping back to the front.  The pairs overlap, and
 //   are returned in order starting with the first two entries in the list.  If the list has less than two elements, the empty list is returned. 
@@ -861,11 +923,12 @@ function pair(list, wrap=false) =
 
 
 // Function: triplet()
+// Synopsis: Returns a list of overlapping consecutive triplets in a list.
+// Topics: List Handling, Iteration
+// See Also: idx(), pair(), combinations(), permutations()
 // Usage:
 //   list = triplet(list, [wrap]);
 //   for (t = triplet(list, [wrap])) ...
-// Topics: List Handling, Iteration
-// See Also: idx(), pair(), combinations(), permutations()
 // Description:
 //   Returns a list of all adjacent triplets from a list, optionally wrapping back to the front.
 //   If you set `wrap` to true then the first triplet is the one centered on the first list element, so it includes
@@ -900,10 +963,11 @@ function triplet(list, wrap=false) =
 
 
 // Function: combinations()
-// Usage:
-//   list = combinations(l, [n]);
+// Synopsis: Returns a list of all combinations of the list entries.
 // Topics: List Handling, Iteration
 // See Also: idx(), pair(), triplet(), permutations()
+// Usage:
+//   list = combinations(l, [n]);
 // Description:
 //   Returns a list of all of the (unordered) combinations of `n` items out of the given list `l`.
 //   For the list `[1,2,3,4]`, with `n=2`, this will return `[[1,2], [1,3], [1,4], [2,3], [2,4], [3,4]]`.
@@ -926,10 +990,11 @@ function combinations(l,n=2,_s=0) =
 
 
 // Function: permutations()
-// Usage:
-//   list = permutations(l, [n]);
+// Synopsis: Returns a list of all permutations of the list entries.
 // Topics: List Handling, Iteration
 // See Also: idx(), pair(), triplet(), combinations()
+// Usage:
+//   list = permutations(l, [n]);
 // Description:
 //   Returns a list of all of the (ordered) permutation `n` items out of the given list `l`.  
 //   For the list `[1,2,3]`, with `n=2`, this will return `[[1,2],[1,3],[2,1],[2,3],[3,1],[3,2]]`
@@ -952,32 +1017,34 @@ function permutations(l,n=2) =
 
 
 // Function: list_to_matrix()
+// Synopsis: Groups items in a list into sublists.
+// Topics: Matrices, List Handling
+// See Also: column(), submatrix(), hstack(), flatten(), full_flatten()
 // Usage:
 //   groups = list_to_matrix(v, cnt, [dflt]);
 // Description:
 //   Takes a flat list of values, and groups items in sets of `cnt` length.
 //   The opposite of this is `flatten()`.
-// Topics: Matrices, List Handling
-// See Also: column(), submatrix(), hstack(), flatten(), full_flatten()
 // Arguments:
 //   v = The list of items to group.
 //   cnt = The number of items to put in each grouping. 
 //   dflt = The default value to fill in with if the list is not a multiple of `cnt` items long.  Default: undef
 // Example:
 //   v = [1,2,3,4,5,6];
-//   a = list_to_matrix(v,2) returns [[1,2], [3,4], [5,6]]
-//   b = list_to_matrix(v,3) returns [[1,2,3], [4,5,6]]
-//   c = list_to_matrix(v,4,0) returns [[1,2,3,4], [5,6,0,0]]
+//   a = list_to_matrix(v,2)  // returns [[1,2], [3,4], [5,6]]
+//   b = list_to_matrix(v,3)  // returns [[1,2,3], [4,5,6]]
+//   c = list_to_matrix(v,4,0)  // returns [[1,2,3,4], [5,6,0,0]]
 function list_to_matrix(v, cnt, dflt=undef) =
     [for (i = [0:cnt:len(v)-1]) [for (j = [0:1:cnt-1]) default(v[i+j], dflt)]];
 
 
 
 // Function: flatten()
-// Usage:
-//   list = flatten(l);
+// Synopsis: Flattens a list of sublists into a single list.
 // Topics: Matrices, List Handling
 // See Also: column(), submatrix(), hstack(), full_flatten()
+// Usage:
+//   list = flatten(l);
 // Description:
 //   Takes a list of lists and flattens it by one level.
 // Arguments:
@@ -990,10 +1057,11 @@ function flatten(l) =
 
 
 // Function: full_flatten()
-// Usage:
-//   list = full_flatten(l);
+// Synopsis: Recursively flattens nested sublists into a single list of non-list values.
 // Topics: Matrices, List Handling
 // See Also: column(), submatrix(), hstack(), flatten()
+// Usage:
+//   list = full_flatten(l);
 // Description: 
 //   Collects in a list all elements recursively found in any level of the given list.
 //   The output list is ordered in depth first order.
@@ -1010,10 +1078,11 @@ function full_flatten(l) =
 // Section: Set Manipulation
 
 // Function: set_union()
-// Usage:
-//   s = set_union(a, b, [get_indices]);
+// Synopsis: Merges two lists, returning a list of unique items.
 // Topics: Set Handling, List Handling
 // See Also: set_difference(), set_intersection()
+// Usage:
+//   s = set_union(a, b, [get_indices]);
 // Description:
 //   Given two sets (lists with unique items), returns the set of unique items that are in either `a` or `b`.
 //   If `get_indices` is true, a list of indices into the new union set are returned for each item in `b`,
@@ -1052,10 +1121,11 @@ function set_union(a, b, get_indices=false) =
 
 
 // Function: set_difference()
-// Usage:
-//   s = set_difference(a, b);
+// Synopsis: Returns a list of unique items that are in list A, but not in list B.
 // Topics: Set Handling, List Handling
 // See Also: set_union(), set_intersection()
+// Usage:
+//   s = set_difference(a, b);
 // Description:
 //   Given two sets (lists with unique items), returns the set of items that are in `a`, but not `b`.
 // Arguments:
@@ -1073,10 +1143,11 @@ function set_difference(a, b) =
 
 
 // Function: set_intersection()
-// Usage:
-//   s = set_intersection(a, b);
+// Synopsis: Returns a list of unique items that are in both given lists.
 // Topics: Set Handling, List Handling
 // See Also: set_union(), set_difference()
+// Usage:
+//   s = set_intersection(a, b);
 // Description:
 //   Given two sets (lists with unique items), returns the set of items that are in both sets.
 // Arguments:

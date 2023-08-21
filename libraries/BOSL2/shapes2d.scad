@@ -21,14 +21,16 @@ use <builtins.scad>
 // Section: 2D Primitives
 
 // Function&Module: square()
+// Synopsis: Creates a 2D square or rectangle.
+// SynTags: Geom, Path
 // Topics: Shapes (2D), Path Generators (2D)
+// See Also: rect()
 // Usage: As a Module
 //   square(size, [center], ...);
 // Usage: With Attachments
 //   square(size, [center], ...) [ATTACHMENTS];
 // Usage: As a Function
 //   path = square(size, [center], ...);
-// See Also: rect()
 // Description:
 //   When called as the builtin module, creates a 2D square or rectangle of the given size.
 //   When called as a function, returns a 2D path/list of points for a square/rectangle of the given size.
@@ -71,12 +73,14 @@ module square(size=1, center, anchor, spin) {
 
 
 // Function&Module: rect()
+// Synopsis: Creates a 2d rectangle with optional corner rounding.
+// SynTags: Geom, Path
+// Topics: Shapes (2D), Paths (2D), Path Generators, Attachable
+// See Also: square()
 // Usage: As Module
 //   rect(size, [rounding], [chamfer], ...) [ATTACHMENTS];
 // Usage: As Function
 //   path = rect(size, [rounding], [chamfer], ...);
-// Topics: Shapes (2D), Paths (2D), Path Generators, Attachable
-// See Also: square()
 // Description:
 //   When called as a module, creates a 2D rectangle of the given size, with optional rounding or chamfering.
 //   When called as a function, returns a 2D path/list of points for a square/rectangle of the given size.
@@ -112,6 +116,9 @@ module square(size=1, center, anchor, spin) {
 // Example(2D): "perim" Anchors
 //   rect([40,30], rounding=10, atype="perim")
 //       show_anchors();
+// Example(2D): "perim" Anchors
+//   rect([40,30], rounding=[-10,-8,-3,-7], atype="perim")
+//       show_anchors();
 // Example(2D): Mixed Chamferring and Rounding
 //   rect([40,30],rounding=[5,0,10,0],chamfer=[0,8,0,15],$fa=1,$fs=1);
 // Example(2D): Called as Function
@@ -120,52 +127,49 @@ module square(size=1, center, anchor, spin) {
 //   move_copies(path) color("blue") circle(d=2,$fn=8);
 module rect(size=1, rounding=0, atype="box", chamfer=0, anchor=CENTER, spin=0) {
     errchk = assert(in_list(atype, ["box", "perim"]));
-    size = is_num(size)? [size,size] : point2d(size);
+    size = force_list(size,2);
     if (rounding==0 && chamfer==0) {
         attachable(anchor, spin, two_d=true, size=size) {
             square(size, center=true);
             children();
         }
     } else {
-        pts = rect(size=size, rounding=rounding, chamfer=chamfer);
-        if (atype == "perim") {
-            attachable(anchor, spin, two_d=true, path=pts) {
+        pts_over = rect(size=size, rounding=rounding, chamfer=chamfer, atype=atype, _return_override=true);
+        pts = pts_over[0];
+        override = pts_over[1];
+        attachable(anchor, spin, two_d=true, size=size,override=override) {
                 polygon(pts);
                 children();
-            }
-        } else {
-            attachable(anchor, spin, two_d=true, size=size) {
-                polygon(pts);
-                children();
-            }
         }
     }
 }
 
 
 
-function rect(size=1, rounding=0, chamfer=0, atype="box", anchor=CENTER, spin=0) =
-    assert(is_num(size)     || is_vector(size))
-    assert(is_num(chamfer)  || len(chamfer)==4)
-    assert(is_num(rounding) || len(rounding)==4)
+function rect(size=1, rounding=0, chamfer=0, atype="box", anchor=CENTER, spin=0, _return_override) =
+    assert(is_num(size)     || is_vector(size,2))
+    assert(is_num(chamfer)  || is_vector(chamfer,4))
+    assert(is_num(rounding) || is_vector(rounding,4))
     assert(in_list(atype, ["box", "perim"]))
     let(
-        anchor=point2d(anchor),
-        size = is_num(size)? [size,size] : point2d(size),
-        complex = rounding!=0 || chamfer!=0
+        anchor=_force_anchor_2d(anchor),
+        size = force_list(size,2),
+        chamfer = force_list(chamfer,4), 
+        rounding = force_list(rounding,4)
     )
-    (rounding==0 && chamfer==0)? let(
-        path = [
-            [ size.x/2, -size.y/2],
-            [-size.x/2, -size.y/2],
-            [-size.x/2,  size.y/2],
-            [ size.x/2,  size.y/2] 
-        ]
-    )
-    rot(spin, p=move(-v_mul(anchor,size/2), p=path)) :
+    all_zero(concat(chamfer,rounding),0) ?
+        let(
+             path = [
+                     [ size.x/2, -size.y/2],
+                     [-size.x/2, -size.y/2],
+                     [-size.x/2,  size.y/2],
+                     [ size.x/2,  size.y/2] 
+                    ]
+        )
+        rot(spin, p=move(-v_mul(anchor,size/2), p=path))
+    :
+    assert(all_zero(v_mul(chamfer,rounding),0), "Cannot specify chamfer and rounding at the same corner")
     let(
-        chamfer = is_list(chamfer)? chamfer : [for (i=[0:3]) chamfer],
-        rounding = is_list(rounding)? rounding : [for (i=[0:3]) rounding],
         quadorder = [3,2,1,0],
         quadpos = [[1,1],[-1,1],[-1,-1],[1,-1]],
         eps = 1e-9,
@@ -176,7 +180,7 @@ function rect(size=1, rounding=0, chamfer=0, atype="box", anchor=CENTER, spin=0)
     assert(insets_x <= size.x, "Requested roundings and/or chamfers exceed the rect width.")
     assert(insets_y <= size.y, "Requested roundings and/or chamfers exceed the rect height.")
     let(
-        path = [
+        corners = [
             for(i = [0:3])
             let(
                 quad = quadorder[i],
@@ -191,17 +195,27 @@ function rect(size=1, rounding=0, chamfer=0, atype="box", anchor=CENTER, spin=0)
                     abs(qround) >= eps? [for (j=[0:1:cverts]) let(a=90-j*step) v_mul(polar_to_xy(abs(qinset),a),[sign(qinset),1])] :
                     [[0,0]],
                 qfpts = [for (p=qpts) v_mul(p,qpos)],
-                qrpts = qpos.x*qpos.y < 0? reverse(qfpts) : qfpts
-            )
-            each move(cp, p=qrpts)
-        ]
-    ) complex && atype=="perim"?
-        reorient(anchor,spin, two_d=true, path=path, p=path) :
-        reorient(anchor,spin, two_d=true, size=size, p=path);
+                qrpts = qpos.x*qpos.y < 0? reverse(qfpts) : qfpts,
+                cornerpt = atype=="box" || (qround==0 && qchamf==0) ? undef
+                         : qround<0 || qchamf<0 ? [[0,-qpos.y*min(qround,qchamf)]]
+                         : [for(seg=pair(qrpts)) let(isect=line_intersection(seg, [[0,0],qpos],SEGMENT,LINE)) if (is_def(isect) && isect!=seg[0]) isect]
+              )
+            assert(is_undef(cornerpt) || len(cornerpt)==1,"Cannot find corner point to anchor")
+            [move(cp, p=qrpts), is_undef(cornerpt)? undef : move(cp,p=cornerpt[0])]
+        ],
+        path = flatten(column(corners,0)),
+        override = [for(i=[0:3])
+                      let(quad=quadorder[i])
+                      if (is_def(corners[i][1])) [quadpos[quad], [corners[i][1], min(chamfer[quad],rounding[quad])<0 ? [quadpos[quad].x,0] : undef]]]
+      ) _return_override ? [reorient(anchor,spin, two_d=true, size=size, p=path, override=override), override]
+                       : reorient(anchor,spin, two_d=true, size=size, p=path, override=override);
 
 
 // Function&Module: circle()
+// Synopsis: Creates the approximation of a circle.
+// SynTags: Geom, Path
 // Topics: Shapes (2D), Path Generators (2D)
+// See Also: ellipse(), circle_2tangents(), circle_3points()
 // Usage: As a Module
 //   circle(r|d=, ...) [ATTACHMENTS];
 //   circle(points=) [ATTACHMENTS];
@@ -210,7 +224,6 @@ function rect(size=1, rounding=0, chamfer=0, atype="box", anchor=CENTER, spin=0)
 //   path = circle(r|d=, ...);
 //   path = circle(points=);
 //   path = circle(r|d=, corner=);
-// See Also: ellipse(), circle_2tangents(), circle_3points()
 // Description:
 //   When called as the builtin module, creates a 2D polygon that approximates a circle of the given size.
 //   When called as a function, returns a 2D list of points (path) for a polygon that approximates a circle of the given size.
@@ -304,12 +317,14 @@ module circle(r, d, points, corner, anchor=CENTER, spin=0) {
 
 
 // Function&Module: ellipse()
+// Synopsis: Creates the approximation of an ellipse or a circle.
+// SynTags: Geom, Path
+// Topics: Shapes (2D), Paths (2D), Path Generators, Attachable
+// See Also: circle(), circle_2tangents(), circle_3points()
 // Usage: As a Module
 //   ellipse(r|d=, [realign=], [circum=], [uniform=], ...) [ATTACHMENTS];
 // Usage: As a Function
 //   path = ellipse(r|d=, [realign=], [circum=], [uniform=], ...);
-// Topics: Shapes (2D), Paths (2D), Path Generators, Attachable
-// See Also: circle(), circle_2tangents(), circle_3points()
 // Description:
 //   When called as a module, creates a 2D polygon that approximates a circle or ellipse of the given size.
 //   When called as a function, returns a 2D list of points (path) for a polygon that approximates a circle or ellipse of the given size.
@@ -487,12 +502,14 @@ function ellipse(r, d, realign=false, circum=false, uniform=false, anchor=CENTER
 // Section: Polygons
 
 // Function&Module: regular_ngon()
+// Synopsis: Creates a regular N-sided polygon.
+// SynTags: Geom, Path
+// Topics: Shapes (2D), Paths (2D), Path Generators, Attachable
+// See Also: debug_polygon(), circle(), pentagon(), hexagon(), octagon(), ellipse(), star()
 // Usage:
 //   regular_ngon(n, r|d=|or=|od=, [realign=]) [ATTACHMENTS];
 //   regular_ngon(n, ir=|id=, [realign=]) [ATTACHMENTS];
 //   regular_ngon(n, side=, [realign=]) [ATTACHMENTS];
-// Topics: Shapes (2D), Paths (2D), Path Generators, Attachable
-// See Also: circle(), pentagon(), hexagon(), octagon(), ellipse(), star()
 // Description:
 //   When called as a function, returns a 2D path for a regular N-sided polygon.
 //   When called as a module, creates a 2D regular N-sided polygon.
@@ -626,14 +643,16 @@ module regular_ngon(n=6, r, d, or, od, ir, id, side, rounding=0, realign=false, 
 
 
 // Function&Module: pentagon()
+// Synopsis: Creates a regular pentagon.
+// SynTags: Geom, Path
+// Topics: Shapes (2D), Paths (2D), Path Generators, Attachable
+// See Also: circle(), regular_ngon(), hexagon(), octagon(), ellipse(), star()
 // Usage:
 //   pentagon(or|od=, [realign=], [align_tip=|align_side=]) [ATTACHMENTS];
 //   pentagon(ir=|id=, [realign=], [align_tip=|align_side=]) [ATTACHMENTS];
 //   pentagon(side=, [realign=], [align_tip=|align_side=]) [ATTACHMENTS];
 // Usage: as function
 //   path = pentagon(...);
-// Topics: Shapes (2D), Paths (2D), Path Generators, Attachable
-// See Also: circle(), regular_ngon(), hexagon(), octagon(), ellipse(), star()
 // Description:
 //   When called as a function, returns a 2D path for a regular pentagon.
 //   When called as a module, creates a 2D regular pentagon.
@@ -684,6 +703,10 @@ module pentagon(r, d, or, od, ir, id, side, rounding=0, realign=false, align_tip
 
 
 // Function&Module: hexagon()
+// Synopsis: Creates a regular hexagon.
+// SynTags: Geom, Path
+// Topics: Shapes (2D), Paths (2D), Path Generators, Attachable
+// See Also: circle(), regular_ngon(), pentagon(), octagon(), ellipse(), star()
 // Usage: As Module
 //   hexagon(r/or, [realign=], <align_tip=|align_side=>, [rounding=], ...) [ATTACHMENTS];
 //   hexagon(d=/od=, ...) [ATTACHMENTS];
@@ -691,8 +714,6 @@ module pentagon(r, d, or, od, ir, id, side, rounding=0, realign=false, align_tip
 //   hexagon(side=, ...) [ATTACHMENTS];
 // Usage: As Function
 //   path = hexagon(...);
-// Topics: Shapes (2D), Paths (2D), Path Generators, Attachable
-// See Also: circle(), regular_ngon(), pentagon(), octagon(), ellipse(), star()
 // Description:
 //   When called as a function, returns a 2D path for a regular hexagon.
 //   When called as a module, creates a 2D regular hexagon.
@@ -743,6 +764,10 @@ module hexagon(r, d, or, od, ir, id, side, rounding=0, realign=false, align_tip,
 
 
 // Function&Module: octagon()
+// Synopsis: Creates a regular octagon.
+// SynTags: Geom, Path
+// Topics: Shapes (2D), Paths (2D), Path Generators, Attachable
+// See Also: circle(), regular_ngon(), pentagon(), hexagon(), ellipse(), star()
 // Usage: As Module
 //   octagon(r/or, [realign=], [align_tip=|align_side=], [rounding=], ...) [ATTACHMENTS];
 //   octagon(d=/od=, ...) [ATTACHMENTS];
@@ -750,8 +775,6 @@ module hexagon(r, d, or, od, ir, id, side, rounding=0, realign=false, align_tip,
 //   octagon(side=, ...) [ATTACHMENTS];
 // Usage: As Function
 //   path = octagon(...);
-// Topics: Shapes (2D), Paths (2D), Path Generators, Attachable
-// See Also: circle(), regular_ngon(), pentagon(), hexagon(), ellipse(), star()
 // Description:
 //   When called as a function, returns a 2D path for a regular octagon.
 //   When called as a module, creates a 2D regular octagon.
@@ -801,25 +824,37 @@ module octagon(r, d, or, od, ir, id, side, rounding=0, realign=false, align_tip,
 
 
 // Function&Module: right_triangle()
+// Synopsis: Creates a right triangle.
+// SynTags: Geom, Path
+// Topics: Shapes (2D), Paths (2D), Path Generators, Attachable
+// See Also: square(), rect(), regular_ngon(), pentagon(), hexagon(), octagon(), star()
 // Usage: As Module
 //   right_triangle(size, [center], ...) [ATTACHMENTS];
 // Usage: As Function
 //   path = right_triangle(size, [center], ...);
 // Description:
-//   Creates a right triangle with the Hypotenuse in the X+Y+ quadrant.
+//   When called as a module, creates a right triangle with the Hypotenuse in the X+Y+ quadrant.
+//   When called as a function, returns a 2D path for a right triangle with the Hypotenuse in the X+Y+ quadrant.
 // Arguments:
 //   size = The width and length of the right triangle, given as a scalar or an XY vector.
 //   center = If true, forces `anchor=CENTER`.  If false, forces `anchor=[-1,-1]`.  Default: undef (use `anchor=`)
 //   ---
 //   anchor = Translate so anchor point is at origin (0,0,0).  See [anchor](attachments.scad#subsection-anchor).  Default: `CENTER`
 //   spin = Rotate this many degrees around the Z axis after anchor.  See [spin](attachments.scad#subsection-spin).  Default: `0`
+// Extra Anchors:
+//   hypot = Center of angled side, perpendicular to that side.
 // Example(2D):
 //   right_triangle([40,30]);
 // Example(2D): With `center=true`
 //   right_triangle([40,30], center=true);
-// Example(2D): Anchors
-//   right_triangle([40,30])
-//       show_anchors();
+// Example(2D): Standard Anchors
+//   right_triangle([80,30], center=true)
+//       show_anchors(custom=false);
+//   color([0.5,0.5,0.5,0.1])
+//       square([80,30], center=true);
+// Example(2D): Named Anchors
+//   right_triangle([80,30], center=true)
+//       show_anchors(std=false);
 function right_triangle(size=[1,1], center, anchor, spin=0) =
     let(
         size = is_num(size)? [size,size] : size,
@@ -828,15 +863,21 @@ function right_triangle(size=[1,1], center, anchor, spin=0) =
     assert(is_vector(size,2))
     assert(min(size)>0, "Must give positive size")
     let(
-        path = [ [size.x/2,-size.y/2], [-size.x/2,-size.y/2], [-size.x/2,size.y/2] ]
-    ) reorient(anchor,spin, two_d=true, size=[size.x,size.y], size2=0, shift=-size.x/2, p=path);
+        path = [ [size.x/2,-size.y/2], [-size.x/2,-size.y/2], [-size.x/2,size.y/2] ],
+        anchors = [
+            named_anchor("hypot", CTR, unit([size.y,size.x])),
+        ]
+    ) reorient(anchor,spin, two_d=true, size=[size.x,size.y], anchors=anchors, p=path);
 
 module right_triangle(size=[1,1], center, anchor, spin=0) {
     size = is_num(size)? [size,size] : size;
     anchor = get_anchor(anchor, center, [-1,-1], [-1,-1]);
     check = assert(is_vector(size,2));
-    path = right_triangle(size, center=true);
-    attachable(anchor,spin, two_d=true, size=[size.x,size.y], size2=0, shift=-size.x/2) {
+    path = right_triangle(size, anchor="origin");
+    anchors = [
+        named_anchor("hypot", CTR, unit([size.y,size.x])),
+    ];
+    attachable(anchor,spin, two_d=true, size=[size.x,size.y], anchors=anchors) {
         polygon(path);
         children();
     }
@@ -844,39 +885,47 @@ module right_triangle(size=[1,1], center, anchor, spin=0) {
 
 
 // Function&Module: trapezoid()
-// Usage: As Module
-//   trapezoid(h, w1, w2, [shift=], [rounding=], [chamfer=], ...) [ATTACHMENTS];
-//   trapezoid(h, w1, angle=, ...) [ATTACHMENTS];
-//   trapezoid(h, w2, angle=, ...) [ATTACHMENTS];
-//   trapezoid(w1, w2, angle=, ...) [ATTACHMENTS];
-// Usage: As Function
-//   path = trapezoid(...);
+// Synopsis: Creates a trapezoid with parallel top and bottom sides.
+// SynTags: Geom, Path
 // Topics: Shapes (2D), Paths (2D), Path Generators, Attachable
 // See Also: rect(), square()
+// Usage: As Module
+//   trapezoid(h, w1, w2, [shift=], [rounding=], [chamfer=], [flip=], ...) [ATTACHMENTS];
+//   trapezoid(h, w1, ang=, [rounding=], [chamfer=], [flip=], ...) [ATTACHMENTS];
+//   trapezoid(h, w2=, ang=, [rounding=], [chamfer=], [flip=], ...) [ATTACHMENTS];
+//   trapezoid(w1=, w2=, ang=, [rounding=], [chamfer=], [flip=], ...) [ATTACHMENTS];
+// Usage: As Function
+//   path = trapezoid(...);
 // Description:
-//   When called as a function, returns a 2D path for a trapezoid with parallel front and back sides.
-//   When called as a module, creates a 2D trapezoid with parallel front and back sides.
+//   When called as a function, returns a 2D path for a trapezoid with parallel front and back (top and bottom) sides. 
+//   When called as a module, creates a 2D trapezoid.  You can specify the trapezoid by giving its height and the lengths
+//   of its two bases.  Alternatively, you can omit one of those parameters and specify the lower angle(s).
+//   The shift parameter, which cannot be combined with ang, shifts the back (top) of the trapezoid to the right.  
 // Arguments:
 //   h = The Y axis height of the trapezoid.
 //   w1 = The X axis width of the front end of the trapezoid.
 //   w2 = The X axis width of the back end of the trapezoid.
 //   ---
-//   angle = If given in place of `h`, `w1`, or `w2`, then the missing value is calculated such that the right side has that angle away from the Y axis.
-//   shift = Scalar value to shift the back of the trapezoid along the X axis by.  Default: 0
+//   ang = Specify the bottom angle(s) of the trapezoid.  Can give a scalar for an isosceles trapezoid or a list of two angles, the left angle and right angle.  You must omit one of `h`, `w1`, or `w2` to allow the freedom to control the angles. 
+//   shift = Scalar value to shift the back of the trapezoid along the X axis by.  Cannot be combined with ang.  Default: 0
 //   rounding = The rounding radius for the corners.  If given as a list of four numbers, gives individual radii for each corner, in the order [X+Y+,X-Y+,X-Y-,X+Y-]. Default: 0 (no rounding)
 //   chamfer = The Length of the chamfer faces at the corners.  If given as a list of four numbers, gives individual chamfers for each corner, in the order [X+Y+,X-Y+,X-Y-,X+Y-].  Default: 0 (no chamfer)
 //   flip = If true, negative roundings and chamfers will point forward and back instead of left and right.  Default: `false`.
+//   atype = The type of anchoring to use with `anchor=`.  Valid opptions are "box" and "perim".  This lets you choose between putting anchors on the rounded or chamfered perimeter, or on the square bounding box of the shape. Default: "box"
 //   anchor = Translate so anchor point is at origin (0,0,0).  See [anchor](attachments.scad#subsection-anchor).  Default: `CENTER`
 //   spin = Rotate this many degrees around the Z axis after anchor.  See [spin](attachments.scad#subsection-spin).  Default: `0`
+// Anchor Types:
+//   box = Anchor is with respect to the rectangular bounding box of the shape.
+//   perim = Anchors are placed along the rounded or chamfered perimeter of the shape.
 // Examples(2D):
 //   trapezoid(h=30, w1=40, w2=20);
 //   trapezoid(h=25, w1=20, w2=35);
 //   trapezoid(h=20, w1=40, w2=0);
-//   trapezoid(h=20, w1=30, angle=30);
-//   trapezoid(h=20, w1=20, angle=-30);
-//   trapezoid(h=20, w2=10, angle=30);
-//   trapezoid(h=20, w2=30, angle=-30);
-//   trapezoid(w1=30, w2=10, angle=30);
+//   trapezoid(h=20, w1=30, ang=60);
+//   trapezoid(h=20, w1=20, ang=120);
+//   trapezoid(h=20, w2=10, ang=60);
+//   trapezoid(h=20, w1=50, ang=[40,60]);
+//   trapezoid(w1=30, w2=10, ang=[30,90]);
 // Example(2D): Chamfered Trapezoid
 //   trapezoid(h=30, w1=60, w2=40, chamfer=5);
 // Example(2D): Negative Chamfered Trapezoid
@@ -891,27 +940,68 @@ module right_triangle(size=[1,1], center, anchor, spin=0) {
 //   trapezoid(h=30, w1=60, w2=40, rounding=-5, flip=true);
 // Example(2D): Mixed Chamfering and Rounding
 //   trapezoid(h=30, w1=60, w2=40, rounding=[5,0,-10,0],chamfer=[0,8,0,-15],$fa=1,$fs=1);
+// Example(2D): default anchors for roundings
+//   trapezoid(h=30, w1=100, ang=[66,44],rounding=5) show_anchors();
+// Example(2D): default anchors for negative roundings are still at the trapezoid corners
+//   trapezoid(h=30, w1=100, ang=[66,44],rounding=-5) show_anchors();
+// Example(2D): "perim" anchors are at the tips of negative roundings
+//   trapezoid(h=30, w1=100, ang=[66,44],rounding=-5, atype="perim") show_anchors();
+// Example(2D): They point the other direction if you flip them
+//   trapezoid(h=30, w1=100, ang=[66,44],rounding=-5, atype="perim",flip=true) show_anchors();
 // Example(2D): Called as Function
 //   stroke(closed=true, trapezoid(h=30, w1=40, w2=20));
-function trapezoid(h, w1, w2, angle, shift=0, chamfer=0, rounding=0, flip=false, anchor=CENTER, spin=0) =
+
+function _trapezoid_dims(h,w1,w2,shift,ang) = 
+    let(  
+        h = is_def(h)? h
+          : num_defined([w1,w2,each ang])==4 ? (w1-w2) * sin(ang[0]) * sin(ang[1]) / sin(ang[0]+ang[1])
+          : undef
+    )
+    is_undef(h) ? [h]
+  :
+    let(
+        x1 = is_undef(ang[0]) || ang[0]==90 ? 0 : h/tan(ang[0]),
+        x2 = is_undef(ang[1]) || ang[1]==90 ? 0 : h/tan(ang[1]),
+        w1 = is_def(w1)? w1
+           : is_def(w2) && is_def(ang[0]) ? w2 + x1 + x2
+           : undef,
+        w2 = is_def(w2)? w2
+           : is_def(w1) && is_def(ang[0]) ? w1 - x1 - x2
+           : undef,
+        shift = first_defined([shift,(x1-x2)/2])
+    )
+    [h,w1,w2,shift];
+
+
+
+function trapezoid(h, w1, w2, ang, shift, chamfer=0, rounding=0, flip=false, anchor=CENTER, spin=0,atype="box", _return_override, angle) =
+    assert(is_undef(angle), "The angle parameter has been replaced by ang, which specifies trapezoid interior angle")
     assert(is_undef(h) || is_finite(h))
     assert(is_undef(w1) || is_finite(w1))
     assert(is_undef(w2) || is_finite(w2))
-    assert(is_undef(angle) || is_finite(angle))
-    assert(num_defined([h, w1, w2, angle]) == 3, "Must give exactly 3 of the arguments h, w1, w2, and angle.")
-    assert(is_finite(shift))
+    assert(is_undef(ang) || is_finite(ang) || is_vector(ang,2))
+    assert(num_defined([h, w1, w2, ang]) == 3, "Must give exactly 3 of the arguments h, w1, w2, and angle.")
+    assert(is_undef(shift) || is_finite(shift))
+    assert(num_defined([shift,ang])<2, "Cannot specify shift and ang together")
     assert(is_finite(chamfer)  || is_vector(chamfer,4))
     assert(is_finite(rounding) || is_vector(rounding,4))
     let(
-        simple = chamfer==0 && rounding==0,
-        h  = !is_undef(h)?  h  : opp_ang_to_adj(abs(w2-w1)/2, abs(angle)),
-        w1 = !is_undef(w1)? w1 : w2 + 2*(adj_ang_to_opp(h, angle) + shift),
-        w2 = !is_undef(w2)? w2 : w1 - 2*(adj_ang_to_opp(h, angle) + shift),
-        chamfs = is_num(chamfer)? [for (i=[0:3]) chamfer] :
-            assert(len(chamfer)==4) chamfer,
-        rounds = is_num(rounding)? [for (i=[0:3]) rounding] :
-            assert(len(rounding)==4) rounding,
-        srads = [for (i=[0:3]) rounds[i]? rounds[i] : chamfs[i]],
+        ang = force_list(ang,2),
+        angOK = len(ang)==2 && (ang==[undef,undef] || (all_positive(ang) && ang[0]<180 && ang[1]<180))
+    )
+    assert(angOK, "trapezoid angles must be scalar or 2-vector, strictly between 0 and 180")
+    let(
+        h_w1_w2_shift = _trapezoid_dims(h,w1,w2,shift,ang),
+        h = h_w1_w2_shift[0],
+        w1 = h_w1_w2_shift[1],
+        w2 = h_w1_w2_shift[2],
+        shift = h_w1_w2_shift[3],
+        chamfer = force_list(chamfer,4),
+        rounding = force_list(rounding,4)
+    )
+    assert(all_zero(v_mul(chamfer,rounding),0), "Cannot specify chamfer and rounding at the same corner")
+    let(
+        srads = chamfer+rounding, 
         rads = v_abs(srads)
     )
     assert(w1>=0 && w2>=0 && h>0, "Degenerate trapezoid geometry.")
@@ -935,75 +1025,86 @@ function trapezoid(h, w1, w2, angle, shift=0, chamfer=0, rounding=0, flip=false,
                 b = a + [hyps[i] * qdirs[i].x * (srads[i]<0 && !flip? 1 : -1), 0]
             ) b
         ],
-        cpath = [
-            each (
+        corners = [
+             (
                 let(i = 0)
-                rads[i] == 0? [base[i]] :
-                srads[i] > 0? arc(n=rounds[i]?undef:2, cp=base[i]+offs[i], angle=[angs[i], 90], r=rads[i]) :
-                flip? arc(n=rounds[i]?undef:2, cp=base[i]+offs[i], angle=[angs[i],-90], r=rads[i]) :
-                arc(n=rounds[i]?undef:2, cp=base[i]+offs[i], angle=[180+angs[i],90], r=rads[i])
+                rads[i] == 0? [base[i]]
+              : srads[i] > 0? arc(n=rounding[i]?undef:2, cp=base[i]+offs[i], angle=[angs[i], 90], r=rads[i])
+              : flip? arc(n=rounding[i]?undef:2, cp=base[i]+offs[i], angle=[angs[i],-90], r=rads[i])
+              : arc(n=rounding[i]?undef:2, cp=base[i]+offs[i], angle=[180+angs[i],90], r=rads[i])
             ),
-            each (
+             (
                 let(i = 1)
-                rads[i] == 0? [base[i]] :
-                srads[i] > 0? arc(n=rounds[i]?undef:2, cp=base[i]+offs[i], angle=[90,180+angs[i]], r=rads[i]) :
-                flip? arc(n=rounds[i]?undef:2, cp=base[i]+offs[i], angle=[270,180+angs[i]], r=rads[i]) :
-                arc(n=rounds[i]?undef:2, cp=base[i]+offs[i], angle=[90,angs[i]], r=rads[i])
+                rads[i] == 0? [base[i]] 
+              : srads[i] > 0? arc(n=rounding[i]?undef:2, cp=base[i]+offs[i], angle=[90,180+angs[i]], r=rads[i]) 
+              : flip? arc(n=rounding[i]?undef:2, cp=base[i]+offs[i], angle=[270,180+angs[i]], r=rads[i]) 
+              : arc(n=rounding[i]?undef:2, cp=base[i]+offs[i], angle=[90,angs[i]], r=rads[i])
             ),
-            each (
+             (
                 let(i = 2)
-                rads[i] == 0? [base[i]] :
-                srads[i] > 0? arc(n=rounds[i]?undef:2, cp=base[i]+offs[i], angle=[180+angs[i],270], r=rads[i]) :
-                flip? arc(n=rounds[i]?undef:2, cp=base[i]+offs[i], angle=[180+angs[i],90], r=rads[i]) :
-                arc(n=rounds[i]?undef:2, cp=base[i]+offs[i], angle=[angs[i],-90], r=rads[i])
+                rads[i] == 0? [base[i]] 
+              : srads[i] > 0? arc(n=rounding[i]?undef:2, cp=base[i]+offs[i], angle=[180+angs[i],270], r=rads[i]) 
+              : flip? arc(n=rounding[i]?undef:2, cp=base[i]+offs[i], angle=[180+angs[i],90], r=rads[i]) 
+              : arc(n=rounding[i]?undef:2, cp=base[i]+offs[i], angle=[angs[i],-90], r=rads[i])
             ),
-            each (
+             (
                 let(i = 3)
-                rads[i] == 0? [base[i]] :
-                srads[i] > 0? arc(n=rounds[i]?undef:2, cp=base[i]+offs[i], angle=[-90,angs[i]], r=rads[i]) :
-                flip? arc(n=rounds[i]?undef:2, cp=base[i]+offs[i], angle=[90,angs[i]], r=rads[i]) :
-                arc(n=rounds[i]?undef:2, cp=base[i]+offs[i], angle=[270,180+angs[i]], r=rads[i])
+                rads[i] == 0? [base[i]] 
+              : srads[i] > 0? arc(n=rounding[i]?undef:2, cp=base[i]+offs[i], angle=[-90,angs[i]], r=rads[i]) 
+              : flip? arc(n=rounding[i]?undef:2, cp=base[i]+offs[i], angle=[90,angs[i]], r=rads[i]) 
+              : arc(n=rounding[i]?undef:2, cp=base[i]+offs[i], angle=[270,180+angs[i]], r=rads[i])
             ),
         ],
-        path = reverse(cpath)
-    ) simple
-      ? reorient(anchor,spin, two_d=true, size=[w1,h], size2=w2, shift=shift, p=path)
-      : reorient(anchor,spin, two_d=true, path=path, p=path);
+        path = reverse(flatten(corners)),
+        override = [for(i=[0:3])
+                      if (atype!="box" && srads[i]!=0)
+                         srads[i]>0?
+                             let(dir = unit(base[i]-select(base,i-1)) + unit(base[i]-select(base,i+1)),
+                                pt=[for(seg=pair(corners[i])) let(isect=line_intersection(seg, [base[i],base[i]+dir],SEGMENT,LINE))
+                                                             if (is_def(isect) && isect!=seg[0]) isect]
+                             )
+                             [qdirs[i], [pt[0], undef]]
+                        : flip?
+                            let(  dir=unit(base[i] - select(base,i+(i%2==0?-1:1))))
+                            [qdirs[i], [select(corners[i],i%2==0?0:-1), dir]]
+                        : let( dir = [qdirs[i].x,0])
+                            [qdirs[i], [select(corners[i],i%2==0?-1:0), dir]]]
+    ) _return_override ? [reorient(anchor,spin, two_d=true, size=[w1,h], size2=w2, shift=shift, p=path, override=override),override]
+                       : reorient(anchor,spin, two_d=true, size=[w1,h], size2=w2, shift=shift, p=path, override=override);
 
 
 
-module trapezoid(h, w1, w2, angle, shift=0, chamfer=0, rounding=0, flip=false, anchor=CENTER, spin=0) {
-    path = trapezoid(h=h, w1=w1, w2=w2, angle=angle, shift=shift, chamfer=chamfer, rounding=rounding, flip=flip);
-    union() {
-        simple = chamfer==0 && rounding==0;
-        h  = !is_undef(h)?  h  : opp_ang_to_adj(abs(w2-w1)/2, abs(angle));
-        w1 = !is_undef(w1)? w1 : w2 + 2*(adj_ang_to_opp(h, angle) + shift);
-        w2 = !is_undef(w2)? w2 : w1 - 2*(adj_ang_to_opp(h, angle) + shift);
-        if (simple) {
-            attachable(anchor,spin, two_d=true, size=[w1,h], size2=w2, shift=shift) {
-                polygon(path);
-                children();
-            }
-        } else {
-            attachable(anchor,spin, two_d=true, path=path) {
-                polygon(path);
-                children();
-            }
-        }
+
+module trapezoid(h, w1, w2, ang, shift, chamfer=0, rounding=0, flip=false, anchor=CENTER, spin=0, atype="box", angle) {
+    path_over = trapezoid(h=h, w1=w1, w2=w2, ang=ang, shift=shift, chamfer=chamfer, rounding=rounding,
+                          flip=flip, angle=angle,atype=atype,anchor="origin",_return_override=true);
+    path=path_over[0];
+    override = path_over[1];
+    ang = force_list(ang,2);
+    h_w1_w2_shift = _trapezoid_dims(h,w1,w2,shift,ang);
+    h = h_w1_w2_shift[0];
+    w1 = h_w1_w2_shift[1];
+    w2 = h_w1_w2_shift[2];
+    shift = h_w1_w2_shift[3];
+    attachable(anchor,spin, two_d=true, size=[w1,h], size2=w2, shift=shift, override=override) {
+        polygon(path);
+        children();
     }
 }
 
 
 
 // Function&Module: star()
+// Synopsis: Creates a star-shaped polygon or returns a star-shaped region.
+// SynTags: Geom, Path
+// Topics: Shapes (2D), Paths (2D), Path Generators, Attachable
+// See Also: circle(), ellipse(), regular_ngon()
 // Usage: As Module
 //   star(n, r/or, ir, [realign=], [align_tip=], [align_pit=], ...) [ATTACHMENTS];
 //   star(n, r/or, step=, ...) [ATTACHMENTS];
 // Usage: As Function
 //   path = star(n, r/or, ir, [realign=], [align_tip=], [align_pit=], ...);
 //   path = star(n, r/or, step=, ...);
-// Topics: Shapes (2D), Paths (2D), Path Generators, Attachable
-// See Also: circle(), ellipse()
 // Description:
 //   When called as a function, returns the path needed to create a star polygon with N points.
 //   When called as a module, creates a star polygon with N points.
@@ -1163,6 +1264,8 @@ function _path_add_jitter(path, dist=1/512, closed=true) =
 
 
 // Module: jittered_poly()
+// Synopsis: Creates a polygon with extra points for smoother twisted extrusions.
+// SynTags: Geom
 // Topics: Extrusions
 // See Also: subdivide_path()
 // Usage:
@@ -1190,28 +1293,28 @@ module jittered_poly(path, dist=1/512) {
 
 
 // Function&Module: teardrop2d()
-//
+// Synopsis: Creates a 2D teardrop shape.
+// SynTags: Geom, Path
+// Topics: Shapes (2D), Paths (2D), Path Generators, Attachable
+// See Also: teardrop(), onion()
 // Description:
-//   Makes a 2D teardrop shape. Useful for extruding into 3D printable holes.  Uses "intersect" style anchoring.  
+//   When called as a module, makes a 2D teardrop shape. Useful for extruding into 3D printable holes as it limits overhang to 45 degrees.  Uses "intersect" style anchoring.  
 //   The cap_h parameter truncates the top of the teardrop.  If cap_h is taller than the untruncated form then
 //   the result will be the full, untruncated shape.  The segments of the bottom section of the teardrop are
 //   calculated to be the same as a circle or cylinder when rotated 90 degrees.  (Note that this agreement is poor when `$fn=6` or `$fn=7`.  
 //   If `$fn` is a multiple of four then the teardrop will reach its extremes on all four axes.  The circum option
 //   produces a teardrop that circumscribes the circle; in this case set `realign=true` to get a teardrop that meets its internal extremes
 //   on the axes.  
+//   When called as a function, returns a 2D path to for a teardrop shape.
 //
 // Usage: As Module
 //   teardrop2d(r/d=, [ang], [cap_h]) [ATTACHMENTS];
 // Usage: As Function
 //   path = teardrop2d(r|d=, [ang], [cap_h]);
 //
-// Topics: Shapes (2D), Paths (2D), Path Generators, Attachable
-//
-// See Also: teardrop(), onion()
-//
 // Arguments:
 //   r = radius of circular part of teardrop.  (Default: 1)
-//   ang = angle of hat walls from the Y axis.  (Default: 45 degrees)
+//   ang = angle of hat walls from the Y axis (half the angle of the peak).  (Default: 45 degrees)
 //   cap_h = if given, height above center where the shape will be truncated.
 //   ---
 //   d = diameter of circular portion of bottom. (Use instead of r)
@@ -1275,8 +1378,7 @@ function teardrop2d(r, ang=45, cap_h, d, circum=false, realign=false, anchor=CEN
                                if (p) [i,p]
                            ],
                    i = last(isect)[0],
-                   p = last(isect)[1],
-                   ff=echo(isect)
+                   p = last(isect)[1]
                )
                [
                  cap[0],
@@ -1291,18 +1393,21 @@ function teardrop2d(r, ang=45, cap_h, d, circum=false, realign=false, anchor=CEN
 
 
 // Function&Module: egg()
+// Synopsis: Creates an egg-shaped 2d object.
+// SynTags: Geom, Path
+// Topics: Shapes (2D), Paths (2D), Path Generators, Attachable
+// See Also: circle(), ellipse(), glued_circles()
 // Usage: As Module
 //   egg(length, r1|d1=, r2|d2=, R|D=) [ATTACHMENTS];
 // Usage: As Function
 //   path = egg(length, r1|d1=, r2|d2=, R|D=);
-// Topics: Shapes (2D), Paths (2D), Path Generators, Attachable
-// See Also: circle(), ellipse(), glued_circles()
 // Description:
-//   Constructs an egg-shaped object by connecting two circles with convex arcs that are tangent to the circles.
+//   When called as a module, constructs an egg-shaped object by connecting two circles with convex arcs that are tangent to the circles.
 //   You specify the length of the egg, the radii of the two circles, and the desired arc radius.
 //   Note that because the side radius, R, is often much larger than the end radii, you may get better
 //   results using `$fs` and `$fa` to control the number of semgments rather than using `$fn`.
-//   This shape may be useful for creating a cam.  
+//   This shape may be useful for creating a cam. 
+//   When called as a function, returns a 2D path for an egg-shaped object. 
 // Arguments:
 //   length = length of the egg
 //   r1 = radius of the left-hand circle
@@ -1378,12 +1483,14 @@ module egg(length,r1,r2,R,d1,d2,D,anchor=CENTER, spin=0)
 
 
 // Function&Module: glued_circles()
+// Synopsis: Creates a shape of two circles joined by a curved waist.
+// SynTags: Geom, Path
+// Topics: Shapes (2D), Paths (2D), Path Generators, Attachable
+// See Also: circle(), ellipse(), egg()
 // Usage: As Module
 //   glued_circles(r/d=, [spread], [tangent], ...) [ATTACHMENTS];
 // Usage: As Function
 //   path = glued_circles(r/d=, [spread], [tangent], ...);
-// Topics: Shapes (2D), Paths (2D), Path Generators, Attachable
-// See Also: circle(), ellipse(), egg()
 // Description:
 //   When called as a function, returns a 2D path forming a shape of two circles joined by curved waist.
 //   When called as a module, creates a 2D shape of two circles joined by curved waist.  Uses "hull" style anchoring.  
@@ -1446,12 +1553,14 @@ function _superformula(theta,m1,m2,n1,n2=1,n3=1,a=1,b=1) =
     pow(pow(abs(cos(m1*theta/4)/a),n2)+pow(abs(sin(m2*theta/4)/b),n3),-1/n1);
 
 // Function&Module: supershape()
+// Synopsis: Creates a 2D [Superformula](https://en.wikipedia.org/wiki/Superformula) shape.
+// SynTags: Geom, Path
+// Topics: Shapes (2D), Paths (2D), Path Generators, Attachable
+// See Also: circle(), ellipse()
 // Usage: As Module
 //   supershape([step],[n=], [m1=], [m2=], [n1=], [n2=], [n3=], [a=], [b=], [r=/d=]) [ATTACHMENTS];
 // Usage: As Function
 //   path = supershape([step], [n=], [m1=], [m2=], [n1=], [n2=], [n3=], [a=], [b=], [r=/d=]);
-// Topics: Shapes (2D), Paths (2D), Path Generators, Attachable
-// See Also: circle(), ellipse()
 // Description:
 //   When called as a function, returns a 2D path for the outline of the [Superformula](https://en.wikipedia.org/wiki/Superformula) shape.
 //   When called as a module, creates a 2D [Superformula](https://en.wikipedia.org/wiki/Superformula) shape.
@@ -1527,14 +1636,17 @@ module supershape(step=0.5,n,m1=4,m2=undef,n1,n2=undef,n3=undef,a=1,b=undef, r=u
 
 
 // Function&Module: reuleaux_polygon()
+// Synopsis: Creates a constant-width shape that is not circular.
+// SynTags: Geom, Path
+// Topics: Shapes (2D), Paths (2D), Path Generators, Attachable
+// See Also: regular_ngon(), pentagon(), hexagon(), octagon()
 // Usage: As Module
 //   reuleaux_polygon(n, r|d=, ...) [ATTACHMENTS];
 // Usage: As Function
 //   path = reuleaux_polygon(n, r|d=, ...);
-// Topics: Shapes (2D), Paths (2D), Path Generators, Attachable
-// See Also: regular_ngon(), pentagon(), hexagon(), octagon()
 // Description:
-//   Creates a 2D Reuleaux Polygon; a constant width shape that is not circular.  Uses "intersect" type anchoring.  
+//   When called as a module, reates a 2D Reuleaux Polygon; a constant width shape that is not circular.  Uses "intersect" type anchoring.  
+//   When called as a function, returns a 2D path for a Reulaux Polygon.
 // Arguments:
 //   n = Number of "sides" to the Reuleaux Polygon.  Must be an odd positive number.  Default: 3
 //   r = Radius of the shape.  Scale shape to fit in a circle of radius r.
@@ -1595,7 +1707,10 @@ function reuleaux_polygon(n=3, r, d, anchor=CENTER, spin=0) =
 // Section: Text
 
 // Module: text()
+// Synopsis: Creates an attachable block of text.
+// SynTags: Geom
 // Topics: Attachments, Text
+// See Also: text3d(), attachable()
 // Usage:
 //   text(text, [size], [font], ...);
 // Description:
@@ -1634,7 +1749,6 @@ function reuleaux_polygon(n=3, r, d, anchor=CENTER, spin=0) =
 //   script = The script the text is in.  Default: `"latin"`
 //   anchor = Translate so anchor point is at origin (0,0,0).  See [anchor](attachments.scad#subsection-anchor).  Default: `"baseline"`
 //   spin = Rotate this many degrees around the Z axis.  See [spin](attachments.scad#subsection-spin).  Default: `0`
-// See Also: attachable()
 // Extra Anchors:
 //   "baseline" = Anchors at the baseline of the text, at the start of the string.
 //   str("baseline",VECTOR) = Anchors at the baseline of the text, modified by the X and Z components of the appended vector.
@@ -1706,6 +1820,10 @@ module text(text, size=10, font="Helvetica", halign, valign, spacing=1.0, direct
 // Section: Rounding 2D shapes
 
 // Module: round2d()
+// Synopsis: Rounds the corners of 2d objects.
+// SynTags: Geom
+// Topics: Rounding
+// See Also: shell2d(), round3d(), minkowski_difference()
 // Usage:
 //   round2d(r) [ATTACHMENTS];
 //   round2d(or=) [ATTACHMENTS];
@@ -1735,6 +1853,10 @@ module round2d(r, or, ir)
 
 
 // Module: shell2d()
+// Synopsis: Creates a shell from 2D children.
+// SynTags: Geom
+// Topics: Shell
+// See Also: round2d(), round3d(), minkowski_difference()
 // Usage:
 //   shell2d(thickness, [or], [ir])
 // Description:

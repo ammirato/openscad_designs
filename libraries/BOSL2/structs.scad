@@ -2,7 +2,7 @@
 // LibFile: structs.scad
 //   This file provides manipulation of "structs".  A "struct" is a data structure that
 //   associates arbitrary keys with values and allows you to get and set values
-//   by key.  
+//   by key.
 // Includes:
 //   include <BOSL2/std.scad>
 //   include <BOSL2/structs.scad>
@@ -19,24 +19,36 @@
 // An empty list `[]` is an empty structure and can be used wherever a structure input is required.
 
 // Function: struct_set()
+// Synopsis: Sets one or more key-value pairs in a struct.
+// Topics: Data Structures, Dictionaries
+// See Also: struct_set(), struct_remove(), struct_val(), struct_keys(), echo_struct(), is_struct()
 // Usage:
-//   struct_set(struct, key, value, [grow=])
-//   struct_set(struct, [key1, value1, key2, value2, ...], [grow=])
+//   struct2 = struct_set(struct, key, value, [grow=]);
+//   struct2 = struct_set(struct, [key1, value1, key2, value2, ...], [grow=]);
 // Description:
-//   Sets the key(s) in the structure to the specified value(s), returning a new updated structure.  If a key
-//   exists its value is changed, otherwise the key is added to the structure.  If grow is set to false then
+//   Sets the key(s) in the structure to the specified value(s), returning a new updated structure.  If a
+//   key exists its value is changed, otherwise the key is added to the structure.  If `grow=false` then
 //   it is an error to set a key not already defined in the structure.  If you specify the same key twice
-//   that is also an error.  Note that key order will change when you change a key's value.   
+//   that is also an error.  Note that key order will change when you change a key's value.
 // Arguments:
 //   struct = input structure.
 //   key = key to set or list of key,value pairs to set
 //   value = value to set the key to (when giving a single key and value)
 //   ---
 //   grow = Set to true to allow structure to grow, or false for new keys to generate an error.  Default: true
+// Example: Create a struct containing just one key-value pair
+//   some_struct = struct_set([], "answer", 42);
+//   // 'some_struct' now contains a single value, 42, under one key, "answer".
+// Example: Create a struct containing more than one key-value pair. Note that keys and values need not be the same type.
+//   some_struct = struct_set([], ["answer", 42, 2, "two", "quote", "What a nice day"]);
+//   // 'some struct' now contains these key-value pairs:
+//   // answer: 42
+//   // 2: two
+//   // quote: What a nice day
 function struct_set(struct, key, value, grow=true) =
   is_def(value) ? struct_set(struct,[key,value],grow=grow)
   :
-  assert(is_list(key) && len(key)%2==0, "[key,value] pair list is not a list or has an odd length") 
+  assert(is_list(key) && len(key)%2==0, "[key,value] pair list is not a list or has an odd length")
   let(
       new_entries = [for(i=[0:1:len(key)/2-1]) [key[2*i], key[2*i+1]]],
       newkeys = column(new_entries,0),
@@ -54,24 +66,30 @@ function struct_set(struct, key, value, grow=true) =
 function _format_key(key) = is_string(key) ? str("\"",key,"\""): key;
 
 // Function: struct_remove()
+// Synopsis: Removes one or more keys from a struct.
+// Topics: Data Structures, Dictionaries
+// See Also: struct_set(), struct_remove(), struct_val(), struct_keys(), echo_struct(), is_struct()
 // Usage:
-//   struct_remove(struct, key)
+//   struct2 = struct_remove(struct, key);
 // Description:
 //   Remove key or list of keys from a structure.  If you want to remove a single key which is a list
 //   you must pass it as a singleton list, or struct_remove will attempt to remove the listed items as keys.
-//   If you list the same item multiple times for removal it will be removed without error.  
+//   If you list the same item multiple times for removal it will be removed without error.
 // Arguments:
 //   struct = input structure
-//   key = a single key or list of keys to remove.  
+//   key = a single key or list of keys to remove.
 function struct_remove(struct, key) =
-    !is_list(key) ? struct_remove(struct, [key]) :
+   !is_list(key) ? struct_remove(struct, [key]) :
     let(ind = search(key, struct))
-    list_remove(struct, ind);
+    list_remove(struct, [for(i=ind) if (i!=[]) i]);
 
 
 // Function: struct_val()
+// Synopsis: Returns the value for an key in a struct.
+// Topics: Data Structures, Dictionaries
+// See Also: struct_set(), struct_remove(), struct_val(), struct_keys(), echo_struct(), is_struct()
 // Usage:
-//   struct_val(struct, key, default)
+//   val = struct_val(struct, key, default);
 // Description:
 //   Returns the value for the specified key in the structure, or default value if the key is not present
 // Arguments:
@@ -85,8 +103,11 @@ function struct_val(struct, key, default=undef) =
 
 
 // Function: struct_keys()
+// Synopsis: Returns a list of keys for a struct.
+// Topics: Data Structures, Dictionaries
+// See Also: struct_set(), struct_remove(), struct_val(), struct_keys(), echo_struct(), is_struct()
 // Usage:
-//   keys = struct_keys(struct)
+//   keys = struct_keys(struct);
 // Description:
 //   Returns a list of the keys in a structure
 // Arguments:
@@ -95,8 +116,12 @@ function struct_keys(struct) = column(struct,0);
 
 
 // Function&Module: echo_struct()
+// Synopsis: Echoes the struct to the console in a formatted manner.
+// Topics: Data Structures, Dictionaries
+// See Also: struct_set(), struct_remove(), struct_val(), struct_keys(), echo_struct(), is_struct()
 // Usage:
-//   echo_struct(struct, [name])
+//   echo_struct(struct, [name]);
+//   foo = echo_struct(struct, [name]);
 // Description:
 //   Displays a list of structure keys and values, one pair per line, for easier reading.
 // Arguments:
@@ -114,8 +139,11 @@ module echo_struct(struct,name="") {
 
 
 // Function: is_struct()
+// Synopsis: Returns true if the value is a struct.
+// Topics: Data Structures, Dictionaries
+// See Also: struct_set(), struct_remove(), struct_val(), struct_keys(), echo_struct(), is_struct()
 // Usage:
-//   is_struct(struct)
+//   bool = is_struct(struct);
 // Description:
 //   Returns true if the input is a list of pairs, false otherwise.
 function is_struct(x) =

@@ -12,6 +12,9 @@
 // Section: List comparison operations
 
 // Function: approx()
+// Synopsis: Returns true if two values are equal to within a small epsilon value.
+// Topics: Comparisons
+// See Also: all_zero(), all_nonzero()
 // Usage:
 //   test = approx(a, b, [eps])
 // Description:
@@ -20,7 +23,7 @@
 // Arguments:
 //   a = First value.
 //   b = Second value.
-//   eps = The maximum allowed difference between `a` and `b` that will return true.
+//   eps = The maximum allowed difference between `a` and `b` that will return true. Defaults to 1e-9.
 // Example:
 //   test1 = approx(-0.3333333333,-1/3);  // Returns: true
 //   test2 = approx(0.3333333333,1/3);    // Returns: true
@@ -44,6 +47,9 @@ function approx(a,b,eps=EPSILON) =
 
 
 // Function: all_zero()
+// Synopsis: Returns true if the value(s) given are aproximately zero.
+// Topics: Comparisons, List Handling
+// See Also: approx(), all_zero(), all_nonzero()
 // Usage:
 //   x = all_zero(x, [eps]);
 // Description:
@@ -64,6 +70,9 @@ function all_zero(x, eps=EPSILON) =
 
 
 // Function: all_nonzero()
+// Synopsis: Returns true if the value(s) given are not aproximately zero.
+// Topics: Comparisons, List Handling
+// See Also: approx(), all_zero(), all_nonzero()
 // Usage:
 //   test = all_nonzero(x, [eps]);
 // Description:
@@ -85,6 +94,9 @@ function all_nonzero(x, eps=EPSILON) =
 
 
 // Function: all_positive()
+// Synopsis: Returns true if the value(s) given are greater than zero.
+// Topics: Comparisons, List Handling
+// See Also: approx(), all_zero(), all_nonzero(), all_negative(), all_nonpositive(), all_nonnegative()
 // Usage:
 //   test = all_positive(x,[eps]);
 // Description:
@@ -108,6 +120,9 @@ function all_positive(x,eps=0) =
 
 
 // Function: all_negative()
+// Synopsis: Returns true if the value(s) given are less than zero.
+// Topics: Comparisons, List Handling
+// See Also: approx(), all_zero(), all_nonzero(), all_positive(), all_nonpositive(), all_nonnegative()
 // Usage:
 //   test = all_negative(x, [eps]);
 // Description:
@@ -132,6 +147,9 @@ function all_negative(x, eps=0) =
 
 
 // Function: all_nonpositive()
+// Synopsis: Returns true if the value(s) given are less than or equal to zero.
+// Topics: Comparisons, List Handling
+// See Also: approx(), all_zero(), all_nonzero(), all_positive(), all_negative(), all_nonpositive(), all_nonnegative()
 // Usage:
 //   all_nonpositive(x, [eps]);
 // Description:
@@ -156,6 +174,9 @@ function all_nonpositive(x,eps=0) =
 
 
 // Function: all_nonnegative()
+// Synopsis: Returns true if the value(s) given are greater than or equal to zero.
+// Topics: Comparisons, List Handling
+// See Also: approx(), all_zero(), all_nonzero(), all_positive(), all_negative(), all_nonpositive(), all_nonnegative()
 // Usage:
 //   all_nonnegative(x, [eps]);
 // Description:
@@ -181,6 +202,9 @@ function all_nonnegative(x,eps=0) =
 
 
 // Function: all_equal()
+// Synopsis: Returns true if all items in a list are approximately equal to each other.
+// Topics: Comparisons, List Handling
+// See Also: approx(), all_zero(), all_nonzero(), all_positive(), all_negative(), all_nonpositive(), all_nonnegative()
 // Usage:
 //   b = all_equal(vec, [eps]);
 // Description:
@@ -194,13 +218,30 @@ function all_equal(vec,eps=0) =
 
 
 
+// Function: are_ends_equal()
+// Synopsis: Returns true if the first and last items in a list are approximately equal.
+// Topics: Comparisons, List Handling
+// See Also: approx(), all_zero(), all_nonzero(), all_positive(), all_negative(), all_nonpositive(), all_nonnegative()
+// Usage:
+//   are_ends_equal(list, [eps]);
+// Description:
+//   Returns true if the first and last points in the given list are equal to within epsilon.
+// Arguments:
+//   list = list to check
+//   eps = Tolerance for approximate equality.  Default: `EPSILON` (1e-9)
+function are_ends_equal(list, eps=EPSILON) =
+  assert(is_list(list) && len(list)>0, "Must give a nonempty list")
+  approx(list[0], list[len(list)-1], eps=eps);
+
+
 // Function: is_increasing()
+// Synopsis: Returns true if exery item in a list is greater than the previous item. 
+// Topics: Comparisons, List Handling
+// See Also: max_index(), min_index(), is_increasing(), is_decreasing()
 // Usage:
 //    bool = is_increasing(list, [strict]);
-// Topics: List Handling
-// See Also: max_index(), min_index(), is_decreasing()
 // Description:
-//   Returns true if the list is (non-strictly) increasing, or strictly increasing if strict is set to true.
+//   Returns true if the list is (non-strictly) increasing, or strictly increasing if `strict=true`.
 //   The list can be a list of any items that OpenSCAD can compare, or it can be a string which will be
 //   evaluated character by character.
 // Arguments:
@@ -219,12 +260,13 @@ function is_increasing(list,strict=false) =
 
 
 // Function: is_decreasing()
+// Synopsis: Returns true if exery item in a list is less than the previous item. 
+// Topics: Comparisons, List Handling
+// See Also: max_index(), min_index(), is_increasing(), is_decreasing()
 // Usage:
 //   bool = is_decreasing(list, [strict]);
-// Topics: List Handling
-// See Also: max_index(), min_index(), is_increasing()
 // Description:
-//   Returns true if the list is (non-strictly) decreasing, or strictly decreasing if strict is set to true.
+//   Returns true if the list is (non-strictly) decreasing, or strictly decreasing if `strict=true`.
 //   The list can be a list of any items that OpenSCAD can compare, or it can be a string which will be
 //   evaluated character by character.  
 // Arguments:
@@ -252,6 +294,9 @@ function _type_num(x) =
 
 
 // Function: compare_vals()
+// Synopsis: Compares two values, possibly of different type.
+// Topics: Comparisons, List Handling
+// See Also: approx(), is_increasing(), is_decreasing()
 // Usage:
 //   test = compare_vals(a, b);
 // Description:
@@ -270,6 +315,9 @@ function compare_vals(a, b) =
 
 
 // Function: compare_lists()
+// Synopsis: Compares two lists of values, possibly of different type.
+// Topics: Comparisons, List Handling
+// See Also: compare_vals(), approx(), is_increasing(), is_decreasing()
 // Usage:
 //   test = compare_lists(a, b)
 // Description:
@@ -297,11 +345,12 @@ function compare_lists(a, b) =
 
 
 // Function: min_index()
+// Synopsis: Returns the index of the minimal value in the given list.
+// Topics: List Handling
+// See Also: max_index(), is_increasing(), is_decreasing()
 // Usage:
 //   idx = min_index(vals);
 //   idxlist = min_index(vals, all=true);
-// Topics: List Handling
-// See Also: max_index(), is_increasing(), is_decreasing()
 // Description:
 //   Returns the index of the first occurrence of the minimum value in the given list. 
 //   If `all` is true then returns a list of all indices where the minimum value occurs.
@@ -317,11 +366,12 @@ function min_index(vals, all=false) =
 
 
 // Function: max_index()
+// Synopsis: Returns the index of the minimal value in the given list.
+// Topics: List Handling
+// See Also: min_index(), is_increasing(), is_decreasing()
 // Usage:
 //   idx = max_index(vals);
 //   idxlist = max_index(vals, all=true);
-// Topics: List Handling
-// See Also: min_index(), is_increasing(), is_decreasing()
 // Description:
 //   Returns the index of the first occurrence of the maximum value in the given list. 
 //   If `all` is true then returns a list of all indices where the maximum value occurs.
@@ -340,6 +390,7 @@ function max_index(vals, all=false) =
 
 
 // Function: find_approx()
+// Synopsis: Finds the indexes of the item(s) in the given list that are aproximately the given value.
 // Topics: List Handling
 // See Also: in_list()
 // Usage:
@@ -373,10 +424,11 @@ function __find_approx(val, list, eps, i=0) =
 
 
 // Function: deduplicate()
-// Usage:
-//   list = deduplicate(list, [closed], [eps]);
+// Synopsis: Returns a list with all consecutive duplicate values removed.
 // Topics: List Handling
 // See Also: deduplicate_indexed()
+// Usage:
+//   list = deduplicate(list, [closed], [eps]);
 // Description:
 //   Removes consecutive duplicate items in a list.
 //   When `eps` is zero, the comparison between consecutive items is exact.
@@ -406,10 +458,11 @@ function deduplicate(list, closed=false, eps=EPSILON) =
 
 
 // Function: deduplicate_indexed()
-// Usage:
-//   new_idxs = deduplicate_indexed(list, indices, [closed], [eps]);
+// Synopsis: Takes a list of indices into a list of values, and returns a list of indices whose values are not consecutively the same.
 // Topics: List Handling
 // See Also: deduplicate()
+// Usage:
+//   new_idxs = deduplicate_indexed(list, indices, [closed], [eps]);
 // Description:
 //   Given a list, and a list of indices, removes consecutive indices corresponding to list values that are equal
 //   or approximately equal.  
@@ -451,11 +504,58 @@ function deduplicate_indexed(list, indices, closed=false, eps=EPSILON) =
 
 
 
-// Function: unique()
+// Function: list_wrap()
+// Synopsis: Returns a list whose last value is the same as the first.
+// Topics: List Handling, Paths
+// See Also: list_unwrap(), deduplicate()
 // Usage:
-//   ulist = unique(list);
+//   list_wrap(path, [eps]);
+// Description:
+//   Force a list to wrap around so that its last point is equal to its first point:  if the first and last entries are equal, simply returns the list unchanged.
+//   Otherwise returns the list with the first point duplicated at the end of the list.  Comparisons are done to the tolerance `eps`.  Lists of length 0 or
+//   1 are returned unchanged.  
+// Arguments:
+//   list = list to unwrap
+//   eps = epsilon for comparison.  Default: EPSILON (1e-9)
+
+function list_wrap(list, eps=EPSILON) =
+    assert(is_list(list))
+    len(list)<2 || are_ends_equal(list,eps=eps)? list : [each list, list[0]];
+
+
+function cleanup_path(list,eps=EPSILON) =
+  echo("***** Function cleanup_path() has been replaced by list_unwrap() and will be removed in a future version *****")
+  list_unwrap(list,eps);
+
+function close_path(list,eps=EPSILON) =
+  echo("***** Function close_path() has been replaced by list_wrap() and will be removed in a future version *****")
+  list_wrap(list,eps);
+
+// Function: list_unwrap()
+// Synopsis: Removes the last item of a list if its first and last values are equal.
+// Topics: List Handling, Paths
+// See Also: list_wrap(), deduplicate()
+// Usage:
+//   list_unwrap(list, [eps]);
+// Description:
+//   If a list's last point matches its first point then delete the last point.  Inverse operation to {{list_wrap()}}.  Note that if the first/last points
+//   are repeated then the output may still have the first point equal to the last point.  Comparisons are done to the tolerance `eps`.  If the list has
+//   length 0 or 1 it is returned unchanged.  
+// Arguments:
+//   list = list to unwrap
+//   eps = epsilon for comparison.  Default: EPSILON (1e-9)
+function list_unwrap(list, eps=EPSILON) =
+    assert(is_list(list))
+    len(list)>=2 && are_ends_equal(list,eps=eps)? [for (i=[0:1:len(list)-2]) list[i]] : list;
+
+
+
+// Function: unique()
+// Synopsis: Returns a sorted list with all duplicates removed.
 // Topics: List Handling
 // See Also: shuffle(), sort(), sortidx(), unique_count()
+// Usage:
+//   ulist = unique(list);
 // Description:
 //   Given a string or a list returns the sorted string or the sorted list with all repeated items removed.
 //   The sorting order of non homogeneous lists is the function `sort` order.
@@ -494,10 +594,11 @@ function _unique_sort(l) =
 
 
 // Function: unique_count()
-// Usage:
-//   sorted_counts = unique_count(list);
+// Synopsis: Returns a sorted list of unique items with counts.
 // Topics: List Handling
 // See Also: shuffle(), sort(), sortidx(), unique()
+// Usage:
+//   sorted_counts = unique_count(list);
 // Description:
 //   Returns `[sorted,counts]` where `sorted` is a sorted list of the unique items in `list` and `counts` is a list such 
 //   that `count[i]` gives the number of times that `sorted[i]` appears in `list`.  
@@ -656,10 +757,11 @@ function _indexed_sort(arrind) =
 
 
 // Function: sort()
-// Usage:
-//   slist = sort(list, [idx]);
+// Synopsis: Returns a sorted list.
 // Topics: List Handling
 // See Also: shuffle(), sortidx(), unique(), unique_count(), group_sort()
+// Usage:
+//   slist = sort(list, [idx]);
 // Description:
 //   Sorts the given list in lexicographic order. The sort is stable, meaning equivalent items will not change order. 
 //   If the input is a homogeneous simple list or a homogeneous 
@@ -698,10 +800,11 @@ function sort(list, idx=undef) =
         
 
 // Function: sortidx()
-// Usage:
-//   idxlist = sortidx(list, [idx]);
+// Synopsis: Returns a list of sorted indices into a list.
 // Topics: List Handling
 // See Also: shuffle(), sort(), group_sort(), unique(), unique_count()
+// Usage:
+//   idxlist = sortidx(list, [idx]);
 // Description:
 //   Given a list, sort it as function `sort()`, and returns
 //   a list of indexes into the original list in that sorted order.
@@ -752,10 +855,11 @@ function sortidx(list, idx=undef) =
 
 
 // Function: group_sort()
+// Synopsis: Returns a sorted list of groups of values.
+// Topics: List Handling
+// See Also: group_data(), shuffle(), sort(), sortidx(), unique(), unique_count()
 // Usage:
 //   ulist = group_sort(list,[idx]);
-// Topics: List Handling
-// See Also: shuffle(), sort(), sortidx(), unique(), unique_count()
 // Description:
 //   Given a list of numbers, sorts the list into a sequence of lists, where each list contains any repeated values.
 //   If there are no repeated values the output will be a list of singleton lists.  
@@ -785,9 +889,11 @@ function group_sort(list, idx) =
 
 
 // Function: group_data()
+// Synopsis: Groups list data by integer group numbers.
+// Topics: List Handling
+// See Also: group_sort(), shuffle(), sort(), sortidx(), unique(), unique_count()
 // Usage:
 //   groupings = group_data(groups, values);
-// Topics: List Handling
 // Description:
 //   Given a list of integer group numbers, and an equal-length list of values,
 //   returns a list of groups with the values sorted into the corresponding groups.
@@ -823,6 +929,9 @@ function group_data(groups, values) =
 
 
 // Function: list_smallest()
+// Synopsis: Returns the `k` smallest values in the list, in arbitrary order.
+// Topics: List Handling
+// See Also: group_sort(), shuffle(), sort(), sortidx(), unique(), unique_count()
 // Usage:
 //   small = list_smallest(list, k)
 // Description:
@@ -845,5 +954,7 @@ function list_smallest(list, k) =
     len(smaller)   >  k ? list_smallest(smaller, k) :
     let( bigger  = [for(li=list) if(li>v) li ] )
     concat(smaller, equal, list_smallest(bigger, k-len(smaller) -len(equal)));
+
+
 
 // vim: expandtab tabstop=4 shiftwidth=4 softtabstop=4 nowrap

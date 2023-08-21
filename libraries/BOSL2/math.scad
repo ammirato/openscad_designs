@@ -14,18 +14,30 @@
 // Section: Math Constants
 
 // Constant: PHI
-// Description: The golden ratio phi.
+// Synopsis: The golden ratio φ (phi).  Approximately 1.6180339887
+// Topics: Constants, Math
+// See Also: EPSILON, INF, NAN
+// Description: The golden ratio φ (phi).  Approximately 1.6180339887
 PHI = (1+sqrt(5))/2;
 
 // Constant: EPSILON
-// Description: A really small value useful in comparing floating point numbers.  ie: abs(a-b)<EPSILON
+// Synopsis: A tiny value to compare floating point values.  `1e-9`
+// Topics: Constants, Math
+// See Also: PHI, EPSILON, INF, NAN
+// Description: A really small value useful in comparing floating point numbers.  ie: abs(a-b)<EPSILON  `1e-9`
 EPSILON = 1e-9;
 
 // Constant: INF
+// Synopsis: The floating point value for Infinite.
+// Topics: Constants, Math
+// See Also: PHI, EPSILON, INF, NAN
 // Description: The value `inf`, useful for comparisons.
 INF = 1/0;
 
 // Constant: NAN
+// Synopsis: The floating point value for Not a Number.
+// Topics: Constants, Math
+// See Also: PHI, EPSILON, INF, NAN
 // Description: The value `nan`, useful for comparisons.
 NAN = acos(2);
 
@@ -35,6 +47,9 @@ NAN = acos(2);
 
 
 // Function: count()
+// Synopsis: Creates a list of incrementing numbers.
+// Topics: Math, Indexing
+// See Also: idx()
 // Usage:
 //   list = count(n, [s], [step], [reverse]);
 // Description:
@@ -45,7 +60,6 @@ NAN = acos(2);
 //   s = The starting value of the list of numbers.
 //   step = The amount to increment successive numbers in the list.
 //   reverse = Reverse the list.  Default: false.
-// See Also: idx()
 // Example:
 //   nl1 = count(5);  // Returns: [0,1,2,3,4]
 //   nl2 = count(5,3);  // Returns: [3,4,5,6,7]
@@ -58,6 +72,9 @@ function count(n,s=0,step=1,reverse=false) = let(n=is_list(n) ? len(n) : n)
 
 
 // Function: lerp()
+// Synopsis: Linearly interpolates between two values.
+// Topics: Interpolation, Math
+// See Also: v_lookup(), lerpn()
 // Usage:
 //   x = lerp(a, b, u);
 //   l = lerp(a, b, LIST);
@@ -95,6 +112,9 @@ function lerp(a,b,u) =
 
 
 // Function: lerpn()
+// Synopsis: Returns exactly `n` values, linearly interpolated between `a` and `b`.
+// Topics: Interpolation, Math
+// See Also: v_lookup(), lerp()
 // Usage:
 //   x = lerpn(a, b, n);
 //   x = lerpn(a, b, n, [endpoint]);
@@ -124,6 +144,9 @@ function lerpn(a,b,n,endpoint=true) =
 // Section: Miscellaneous Functions 
 
 // Function: sqr()
+// Synopsis: Returns the square of the given value.
+// Topics: Math
+// See Also: hypot(), log2()
 // Usage:
 //   x2 = sqr(x);
 // Description:
@@ -141,6 +164,9 @@ function sqr(x) =
 
 
 // Function: log2()
+// Synopsis: Returns the log base 2 of the given value.
+// Topics: Math
+// See Also: hypot(), sqr()
 // Usage:
 //   val = log2(x);
 // Description:
@@ -156,6 +182,9 @@ function log2(x) =
 // this may return NAN or INF; should it check x>0 ?
 
 // Function: hypot()
+// Synopsis: Returns the hypotenuse length of a 2D or 3D triangle.
+// Topics: Math
+// See Also: hypot(), sqr(), log2()
 // Usage:
 //   l = hypot(x, y, [z]);
 // Description:
@@ -173,6 +202,9 @@ function hypot(x,y,z=0) =
 
 
 // Function: factorial()
+// Synopsis: Returns the factorial of the given integer.
+// Topics: Math
+// See Also: hypot(), sqr(), log2()
 // Usage:
 //   x = factorial(n, [d]);
 // Description:
@@ -191,6 +223,9 @@ function factorial(n,d=0) =
 
 
 // Function: binomial()
+// Synopsis: Returns the binomial coefficients of the integer `n`.
+// Topics: Math
+// See Also: hypot(), sqr(), log2(), factorial()
 // Usage:
 //   x = binomial(n);
 // Description:
@@ -210,10 +245,13 @@ function binomial(n) =
 
 
 // Function: binomial_coefficient()
+// Synopsis: Returns the `k`-th binomial coefficient of the integer `n`.
+// Topics: Math
+// See Also: hypot(), sqr(), log2(), factorial()
 // Usage:
 //   x = binomial_coefficient(n, k);
 // Description:
-//   Returns the k-th binomial coefficient of the integer `n`.  
+//   Returns the `k`-th binomial coefficient of the integer `n`.
 // Arguments:
 //   n = The integer to get the binomial coefficient of
 //   k = The binomial coefficient index
@@ -233,6 +271,9 @@ function binomial_coefficient(n,k) =
 
 
 // Function: gcd()
+// Synopsis: Returns the Greatest Common Divisor/Factor of two integers.
+// Topics: Math
+// See Also: hypot(), sqr(), log2(), factorial(), binomial(), gcd(), lcm()
 // Usage:
 //   x = gcd(a,b)
 // Description:
@@ -256,6 +297,9 @@ function _lcmlist(a) =
 
 
 // Function: lcm()
+// Synopsis: Returns the Least Common Multiple of two or more integers.
+// Topics: Math
+// See Also: hypot(), sqr(), log2(), factorial(), binomial(), gcd(), lcm()
 // Usage:
 //   div = lcm(a, b);
 //   divs = lcm(list);
@@ -270,12 +314,43 @@ function lcm(a,b=[]) =
         assert(len(arglist)>0, "Invalid call to lcm with empty list(s)")
         _lcmlist(arglist);
 
+// Function rational_approx()
+// Usage:
+//   pq = rational_approx(x, maxq);
+// Description:
+//   Finds the best rational approximation p/q to the number x so that q<=maxq.  Returns
+//   the result as `[p,q]`.  If the input is zero, then returns `[0,1]`.  
+// Example:
+//   pq1 = rational_approx(PI,10);        // Returns: [22,7]
+//   pq2 = rational_approx(PI,10000);     // Returns: [355, 113]
+//   pq3 = rational_approx(221/323,500);  // Returns: [13,19]
+//   pq4 = rational_approx(0,50);         // Returns: [0,1]
+function rational_approx(x, maxq, cfrac=[], p, q) =
+  let(
+       next = floor(x),
+       fracpart = x-next,
+       cfrac = [each cfrac, next],
+       pq = _cfrac_to_pq(cfrac)
+  )
+    approx(fracpart,0) ? pq 
+  : pq[1]>maxq ? [p,q]
+  : rational_approx(1/fracpart,maxq,cfrac, pq[0], pq[1]);
 
+
+// Converts a continued fraction given as a list with leading integer term
+// into a fraction in the form p / q, returning [p,q]. 
+function _cfrac_to_pq(cfrac,p=0,q=1,ind) =
+    is_undef(ind) ? _cfrac_to_pq(cfrac,p,q,len(cfrac)-1)
+  : ind==0 ? [p+q*cfrac[0], q]
+  : _cfrac_to_pq(cfrac, q, cfrac[ind]*q+p, ind-1);
 
 
 // Section: Hyperbolic Trigonometry
 
 // Function: sinh()
+// Synopsis: Returns the hyperbolic sine of the given value.
+// Topics: Math, Trigonometry
+// See Also: sinh(), cosh(), tanh(), asinh(), acosh(), atanh()
 // Usage:
 //   a = sinh(x);
 // Description: Takes a value `x`, and returns the hyperbolic sine of it.
@@ -285,6 +360,9 @@ function sinh(x) =
 
 
 // Function: cosh()
+// Synopsis: Returns the hyperbolic cosine of the given value.
+// Topics: Math, Trigonometry
+// See Also: sinh(), cosh(), tanh(), asinh(), acosh(), atanh()
 // Usage:
 //   a = cosh(x);
 // Description: Takes a value `x`, and returns the hyperbolic cosine of it.
@@ -294,6 +372,9 @@ function cosh(x) =
 
 
 // Function: tanh()
+// Synopsis: Returns the hyperbolic tangent of the given value.
+// Topics: Math, Trigonometry
+// See Also: sinh(), cosh(), tanh(), asinh(), acosh(), atanh()
 // Usage:
 //   a = tanh(x);
 // Description: Takes a value `x`, and returns the hyperbolic tangent of it.
@@ -303,6 +384,9 @@ function tanh(x) =
 
 
 // Function: asinh()
+// Synopsis: Returns the hyperbolic arc-sine of the given value.
+// Topics: Math, Trigonometry
+// See Also: sinh(), cosh(), tanh(), asinh(), acosh(), atanh()
 // Usage:
 //   a = asinh(x);
 // Description: Takes a value `x`, and returns the inverse hyperbolic sine of it.
@@ -312,6 +396,9 @@ function asinh(x) =
 
 
 // Function: acosh()
+// Synopsis: Returns the hyperbolic arc-cosine of the given value.
+// Topics: Math, Trigonometry
+// See Also: sinh(), cosh(), tanh(), asinh(), acosh(), atanh()
 // Usage:
 //   a = acosh(x);
 // Description: Takes a value `x`, and returns the inverse hyperbolic cosine of it.
@@ -321,6 +408,9 @@ function acosh(x) =
 
 
 // Function: atanh()
+// Synopsis: Returns the hyperbolic arc-tangent of the given value.
+// Topics: Math, Trigonometry
+// See Also: sinh(), cosh(), tanh(), asinh(), acosh(), atanh()
 // Usage:
 //   a = atanh(x);
 // Description: Takes a value `x`, and returns the inverse hyperbolic tangent of it.
@@ -332,6 +422,9 @@ function atanh(x) =
 // Section: Quantization
 
 // Function: quant()
+// Synopsis: Returns `x` quantized to the nearest integer multiple of `y`.
+// Topics: Math, Quantization
+// See Also: quant(), quantdn(), quantup()
 // Usage:
 //   num = quant(x, y);
 // Description:
@@ -339,8 +432,8 @@ function atanh(x) =
 //   The value of `y` does NOT have to be an integer.  If `x` is a list, then every item
 //   in that list will be recursively quantized.
 // Arguments:
-//   x = The value to quantize.
-//   y = The non-zero integer quantum of the quantization.
+//   x = The value or list to quantize.
+//   y = Positive quantum to quantize to
 // Example:
 //   a = quant(12,4);    // Returns: 12
 //   b = quant(13,4);    // Returns: 12
@@ -361,14 +454,18 @@ function atanh(x) =
 //   q = quant([9,10,10.4,10.5,11,12],3);      // Returns: [9,9,9,12,12,12]
 //   r = quant([[9,10,10.4],[10.5,11,12]],3);  // Returns: [[9,9,9],[12,12,12]]
 function quant(x,y) =
-    assert( is_finite(y) && y>0, "The quantum `y` must be a non zero integer.")
-    is_list(x)
-    ?   [for (v=x) quant(v,y)]
-    :   assert( is_finite(x), "The input to quantize is not a number nor a list of numbers.")
-        floor(x/y+0.5)*y;
+    assert( is_finite(y) && y>0, "The quantum `y` must be a positive value.")
+    is_num(x) ? round(x/y)*y 
+              : _roundall(x/y)*y;
+
+function _roundall(data) =
+    [for(x=data) is_list(x) ? _roundall(x) : round(x)];
 
 
 // Function: quantdn()
+// Synopsis: Returns `x` quantized down to an integer multiple of `y`.
+// Topics: Math, Quantization
+// See Also: quant(), quantdn(), quantup()
 // Usage:
 //   num = quantdn(x, y);
 // Description:
@@ -376,8 +473,8 @@ function quant(x,y) =
 //   The value of `y` does NOT have to be an integer.  If `x` is a list, then every item in that
 //   list will be recursively quantized down.
 // Arguments:
-//   x = The value to quantize.
-//   y = The non-zero integer quantum of the quantization.
+//   x = The value or list to quantize.
+//   y = Postive quantum to quantize to. 
 // Example:
 //   a = quantdn(12,4);    // Returns: 12
 //   b = quantdn(13,4);    // Returns: 12
@@ -398,14 +495,18 @@ function quant(x,y) =
 //   q = quantdn([9,10,10.4,10.5,11,12],3);      // Returns: [9,9,9,9,9,12]
 //   r = quantdn([[9,10,10.4],[10.5,11,12]],3);  // Returns: [[9,9,9],[9,9,12]]
 function quantdn(x,y) =
-    assert( is_finite(y) && y>0, "The quantum `y` must be a non zero integer.")
-    is_list(x)
-    ?   [for (v=x) quantdn(v,y)]
-    :   assert( is_finite(x), "The input to quantize must be a number or a list of numbers.")
-        floor(x/y)*y;
+    assert( is_finite(y) && y>0, "The quantum `y` must be a positive value.")
+    is_num(x) ? floor(x/y)*y 
+              : _floorall(x/y)*y;
+
+function _floorall(data) =
+    [for(x=data) is_list(x) ? _floorall(x) : floor(x)];
 
 
 // Function: quantup()
+// Synopsis: Returns `x` quantized uo to an integer multiple of `y`.
+// Topics: Math, Quantization
+// See Also: quant(), quantdn(), quantup()
 // Usage:
 //   num = quantup(x, y);
 // Description:
@@ -413,8 +514,8 @@ function quantdn(x,y) =
 //   The value of `y` does NOT have to be an integer.  If `x` is a list, then every item in
 //   that list will be recursively quantized up.
 // Arguments:
-//   x = The value to quantize.
-//   y = The non-zero integer quantum of the quantization.
+//   x = The value or list to quantize.
+//   y = Positive quantum to quantize to.
 // Example:
 //   a = quantup(12,4);    // Returns: 12
 //   b = quantup(13,4);    // Returns: 16
@@ -435,16 +536,20 @@ function quantdn(x,y) =
 //   q = quantup([9,10,10.4,10.5,11,12],3);      // Returns: [9,12,12,12,12,12]
 //   r = quantup([[9,10,10.4],[10.5,11,12]],3);  // Returns: [[9,12,12],[12,12,12]]
 function quantup(x,y) =
-    assert( is_finite(y) && y>0, "The quantum `y` must be a non zero integer.")
-    is_list(x)
-    ?   [for (v=x) quantup(v,y)]
-    :   assert( is_finite(x), "The input to quantize must be a number or a list of numbers.")
-        ceil(x/y)*y;
+    assert( is_finite(y) && y>0, "The quantum `y` must be a positive value.")
+    is_num(x) ? ceil(x/y)*y 
+              : _ceilall(x/y)*y;
+
+function _ceilall(data) =
+    [for(x=data) is_list(x) ? _ceilall(x) : ceil(x)];
 
 
 // Section: Constraints and Modulos
 
 // Function: constrain()
+// Synopsis: Returns a value constrained between `minval` and `maxval`, inclusive.
+// Topics: Math
+// See Also: posmod(), modang()
 // Usage:
 //   val = constrain(v, minval, maxval);
 // Description:
@@ -465,6 +570,9 @@ function constrain(v, minval, maxval) =
 
 
 // Function: posmod()
+// Synopsis: Returns the positive modulo of a value.
+// Topics: Math
+// See Also: constrain(), posmod(), modang()
 // Usage:
 //   mod = posmod(x, m)
 // Description:
@@ -486,17 +594,20 @@ function posmod(x,m) =
 
 
 // Function: modang()
+// Synopsis: Returns an angle normalized to between -180º and 180º.
+// Topics: Math
+// See Also: constrain(), posmod(), modang()
 // Usage:
 //   ang = modang(x);
 // Description:
 //   Takes an angle in degrees and normalizes it to an equivalent angle value between -180 and 180.
 // Example:
-//   a1 = modang(-700,360);  // Returns: 20
-//   a2 = modang(-270,360);  // Returns: 90
-//   a3 = modang(-120,360);  // Returns: -120
-//   a4 = modang(120,360);   // Returns: 120
-//   a5 = modang(270,360);   // Returns: -90
-//   a6 = modang(700,360);   // Returns: -20
+//   a1 = modang(-700);  // Returns: 20
+//   a2 = modang(-270);  // Returns: 90
+//   a3 = modang(-120);  // Returns: -120
+//   a4 = modang(120);   // Returns: 120
+//   a5 = modang(270);   // Returns: -90
+//   a6 = modang(700);   // Returns: -20
 function modang(x) =
     assert( is_finite(x), "Input must be a finite number.")
     let(xx = posmod(x,360)) xx<180? xx : xx-360;
@@ -506,6 +617,9 @@ function modang(x) =
 // Section: Operations on Lists (Sums, Mean, Products)
 
 // Function: sum()
+// Synopsis: Returns the sum of a list of values.
+// Topics: Math
+// See Also: mean(), median(), product(), cumsum()
 // Usage:
 //   x = sum(v, [dflt]);
 // Description:
@@ -531,6 +645,9 @@ function _sum(v,_total,_i=0) = _i>=len(v) ? _total : _sum(v,_total+v[_i], _i+1);
 
 
 // Function: mean()
+// Synopsis: Returns the mean value of a list of values.
+// Topics: Math, Statistics
+// See Also: sum(), mean(), median(), product()
 // Usage:
 //   x = mean(v);
 // Description:
@@ -548,6 +665,9 @@ function mean(v) =
 
 
 // Function: median()
+// Synopsis: Returns the median value of a list of values.
+// Topics: Math, Statistics
+// See Also: sum(), mean(), median(), product()
 // Usage:
 //   middle = median(v)
 // Description:
@@ -564,6 +684,9 @@ function median(v) =
 
 
 // Function: deltas()
+// Synopsis: Returns the deltas between a list of values.
+// Topics: Math, Statistics
+// See Also: sum(), mean(), median(), product()
 // Usage:
 //   delts = deltas(v,[wrap]);
 // Description:
@@ -582,6 +705,9 @@ function deltas(v, wrap=false) =
 
 
 // Function: cumsum()
+// Synopsis: Returns the running cumulative sum of a list of values.
+// Topics: Math, Statistics
+// See Also: sum(), mean(), median(), product()
 // Usage:
 //   sums = cumsum(v);
 // Description:
@@ -606,6 +732,9 @@ function _cumsum(v,_i=0,_acc=[]) =
 
 
 // Function: product()
+// Synopsis: Returns the multiplicative product of a list of values.
+// Topics: Math, Statistics
+// See Also: sum(), mean(), median(), product(), cumsum()
 // Usage:
 //   x = product(v);
 // Description:
@@ -631,6 +760,9 @@ function _product(v, i=0, _tot) =
 
 
 // Function: cumprod()
+// Synopsis: Returns the running cumulative product of a list of values.
+// Topics: Math, Statistics
+// See Also: sum(), mean(), median(), product(), cumsum()
 // Description:
 //   Returns a list where each item is the cumulative product of all items up to and including the corresponding entry in the input list.
 //   If passed an array of vectors, returns a list of elementwise vector products.  If passed a list of square matrices returns matrix
@@ -670,6 +802,9 @@ function _cumprod_vec(v,_i=0,_acc=[]) =
 
 
 // Function: convolve()
+// Synopsis: Returns the convolution of `p` and `q`.
+// Topics: Math, Statistics
+// See Also: sum(), mean(), median(), product(), cumsum()
 // Usage:
 //   x = convolve(p,q);
 // Description:
@@ -703,13 +838,20 @@ function convolve(p,q) =
 
 
 // Function: sum_of_sines()
+// Synopsis: Returns the sum of one or more sine waves at a given angle.
+// Topics: Math, Statistics
+// See Also: sum(), mean(), median(), product(), cumsum()
 // Usage:
 //   sum_of_sines(a,sines)
 // Description:
-//   Gives the sum of a series of sines, at a given angle.
+//   Given a list of sine waves, returns the sum of the sines at the given angle.
+//   Each sine wave is given as an `[AMPLITUDE, FREQUENCY, PHASE_ANGLE]` triplet.
+//   - `AMPLITUDE` is the height of the sine wave above (and below) `0`.
+//   - `FREQUENCY` is the number of times the sine wave repeats in 360º.
+//   - `PHASE_ANGLE` is the offset in degrees of the sine wave.
 // Arguments:
 //   a = Angle to get the value for.
-//   sines = List of [amplitude, frequency, offset] items, where the frequency is the number of times the cycle repeats around the circle.
+//   sines = List of [amplitude, frequency, phase_angle] items, where the frequency is the number of times the cycle repeats around the circle.
 // Example:
 //   v = sum_of_sines(30, [[10,3,0], [5,5.5,60]]);
 function sum_of_sines(a, sines) =
@@ -726,6 +868,9 @@ function sum_of_sines(a, sines) =
 // Section: Random Number Generation
 
 // Function: rand_int()
+// Synopsis: Returns a random integer.
+// Topics: Random
+// See Also: rand_int(), random_points(), gaussian_rands(), random_polygon(), spherical_random_points(), exponential_rands()
 // Usage:
 //   rand_int(minval, maxval, n, [seed]);
 // Description:
@@ -746,10 +891,11 @@ function rand_int(minval, maxval, n, seed=undef) =
 
 
 // Function: random_points()
+// Synopsis: Returns a list of random points.
+// Topics: Random, Points
+// See Also: rand_int(), random_points(), random_polygon(), spherical_random_points()
 // Usage:
 //    points = random_points(n, dim, [scale], [seed]);
-// See Also: random_polygon(), spherical_random_points()
-// Topics: Random, Points
 // Description:
 //    Generate `n` uniform random points of dimension `dim` with data ranging from -scale to +scale.  
 //    The `scale` may be a number, in which case the random data lies in a cube,
@@ -773,6 +919,9 @@ function random_points(n, dim, scale=1, seed) =
 
 
 // Function: gaussian_rands()
+// Synopsis: Returns a list of random numbers with a gaussian distribution.
+// Topics: Random, Statistics
+// See Also: rand_int(), random_points(), gaussian_rands(), random_polygon(), spherical_random_points(), exponential_rands()
 // Usage:
 //   arr = gaussian_rands([n],[mean], [cov], [seed]);
 // Description:
@@ -803,6 +952,9 @@ function gaussian_rands(n=1, mean=0, cov=1, seed=undef) =
 
 
 // Function: exponential_rands()
+// Synopsis: Returns a list of random numbers with an exponential distribution.
+// Topics: Random, Statistics
+// See Also: rand_int(), random_points(), gaussian_rands(), random_polygon(), spherical_random_points()
 // Usage:
 //   arr = exponential_rands([n], [lambda], [seed])
 // Description:
@@ -818,11 +970,13 @@ function exponential_rands(n=1, lambda=1, seed) =
     )
     -(1/lambda) * [for(x=unif) x==1 ? 708.3964185322641 : ln(1-x)];  // Use ln(min_float) when x is 1
 
+
 // Function: spherical_random_points()
+// Synopsis: Returns a list of random points on the surface of a sphere.
+// Topics: Random, Points
+// See Also: rand_int(), random_points(), gaussian_rands(), random_polygon(), spherical_random_points()
 // Usage:
 //    points = spherical_random_points([n], [radius], [seed]);
-// See Also: random_polygon(), random_points()
-// Topics: Random, Points
 // Description:
 //    Generate `n` 3D uniformly distributed random points lying on a sphere centered at the origin with radius equal to `radius`.
 // Arguments:
@@ -846,10 +1000,11 @@ function spherical_random_points(n=1, radius=1, seed) =
 
 
 // Function: random_polygon()
+// Synopsis: Returns the CCW path of a simple random polygon.
+// Topics: Random, Polygon
+// See Also: random_points(), spherical_random_points()
 // Usage:
 //    points = random_polygon([n], [size], [seed]);
-// See Also: random_points(), spherical_random_points()
-// Topics: Random, Polygon
 // Description:
 //    Generate the `n` vertices of a random counter-clockwise simple 2d polygon 
 //    inside a circle centered at the origin with radius `size`.
@@ -873,6 +1028,9 @@ function random_polygon(n=3,size=1, seed) =
 // Section: Calculus
 
 // Function: deriv()
+// Synopsis: Returns the first derivative estimate of a list of data.
+// Topics: Math, Calculus
+// See Also: deriv(), deriv2(), deriv3()
 // Usage:
 //   x = deriv(data, [h], [closed])
 // Description:
@@ -938,6 +1096,9 @@ function _deriv_nonuniform(data, h, closed) =
 
 
 // Function: deriv2()
+// Synopsis: Returns the second derivative estimate of a list of data.
+// Topics: Math, Calculus
+// See Also: deriv(), deriv2(), deriv3()
 // Usage:
 //   x = deriv2(data, [h], [closed])
 // Description:
@@ -982,6 +1143,9 @@ function deriv2(data, h=1, closed=false) =
 
 
 // Function: deriv3()
+// Synopsis: Returns the third derivative estimate of a list of data.
+// Topics: Math, Calculus
+// See Also: deriv(), deriv2(), deriv3()
 // Usage:
 //   x = deriv3(data, [h], [closed])
 // Description:
@@ -1027,6 +1191,9 @@ function deriv3(data, h=1, closed=false) =
 
 
 // Function: complex()
+// Synopsis: Replaces scalars in a list or matrix with complex number 2-vectors.
+// Topics: Math, Complex Numbers
+// See Also: c_mul(), c_div(), c_conj(), c_real(), c_imag(), c_ident(), c_norm()
 // Usage:
 //   z = complex(list)
 // Description:
@@ -1038,6 +1205,9 @@ function complex(list) =
 
 
 // Function: c_mul()
+// Synopsis: Multiplies two complex numbers.
+// Topics: Math, Complex Numbers
+// See Also: complex(), c_mul(), c_div(), c_conj(), c_real(), c_imag(), c_ident(), c_norm()
 // Usage:
 //   c = c_mul(z1,z2)
 // Description:
@@ -1074,6 +1244,9 @@ function _c_mul(z1,z2) =
 
 
 // Function: c_div()
+// Synopsis: Divides two complex numbers.
+// Topics: Math, Complex Numbers
+// See Also: complex(), c_mul(), c_div(), c_conj(), c_real(), c_imag(), c_ident(), c_norm()
 // Usage:
 //   x = c_div(z1,z2)
 // Description:
@@ -1090,6 +1263,9 @@ function c_div(z1,z2) =
 
 
 // Function: c_conj()
+// Synopsis: Returns the complex conjugate of the input.
+// Topics: Math, Complex Numbers
+// See Also: complex(), c_mul(), c_div(), c_conj(), c_real(), c_imag(), c_ident(), c_norm()
 // Usage:
 //   w = c_conj(z)
 // Description:
@@ -1101,6 +1277,9 @@ function c_conj(z) =
 
 
 // Function: c_real()
+// Synopsis: Returns the real part of a complex number, vector or matrix..
+// Topics: Math, Complex Numbers
+// See Also: complex(), c_mul(), c_div(), c_conj(), c_real(), c_imag(), c_ident(), c_norm()
 // Usage:
 //   x = c_real(z)
 // Description:
@@ -1112,6 +1291,9 @@ function c_real(z) =
 
 
 // Function: c_imag()
+// Synopsis: Returns the imaginary part of a complex number, vector or matrix..
+// Topics: Math, Complex Numbers
+// See Also: complex(), c_mul(), c_div(), c_conj(), c_real(), c_imag(), c_ident(), c_norm()
 // Usage:
 //   x = c_imag(z)
 // Description:
@@ -1123,6 +1305,9 @@ function c_imag(z) =
 
 
 // Function: c_ident()
+// Synopsis: Returns an n by n complex identity matrix.
+// Topics: Math, Complex Numbers
+// See Also: complex(), c_mul(), c_div(), c_conj(), c_real(), c_imag(), c_ident(), c_norm()
 // Usage:
 //   I = c_ident(n)
 // Description:
@@ -1131,6 +1316,9 @@ function c_ident(n) = [for (i = [0:1:n-1]) [for (j = [0:1:n-1]) (i==j)?[1,0]:[0,
 
 
 // Function: c_norm()
+// Synopsis: Returns the norm of a complex number or vector.
+// Topics: Math, Complex Numbers
+// See Also: complex(), c_mul(), c_div(), c_conj(), c_real(), c_imag(), c_ident(), c_norm()
 // Usage:
 //   n = c_norm(z)
 // Description:
@@ -1141,6 +1329,9 @@ function c_norm(z) = norm_fro(z);
 // Section: Polynomials
 
 // Function: quadratic_roots()
+// Synopsis: Computes roots for the quadratic equation.
+// Topics: Math, Geometry, Complex Numbers
+// See Also: quadratic_roots(), polynomial(), poly_mult(), poly_div(), poly_add()
 // Usage:
 //    roots = quadratic_roots(a, b, c, [real])
 // Description:
@@ -1174,6 +1365,9 @@ function quadratic_roots(a,b,c,real=false) =
 
 
 // Function: polynomial() 
+// Synopsis: Calculates a polynomial equation at a given value.
+// Topics: Math, Complex Numbers
+// See Also: quadratic_roots(), polynomial(), poly_mult(), poly_div(), poly_add(), poly_roots()
 // Usage:
 //   x = polynomial(p, z)
 // Description:
@@ -1191,6 +1385,9 @@ function polynomial(p,z,k,total) =
 
 
 // Function: poly_mult()
+// Synopsis: Returns the polynomial result of multiplying two polynomial equations.
+// Topics: Math
+// See Also: quadratic_roots(), polynomial(), poly_mult(), poly_div(), poly_add(), poly_roots()
 // Usage:
 //   x = polymult(p,q)
 //   x = polymult([p1,p2,p3,...])
@@ -1210,6 +1407,9 @@ function poly_mult(p,q) =
 
     
 // Function: poly_div()
+// Synopsis: Returns the polynomial quotient and remainder results of dividing two polynomial equations.
+// Topics: Math
+// See Also: quadratic_roots(), polynomial(), poly_mult(), poly_div(), poly_add(), poly_roots()
 // Usage:
 //    [quotient,remainder] = poly_div(n,d)
 // Description:
@@ -1248,6 +1448,9 @@ function _poly_trim(p,eps=0) =
 
 
 // Function: poly_add()
+// Synopsis: Returns the polynomial sum of adding two polynomial equations.
+// Topics: Math
+// See Also: quadratic_roots(), polynomial(), poly_mult(), poly_div(), poly_add(), poly_roots()
 // Usage:
 //    sum = poly_add(p,q)
 // Description:
@@ -1263,6 +1466,9 @@ function poly_add(p,q) =
 
 
 // Function: poly_roots()
+// Synopsis: Returns all complex number roots of the given real polynomial.
+// Topics: Math, Complex Numbers
+// See Also: quadratic_roots(), polynomial(), poly_mult(), poly_div(), poly_add(), poly_roots()
 // Usage:
 //   roots = poly_roots(p, [tol]);
 // Description:
@@ -1333,6 +1539,9 @@ function _poly_roots(p, pderiv, s, z, tol, i=0) =
 
 
 // Function: real_roots()
+// Synopsis: Returns all real roots of the given real polynomial.
+// Topics: Math, Complex Numbers
+// See Also: quadratic_roots(), polynomial(), poly_mult(), poly_div(), poly_add(), poly_roots()
 // Usage:
 //   roots = real_roots(p, [eps], [tol])
 // Description:
@@ -1351,13 +1560,6 @@ function _poly_roots(p, pderiv, s, z, tol, i=0) =
 //   eps = used to determine whether imaginary parts of roots are zero
 //   tol = tolerance for the complex polynomial root finder
 
-//   The algorithm is based on Brent's method and is a combination of
-//   bisection and inverse quadratic approximation, where bisection occurs
-//   at every step, with refinement using inverse quadratic approximation
-//   only when that approximation gives a good result.  The detail
-//   of how to decide when to use the quadratic came from an article
-//   by Crenshaw on "The World's Best Root Finder".
-//   https://www.embedded.com/worlds-best-root-finder/
 function real_roots(p,eps=undef,tol=1e-14) =
     assert( is_vector(p), "Invalid polynomial." )
     let( p = _poly_trim(p,eps=0) )
@@ -1375,6 +1577,9 @@ function real_roots(p,eps=undef,tol=1e-14) =
 // Section: Operations on Functions
 
 // Function: root_find()
+// Synopsis: Finds a root of the given continuous function.
+// Topics: Math
+// See Also: quadratic_roots(), polynomial(), poly_mult(), poly_div(), poly_add(), poly_roots()
 // Usage:
 //    x = root_find(f, x0, x1, [tol])
 // Description:
@@ -1390,6 +1595,14 @@ function real_roots(p,eps=undef,tol=1e-14) =
 //    x0 = endpoint of interval to search for root
 //    x1 = second endpoint of interval to search for root
 //    tol = tolerance for solution.  Default: 1e-15
+
+//   The algorithm is based on Brent's method and is a combination of
+//   bisection and inverse quadratic approximation, where bisection occurs
+//   at every step, with refinement using inverse quadratic approximation
+//   only when that approximation gives a good result.  The detail
+//   of how to decide when to use the quadratic came from an article
+//   by Crenshaw on "The World's Best Root Finder".
+//   https://www.embedded.com/worlds-best-root-finder/
 function root_find(f,x0,x1,tol=1e-15) =
    let(
         y0 = f(x0),

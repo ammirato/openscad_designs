@@ -134,10 +134,12 @@ include <structs.scad>
 // Section: Rounding Paths
 
 // Function: round_corners()
-//
+// Synopsis: Round or chamfer the corners of a path (clipping them off).
+// SynTags: Path
+// Topics: Rounding, Paths
+// See Also: round_corners(), smooth_path(), path_join(), offset_stroke()
 // Usage:
 //   rounded_path = round_corners(path, [method], [radius=], [cut=], [joint=], [closed=], [verbose=]);
-//
 // Description:
 //   Takes a 2D or 3D path as input and rounds each corner
 //   by a specified amount.  The rounding at each point can be different and some points can have zero
@@ -364,7 +366,7 @@ include <structs.scad>
 // Example(2D,Med,NoAxes): Specifying by corner index.  Use {{list_set()}} to construct the full chamfer cut list. 
 //   path = star(47, ir=25, or=50);  // long path, lots of corners
 //   chamfind = [8, 28, 60];         // But only want 3 chamfers
-//   chamfcut = list_set([],chamfind,[10,13,15],minlen=len(path)-1);
+//   chamfcut = list_set([],chamfind,[10,13,15],minlen=len(path));
 //   rpath = round_corners(path, cut=chamfcut, method="chamfer");   
 //   polygon(rpath);
 // Example(2D,Med,NoAxes): Two-pass to chamfer and round by index.  Use {{repeat_entries()}} to correct for first pass chamfers.
@@ -372,9 +374,9 @@ include <structs.scad>
 //   path = star(47, ir=32, or=65);  // long path, lots of corners
 //   chamfind = [8, 28, 60];         // But only want 3 chamfers
 //   roundind = [7,9,27,29,59,61];   // And 6 roundovers
-//   chamfcut = list_set([],chamfind,[10,13,15],minlen=len(path)-1);
-//   roundcut = list_set([],roundind,repeat(8,6),minlen=len(path)-1);
-//   dups = list_set([], chamfind, repeat(2,len(chamfind)), dflt=1, minlen=len(path)-1);
+//   chamfcut = list_set([],chamfind,[10,13,15],minlen=len(path));
+//   roundcut = list_set([],roundind,repeat(8,6),minlen=len(path));
+//   dups = list_set([], chamfind, repeat(2,len(chamfind)), dflt=1, minlen=len(path));
 //   rpath1 = round_corners(path, cut=chamfcut, method="chamfer");
 //   rpath2 = round_corners(rpath1, cut=repeat_entries(roundcut,dups));
 //   polygon(rpath2);
@@ -595,6 +597,10 @@ function _rounding_offsets(edgespec,z_dir=1) =
 
 
 // Function: smooth_path()
+// Synopsis: Create smoothed path that passes through all the points of a given path.
+// SynTags: Path
+// Topics: Rounding, Paths
+// See Also: round_corners(), smooth_path(), path_join(), offset_stroke()
 // Usage:
 //   smoothed = smooth_path(path, [tangents], [size=|relsize=], [splinesteps=], [closed=], [uniform=]);
 // Description:
@@ -678,7 +684,7 @@ function smooth_path(path, tangents, size, relsize, splinesteps=10, uniform=fals
      bez = path_to_bezpath(path, tangents=tangents, size=size, relsize=relsize, uniform=uniform, closed=default(closed,false)),
      smoothed = bezpath_curve(bez,splinesteps=splinesteps)
   )
-  closed ? cleanup_path(smoothed) : smoothed;
+  closed ? list_unwrap(smoothed) : smoothed;
 
 
 function _scalar_to_vector(value,length,varname) = 
@@ -690,6 +696,10 @@ function _scalar_to_vector(value,length,varname) =
 
 
 // Function: path_join()
+// Synopsis: Join paths end to end with optional rounding.
+// SynTags: Path
+// Topics: Rounding, Paths
+// See Also: round_corners(), smooth_path(), path_join(), offset_stroke()
 // Usage:
 //   joined_path = path_join(paths, [joint], [k=], [relocate=], [closed=]);
 // Description:
@@ -787,7 +797,7 @@ function _scalar_to_vector(value,length,varname) =
 //   color("red")stroke(
 //     path_join([p1,p2,p3], joint=0, relocate=false,
 //               closed=true),
-//     width=.3,$fn=12);
+//     width=.3,$fn=48);
 //   for(x=[p1,p2,p3]) stroke(x,width=.3);
 // Example(2D): If you specify closed=true when the last path doesn't meet the first one then it is similar to using relocate=false: the function tries to close the path using a curve.  In the example below, this results in a long curve to the left, when given the unclosed three segments as input.  Note that if the segments are parallel the function fails with an error.  The extension of the curves must intersect in a corner for the rounding to be well-defined.  To get a normal rounding of the closed shape, you must include a fourth path, the last segment that closes the shape.
 //   horiz = [[0,0],[10,0]];
@@ -815,7 +825,7 @@ function path_join(paths,joint=0,k=0.5,relocate=true,closed=false)=
   let(
       paths = !closed || len(paths)>1
             ? paths
-            : [close_path(paths[0])],
+            : [list_wrap(paths[0])],
       N = len(paths) + (closed?0:-1),
       k = _scalar_to_vector(k,N),
       repjoint = is_num(joint) || (is_vector(joint,2) && len(paths)!=3),
@@ -828,7 +838,7 @@ function path_join(paths,joint=0,k=0.5,relocate=true,closed=false)=
   )
   assert(bad_j==[], str("Invalid joint values at indices ",bad_j))
   let(result=_path_join(paths,joint,k, relocate=relocate, closed=closed))
-  closed ? cleanup_path(result) : result;
+  closed ? list_unwrap(result) : result;
 
 function _path_join(paths,joint,k=0.5,i=0,result=[],relocate=true,closed=false) =
   let( 
@@ -875,6 +885,10 @@ function _path_join(paths,joint,k=0.5,i=0,result=[],relocate=true,closed=false) 
 
 
 // Function&Module: offset_stroke()
+// Synopsis: Draws a line along a path with options to specify angles and roundings at the ends.
+// SynTags: Path, Region
+// Topics: Rounding, Paths
+// See Also: round_corners(), smooth_path(), path_join(), offset_stroke()
 // Usage: as module
 //   offset_stroke(path, [width], [rounded=], [chamfer=], [start=], [end=], [check_valid=], [quality=], [closed=],...) [ATTACHMENTS];
 // Usage: as function
@@ -1203,7 +1217,8 @@ function _stroke_end(width,left, right, spec) =
                         rightdelete = intright? pathcutright[1] + pathclip[1] -1 : pathcutright[1],
                         leftcorner = line_intersection([pathcutleft[0], newleft[pathcutleft[1]]], [newright[0],newleft[0]]),
                         rightcorner = line_intersection([pathcutright[0], newright[pathcutright[1]]], [newright[0],newleft[0]]),
-                        roundover_fits = jointleft+jointright < norm(rightcorner-leftcorner)
+                        roundover_fits = is_def(rightcorner) && is_def(leftcorner) &&
+                                         jointleft+jointright < norm(rightcorner-leftcorner)
                 )
                 assert(roundover_fits,"Roundover too large to fit")
                 let(
@@ -1251,10 +1266,14 @@ module offset_stroke(path, width=1, rounded=true, start, end, check_valid=true, 
 // Section: Three-Dimensional Rounding
 
 // Function&Module: offset_sweep()
+// Synopsis: Make a solid from a polygon with offset that changes along its length.
+// SynTags: Geom, VNF
+// Topics: Rounding, Offsets
+// See Also: offset_sweep(), convex_offset_extrude(), rounded_prism(), bent_cutout_mask(), join_prism()
 // Usage: most common module arguments.  See Arguments list below for more.
-//    offset_sweep(path, [height|length|h|l|], [bottom], [top], [offset=], [convexity=],...) [ATTACHMENTS];
+//   offset_sweep(path, [height|length|h|l|], [bottom], [top], [offset=], [convexity=],...) [ATTACHMENTS];
 // Usage: most common function arguments.  See Arguments list below for more.
-//    vnf = offset_sweep(path, [height|h|l|length], [bottom], [top], [offset=], ...);
+//   vnf = offset_sweep(path, [height|h|l|length], [bottom], [top], [offset=], ...);
 // Description:
 //   Takes a 2d path as input and extrudes it upwards and/or downward.  Each layer in the extrusion is produced using `offset()` to expand or shrink the previous layer.  When invoked as a function returns a VNF; when invoked as a module produces geometry.  
 //   Using the `top` and/or `bottom` arguments you can specify a sequence of offsets values, or you can use several built-in offset profiles that
@@ -1717,6 +1736,10 @@ function os_mask(mask, out=false, extra,check_valid, quality, offset) =
 
 
 // Module: convex_offset_extrude()
+// Synopsis: Make a solid from geometry where offset changes along the object's length.
+// SynTags: Geom
+// Topics: Rounding, Offsets
+// See Also: offset_sweep(), convex_offset_extrude(), rounded_prism(), bent_cutout_mask(), join_prism()
 // Usage: Basic usage.  See below for full options
 //   convex_offset_extrude(height, [bottom], [top], ...) 2D-CHILDREN;
 // Description:
@@ -1875,26 +1898,29 @@ module convex_offset_extrude(
           delta[i] == 1 ? above :
           /* delta[i] == -1 ? */ below];
         dochamfer = offset=="chamfer";
-        for(i=[0:len(r)-2])
-          for(j=[0:$children-1])
-           hull(){
-             up(r[i][1]+layers[i][0])
-               linear_extrude(convexity=convexity,height=layers[i][1]-layers[i][0])
-                 if (offset=="round")
-                   offset(r=r[i][0])
-                     children(j);
-                 else
-                   offset(delta=r[i][0],chamfer = dochamfer)
-                     children(j);
-             up(r[i+1][1]+layers[i+1][0])
-               linear_extrude(convexity=convexity,height=layers[i+1][1]-layers[i+1][0])
-                 if (offset=="round")
-                   offset(r=r[i+1][0])
-                     children(j);
-                 else
-                   offset(delta=r[i+1][0],chamfer=dochamfer)
-                     children(j);
-           }
+        attachable(){
+          for(i=[0:len(r)-2])
+            for(j=[0:$children-1])
+             hull(){
+               up(r[i][1]+layers[i][0])
+                 linear_extrude(convexity=convexity,height=layers[i][1]-layers[i][0])
+                   if (offset=="round")
+                     offset(r=r[i][0])
+                       children(j);
+                   else
+                     offset(delta=r[i][0],chamfer = dochamfer)
+                       children(j);
+               up(r[i+1][1]+layers[i+1][0])
+                 linear_extrude(convexity=convexity,height=layers[i+1][1]-layers[i+1][0])
+                   if (offset=="round")
+                     offset(r=r[i+1][0])
+                       children(j);
+                   else
+                     offset(delta=r[i+1][0],chamfer=dochamfer)
+                       children(j);
+             }
+          union();
+        }
 }
 
 
@@ -1948,6 +1974,10 @@ function _rp_compute_patches(top, bot, rtop, rsides, ktop, ksides, concave) =
 
 
 // Function&Module: rounded_prism()
+// Synopsis: Make a rounded 3d object by connecting two polygons with the same vertex count.
+// SynTags: Geom, VNF
+// Topics: Rounding, Offsets
+// See Also: offset_sweep(), convex_offset_extrude(), rounded_prism(), bent_cutout_mask(), join_prism()
 // Usage: as a module
 //   rounded_prism(bottom, [top], [height=|h=|length=|l=], [joint_top=], [joint_bot=], [joint_sides=], [k=], [k_top=], [k_bot=], [k_sides=], [splinesteps=], [debug=], [convexity=],...) [ATTACHMENTS];
 // Usage: as a function
@@ -2261,6 +2291,10 @@ function _circle_mask(r) =
 
 
 // Module: bent_cutout_mask()
+// Synopsis: Create a mask for making a round-edged cutout in a cylindrical shell.
+// SynTags: Geom
+// Topics: Rounding, Offsets
+// See Also: offset_sweep(), convex_offset_extrude(), rounded_prism(), bent_cutout_mask(), join_prism()
 // Usage:
 //   bent_cutout_mask(r|radius, thickness, path);
 // Description:
@@ -2486,6 +2520,10 @@ Access to the derivative smoothing parameter?
 
 
 // Function&Module: join_prism()
+// Synopsis: Join an arbitrary prism to a plane, sphere, cylinder or another arbitrary prism with a fillet.
+// SynTags: Geom, VNF
+// Topics: Rounding, Offsets
+// See Also: offset_sweep(), convex_offset_extrude(), rounded_prism(), bent_cutout_mask(), join_prism()
 // Usage: The two main forms with most common options
 //   join_prism(polygon, base, length=|height=|l=|h=, fillet=, [base_T=], [scale=], [prism_end_T=], [short=], ...) [ATTACHMENTS];
 //   join_prism(polygon, base, aux=, fillet=, [base_T=], [aux_T=], [scale=], [prism_end_T=], [short=], ...) [ATTACHMENTS];
@@ -2924,7 +2962,7 @@ Access to the derivative smoothing parameter?
 //   ellipse = ellipse([17,10],$fn=164);  
 //   join_prism(ellipse,base="sphere",base_r=30, length=18,
 //              fillet=18, n=25, overlap=1);
-//   sphere(r=30,circum=true, $fn=96);
+//   spheroid(r=30,circum=true, $fn=96);
 // Example(3D,NoScales): This example shows a failed rounding attempt where the result is self-intersecting.  Using the `debug=true` option makes it possible to view the result to understand what went wrong.  Note that the concave corners have a crease where the fillet crosses itself.  The error message will advise you to decrease the size of the fillet.  You can also fix the problem by making your concave curves shallower.  
 //   flower = [for(theta=lerpn(0,360,180,endpoint=false))
 //             (15+2.5*sin(6*theta))*[cos(theta),sin(theta)]];
@@ -2934,19 +2972,19 @@ Access to the derivative smoothing parameter?
 //   sq = rect(15);
 //   join_prism(sq, base="sphere", base_r=25,
 //              length=18, fillet=4, n=12);
-//   sphere(r=25, circum=true, $fn=96);
+//   spheroid(r=25, circum=true, $fn=96);
 // Example(3D,NoScales): To fix the problem, you must subdivide the polygon that defines the prism.  But note that the join_prism method works poorly at sharp corners.
 //   sq = subdivide_path(rect(15),n=64);
 //   join_prism(sq, base="sphere", base_r=25,
 //              length=18, fillet=4, n=12);
-//   sphere(r=25, circum=true,$fn=96);
+//   spheroid(r=25, circum=true,$fn=96);
 // Example(3D,NoScales): In the previous example, a small rounding of the prism corners produces a nicer result.
 //   sq = subdivide_path(
 //          round_corners(rect(15),cut=.5,$fn=32),
 //          n=128);
 //   join_prism(sq, base="sphere", base_r=25,
 //              length=18, fillet=4, n=12);
-//   sphere(r=25, circum=true,$fn=96);
+//   spheroid(r=25, circum=true,$fn=96);
 // Example(3D,NoScales): The final option for specifying the base is to use an arbitrary prism, specified by a polygon.  Note that the base prism is oriented to the RIGHT, so the attached prism remains Z oriented.  
 //   ellipse = ellipse([17,10],$fn=164);  
 //   join_prism(zrot(90,ellipse), base=2*ellipse, length=19,
@@ -3032,7 +3070,7 @@ Access to the derivative smoothing parameter?
 //   base_T = xrot(5)*yrot(-12);
 //   join_prism(flower,base="cylinder",base_r=25, fillet=4, n=12,
 //              aux="sphere",aux_r=35,base_T=base_T, aux_T=aux_T);
-//   multmatrix(aux_T)sphere(35,circum=true);
+//   multmatrix(aux_T)spheroid(35,circum=true);
 //   multmatrix(base_T)xcyl(l=75,r=25,circum=true);
 // Example(3D,NoScales,VPR=[84,0,21],VPT=[13.6,-1,46.8],VPD=446): Here we translate the sphere to the right and the prism goes with it
 //   flower = [for(theta=lerpn(0,360,180,endpoint=false))
@@ -3040,7 +3078,7 @@ Access to the derivative smoothing parameter?
 //   aux_T = right(40)*up(85);
 //   join_prism(flower,base="cylinder",base_r=25, n=12,
 //              aux="sphere",aux_r=35, aux_T=aux_T, fillet=4);
-//   multmatrix(aux_T)sphere(35,circum=true);
+//   multmatrix(aux_T)spheroid(35,circum=true);
 //   xcyl(l=75,r=25,circum=true);
 // Example(3D,NoScales,VPR=[84,0,21],VPT=[13.6,-1,46.8],VPD=446): This is the previous example with the prism_end_T transformation used to shift the far end of the prism away from the sphere center.  Note that prism_end_T can be any transformation, but it just acts on the location of the prism endpoint to shift the direction the prism points.  
 //   flower = [for(theta=lerpn(0,360,180,endpoint=false))
@@ -3049,7 +3087,7 @@ Access to the derivative smoothing parameter?
 //   join_prism(flower,base="cylinder",base_r=25,
 //              prism_end_T=left(4), fillet=3, n=12, 
 //              aux="sphere",aux_r=35, aux_T=aux_T); 
-//   multmatrix(aux_T)sphere(35,circum=true);
+//   multmatrix(aux_T)spheroid(35,circum=true);
 //   xcyl(l=75,r=25,circum=true);
 // Example(3D,NoScales,VPR=[96.9,0,157.5],VPT=[-7.77616,-2.272,37.9424],VPD=366.527): Here the base is a cylinder but the auxilary object is a generic prism, and the joiner prism has a scale factor.  
 //   flower = [for(theta=lerpn(0,360,180,endpoint=false))

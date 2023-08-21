@@ -13,10 +13,14 @@
 
 
 // Module: slider()
-// Description:
-//   Creates a slider to match a V-groove rail.
+// Synopsis: Creates a V-groove slider.
+// SynTags: Geom
+// Topics: Parts, Sliders
+// See Also: rail()
 // Usage:
 //   slider(l, w, h, [base=], [wall=], [ang=], [$slop=]) [ATTACHMENTS];
+// Description:
+//   Creates a slider to match a V-groove rail.
 // Arguments:
 //   l = Length (long axis) of slider.
 //   w = Width of slider.
@@ -63,17 +67,21 @@ module slider(l=30, w=10, h=10, base=10, wall=5, ang=30, anchor=BOTTOM, spin=0, 
 
 
 // Module: rail()
-// Description:
-//   Creates a V-groove rail.
+// Synopsis: Creates a V-groove rail.
+// SynTags: Geom
+// Topics: Parts, Sliders
+// See Also: slider()
 // Usage:
 //   rail(l, w, h, [chamfer=], [ang=]) [ATTACHMENTS];
+// Description:
+//   Creates a V-groove rail.
 // Arguments:
 //   l = Length (long axis) of slider.
 //   w = Width of slider.
 //   h = Height of slider.
-//   ---
 //   chamfer = Size of chamfer at end of rail.
-//   ang = Overhang angle for slider, to facilitate supportless printig.
+//   ang = Overhang angle for slider, to facilitate supportless printing.
+//   ---
 //   anchor = Translate so anchor point is at origin (0,0,0).  See [anchor](attachments.scad#subsection-anchor).  Default: `BOTTOM`
 //   spin = Rotate this many degrees around the Z axis after anchor.  See [spin](attachments.scad#subsection-spin).  Default: `0`
 //   orient = Vector to rotate top towards, after spin.  See [orient](attachments.scad#subsection-orient).  Default: `UP`

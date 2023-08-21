@@ -1,6 +1,6 @@
 //////////////////////////////////////////////////////////////////////
 // LibFile: regions.scad
-//   This file provides 2D boolean set operations on polygons, where you can
+//   This file provides 2D Boolean set operations on polygons, where you can
 //   compute, for example, the intersection or union of the shape defined by point lists, producing
 //   a new point list.  Of course, such operations may produce shapes with multiple
 //   components.  To handle that, we use "regions" which are lists of paths representing the polygons.
@@ -9,7 +9,7 @@
 // Includes:
 //   include <BOSL2/std.scad>
 // FileGroup: Advanced Modeling
-// FileSummary: Offsets and boolean geometry of 2D paths and regions.
+// FileSummary: Offsets and Boolean geometry of 2D paths and regions.
 // FileFootnotes: STD=Included in std.scad
 //////////////////////////////////////////////////////////////////////
 
@@ -43,6 +43,9 @@
 
 
 // Function: is_region()
+// Synopsis: Returns true if the input appears to be a region.
+// Topics: Regions, Paths, Polygons, List Handling
+// See Also: is_valid_region(), is_1region(), is_region_simple()
 // Usage:
 //   bool = is_region(x);
 // Description:
@@ -52,6 +55,9 @@ function is_region(x) = is_list(x) && is_path(x.x);
 
 
 // Function: is_valid_region()
+// Synopsis: Returns true if the input is a valid region.
+// Topics: Regions, Paths, Polygons, List Handling
+// See Also: is_region(), is_1region(), is_region_simple()
 // Usage:
 //   bool = is_valid_region(region, [eps]);
 // Description:
@@ -208,6 +214,9 @@ function _polygon_crosses_region(region, poly, eps=EPSILON) =
 
 
 // Function: is_region_simple()
+// Synopsis: Returns true if the input is a region with no corner contact.
+// Topics: Regions, Paths, Polygons, List Handling
+// See Also: is_region(), is_valid_region(), is_1region()
 // Usage:
 //   bool = is_region_simple(region, [eps]);
 // Description:
@@ -238,12 +247,16 @@ function is_region_simple(region, eps=EPSILON) =
   
   
 // Function: make_region()
+// Synopsis: Converts lists of intersecting polygons into valid regions.
+// SynTags: Region
+// Topics: Regions, Paths, Polygons, List Handling
+// See Also: force_region(), region()
+// 
 // Usage:
 //   region = make_region(polys, [nonzero], [eps]);
 // Description:
 //   Takes a list of polygons that may intersect themselves or cross each other 
-//   and converts it into a properly defined region without
-//   these defects.
+//   and converts it into a properly defined region without these defects.
 // Arguments:
 //   polys = list of polygons to use
 //   nonzero = set to true to use nonzero rule for polygon membership.  Default: false
@@ -268,6 +281,10 @@ function make_region(polys,nonzero=false,eps=EPSILON) =
                   eps=eps);
 
 // Function: force_region()
+// Synopsis: Given a polygon returns a region.
+// SynTags: Region
+// Topics: Regions, Paths, Polygons, List Handling
+// See Also: make_region(), region()
 // Usage:
 //   region = force_region(poly)
 // Description:
@@ -280,6 +297,10 @@ function force_region(poly) = is_path(poly) ? [poly] : poly;
 // Section: Turning a region into geometry
 
 // Module: region()
+// Synopsis: Creates the 2D polygons described by the given region or list of polygons.
+// SynTags: Geom
+// Topics: Regions, Paths, Polygons, List Handling
+// See Also: make_region(), region()
 // Usage:
 //   region(r, [anchor], [spin=], [cp=], [atype=]) [ATTACHMENTS];
 // Description:
@@ -321,6 +342,9 @@ module region(r, anchor="origin", spin=0, cp="centroid", atype="hull")
 // Section: Gometrical calculations with regions
 
 // Function: point_in_region()
+// Synopsis: Tests if a point is inside, outside, or on the border of a region. 
+// Topics: Regions, Points, Comparison
+// See Also: region_area(), are_regions_equal()
 // Usage:
 //   check = point_in_region(point, region, [eps]);
 // Description:
@@ -356,6 +380,8 @@ function _point_in_region(point, region, eps=EPSILON, i=0, cnt=0) =
 
 
 // Function: region_area()
+// Synopsis: Computes the area of the specified valid region.
+// Topics: Regions, Area
 // Usage:
 //   area = region_area(region);
 // Description:
@@ -377,6 +403,8 @@ function region_area(region) =
 function _clockwise_region(r) = [for(p=r) clockwise_polygon(p)];
 
 // Function: are_regions_equal()
+// Synopsis: Returns true if given regions are the same polygons.
+// Topics: Regions, Polygons, Comparison
 // Usage:
 //    b = are_regions_equal(region1, region2, [either_winding])
 // Description:
@@ -421,7 +449,7 @@ function _region_region_intersections(region1, region2, closed1=true,closed2=tru
        intersections =   [
            for(p1=idx(region1))
               let(
-                  path = closed1?close_path(region1[p1]):region1[p1]
+                  path = closed1?list_wrap(region1[p1]):region1[p1]
               )
               for(i = [0:1:len(path)-2])
                   let(
@@ -442,7 +470,7 @@ function _region_region_intersections(region1, region2, closed1=true,closed2=tru
                            // further tests can be discarded.
                        for(p2=idx(region2))
                            let(
-                               poly  = closed2?close_path(region2[p2]):region2[p2],
+                               poly  = closed2?list_wrap(region2[p2]):region2[p2],
                                signs = [for(v=poly*seg_normal) abs(v-ref) < eps ? 0 : sign(v-ref) ]
                            ) 
                            if(max(signs)>=0 && min(signs)<=0) // some edge intersects line [a1,a2]
@@ -483,6 +511,10 @@ function _region_region_intersections(region1, region2, closed1=true,closed2=tru
 
 
 // Function: split_region_at_region_crossings()
+// Synopsis: Splits regions where polygons touch and at intersections.
+// Topics: Regions, Polygons, List Handling
+// See Also: region_parts()
+// 
 // Usage:
 //   split_region = split_region_at_region_crossings(region1, region2, [closed1], [closed2], [eps])
 // Description:
@@ -546,6 +578,10 @@ function split_region_at_region_crossings(region1, region2, closed1=true, closed
                 
 
 // Function: region_parts()
+// Synopsis: Splits a region into a list of regions.
+// SynTags: RegList
+// Topics: Regions, List Handling
+// See Also: split_region_at_region_crossings()
 // Usage:
 //   rgns = region_parts(region);
 // Description:
@@ -706,6 +742,9 @@ function _point_dist(path,pathseg_unit,pathseg_len,pt) =
 
 
 // Function: offset()
+// Synopsis: Takes a 2D path, polygon or region and returns a path offset by an amount.
+// SynTags: Path, Region
+// Topics: Paths, Polygons, Regions
 // Usage:
 //   offsetpath = offset(path, [r=|delta=], [chamfer=], [closed=], [check_valid=], [quality=], [same_length=])
 //   path_faces = offset(path, return_faces=true, [r=|delta=], [chamfer=], [closed=], [check_valid=], [quality=], [firstface_index=], [flip_faces=])
@@ -853,7 +892,10 @@ function offset(
         chamfer = is_def(r) ? false : chamfer,
         quality = max(0,round(quality)),
         flip_dir = closed && !is_polygon_clockwise(path)? -1 : 1,
-        d = flip_dir * (is_def(r) ? r : delta),
+        d = flip_dir * (is_def(r) ? r : delta)
+    )
+    d==0 && !return_faces ? path :
+    let(
 //        shiftsegs = [for(i=[0:len(path)-1]) _shift_segment(select(path,i,i+1), d)],
         shiftsegs = [for(i=[0:len(path)-2]) _shift_segment([path[i],path[i+1]], d),
                      if (closed) _shift_segment([last(path),path[0]],d)
@@ -876,7 +918,7 @@ function offset(
     )
     assert(parallelcheck, "Path contains a segment that reverses direction (180 deg turn)")
     let(
-        // This is a boolean array that indicates whether a corner is an outside or inside corner
+        // This is a Boolean array that indicates whether a corner is an outside or inside corner
         // For outside corners, the newcorner is an extension (angle 0), for inside corners, it turns backward
         // If either side turns back it is an inside corner---must check both.
         // Outside corners can get rounded (if r is specified and there is space to round them)
@@ -1006,6 +1048,10 @@ function _list_three(a,b,c) =
 
 
 // Function&Module: union()
+// Synopsis: Performs a Boolean union operation.
+// SynTags: Geom, Region
+// Topics: Boolean Operations, Regions, Polygons, Shapes2D, Shapes3D
+// See Also: difference(), intersection(), diff(), intersect(), exclusive_or()
 // Usage:
 //   union() CHILDREN;
 //   region = union(regions);
@@ -1036,6 +1082,10 @@ function union(regions=[],b=undef,c=undef,eps=EPSILON) =
 
 
 // Function&Module: difference()
+// Synopsis: Performs a Boolean difference operation.
+// SynTags: Geom, Region
+// Topics: Boolean Operations, Regions, Polygons, Shapes2D, Shapes3D
+// See Also: union(), intersection(), diff(), intersect(), exclusive_or()
 // Usage:
 //   difference() CHILDREN;
 //   region = difference(regions);
@@ -1068,6 +1118,10 @@ function difference(regions=[],b=undef,c=undef,eps=EPSILON) =
 
 
 // Function&Module: intersection()
+// Synopsis: Performs a Boolean intersection operation.
+// SynTags: Geom, Region
+// Topics: Boolean Operations, Regions, Polygons, Shapes2D, Shapes3D
+// See Also: difference(), union(), diff(), intersect(), exclusive_or()
 // Usage:
 //   intersection() CHILDREN;
 //   region = intersection(regions);
@@ -1099,6 +1153,10 @@ function intersection(regions=[],b=undef,c=undef,eps=EPSILON) =
 
 
 // Function&Module: exclusive_or()
+// Synopsis: Performs a Boolean exclusive-or operation.
+// SynTags: Geom, Region
+// Topics: Boolean Operations, Regions, Polygons, Shapes2D, Shapes3D
+// See Also: union(), difference(), intersection(), diff(), intersect()
 // Usage:
 //   exclusive_or() CHILDREN;
 //   region = exclusive_or(regions);
@@ -1107,7 +1165,7 @@ function intersection(regions=[],b=undef,c=undef,eps=EPSILON) =
 // Description:
 //   When called as a function and given a list of regions or 2D polygons, 
 //   returns the exclusive_or of all given regions.  Result is a single region.
-//   When called as a module, performs a boolean exclusive-or of up to 10 children.  Note that when
+//   When called as a module, performs a Boolean exclusive-or of up to 10 children.  Note that when
 //   the input regions cross each other the exclusive-or operator will produce shapes that
 //   meet at corners (non-simple regions), which do not render in CGAL.  
 // Arguments:

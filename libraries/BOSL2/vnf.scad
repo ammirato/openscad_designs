@@ -28,6 +28,10 @@ EMPTY_VNF = [[],[]];  // The standard empty VNF with no vertices or faces.
 
 
 // Function: vnf_vertex_array()
+// Synopsis: Returns a VNF structure from a rectangular vertex list.
+// SynTags: VNF
+// Topics: VNF Generators, Lists
+// See Also: vnf_tri_array(), vnf_join(), vnf_from_polygons(), vnf_from_region()
 // Usage:
 //   vnf = vnf_vertex_array(points, [caps=], [cap1=], [cap2=], [style=], [reverse=], [col_wrap=], [row_wrap=]);
 // Description:
@@ -131,7 +135,7 @@ function vnf_vertex_array(
 ) =
     assert(!(any([caps,cap1,cap2]) && !col_wrap), "col_wrap must be true if caps are requested")
     assert(!(any([caps,cap1,cap2]) && row_wrap), "Cannot combine caps with row_wrap")
-    assert(in_list(style,["default","alt","quincunx", "convex","concave", "min_edge"]))
+    assert(in_list(style,["default","alt","quincunx", "convex","concave", "min_edge","min_area"]))
     assert(is_matrix(points[0], n=3),"Point array has the wrong shape or points are not 3d")
     assert(is_consistent(points), "Non-rectangular or invalid point array")
     let(
@@ -174,6 +178,15 @@ function vnf_vertex_array(
                           [[i1,i5,i2],[i2,i5,i3],[i3,i5,i4],[i4,i5,i1]]
                       : style=="alt"?
                           [[i1,i4,i2],[i2,i4,i3]]
+                      : style=="min_area"?
+                          let(
+                               area42 = norm(cross(pts[i2]-pts[i1], pts[14]-pts[i1]))+norm(cross(pts[i4]-pts[i3], pts[i2]-pts[i3])),
+                               area13 = norm(cross(pts[i1]-pts[i4], pts[i3]-pts[i4]))+norm(cross(pts[i3]-pts[i2], pts[i1]-pts[i2])),
+                               minarea_edge = area42 < area13 + EPSILON
+                                 ? [[i1,i4,i2],[i2,i4,i3]]
+                                 : [[i1,i3,i2],[i1,i4,i3]]
+                          )
+                          minarea_edge
                       : style=="min_edge"?
                           let(
                                d42=norm(pts[i4]-pts[i2]),
@@ -206,9 +219,8 @@ function vnf_vertex_array(
                       : [[i1,i3,i2],[i1,i4,i3]],
                    // remove degenerate faces
                    culled_faces= [for(face=faces)
-                       if (norm(verts[face[0]]-verts[face[1]])>EPSILON &&
-                           norm(verts[face[1]]-verts[face[2]])>EPSILON &&
-                           norm(verts[face[2]]-verts[face[0]])>EPSILON)
+                       if (norm(cross(verts[face[1]]-verts[face[0]],
+                                      verts[face[2]]-verts[face[0]]))>EPSILON)
                            face
                    ],
                    rfaces = reverse? [for (face=culled_faces) reverse(face)] : culled_faces
@@ -220,10 +232,14 @@ function vnf_vertex_array(
 
 
 // Function: vnf_tri_array()
+// Synopsis: Returns a VNF from an array of points.
+// SynTags: VNF
+// Topics: VNF Generators, Lists
+// See Also: vnf_vertex_array(), vnf_join(), vnf_from_polygons(), vnf_from_region()
 // Usage:
 //   vnf = vnf_tri_array(points, [row_wrap], [reverse])
 // Description:
-//   Produces a vnf from an array of points where each row length can differ from the adjacent rows by up to 2 in length.  This enables
+//   Produces a VNF from an array of points where each row length can differ from the adjacent rows by up to 2 in length.  This enables
 //   the construction of triangular VNF patches.  The resulting VNF can be wrapped along the rows by setting `row_wrap` to true.
 //   You cannot wrap columns: if you need to do that you'll need to merge two VNF arrays that share edges.  Degenerate faces
 //   are not included in the output, but if this results in unused vertices they will still appear in the output.
@@ -312,6 +328,10 @@ function vnf_tri_array(points, row_wrap=false, reverse=false) =
 
 
 // Function: vnf_join()
+// Synopsis: Returns a single VNF structure from a list of VNF structures.
+// SynTags: VNF
+// Topics: VNF Generators, Lists
+// See Also: vnf_tri_array(), vnf_vertex_array(), vnf_from_polygons(), vnf_from_region()
 // Usage:
 //   vnf = vnf_join([VNF, VNF, VNF, ...]);
 // Description:
@@ -395,15 +415,19 @@ function vnf_join(vnfs) =
 
 
 // Function: vnf_from_polygons()
+// Synopsis: Returns a VNF from a list of 3D polygons.
+// SynTags: VNF
+// Topics: VNF Generators, Lists
+// See Also: vnf_tri_array(), vnf_join(), vnf_vertex_array(), vnf_from_region()
 // Usage:
 //   vnf = vnf_from_polygons(polygons);
 // Description:
-//   Given a list of 3d polygons, produces a VNF containing those polygons.
+//   Given a list of 3D polygons, produces a VNF containing those polygons.
 //   It is up to the caller to make sure that the points are in the correct order to make the face
 //   normals point outwards.  No checking for duplicate vertices is done.  If you want to
 //   remove duplicate vertices use {{vnf_merge_points()}}.
 // Arguments:
-//   polygons = The list of 3d polygons to turn into a VNF
+//   polygons = The list of 3D polygons to turn into a VNF
 function vnf_from_polygons(polygons) =
    assert(is_list(polygons) && is_path(polygons[0]),"Input should be a list of polygons")
    let(
@@ -559,13 +583,17 @@ function _bridge(pt, outer,eps) =
 
 
 // Function: vnf_from_region()
+// Synopsis: Returns a 3D VNF given a 2D region.
+// SynTags: VNF
+// Topics: VNF Generators, Lists
+// See Also: vnf_vertex_array(), vnf_tri_array(), vnf_join(), vnf_from_polygons()
 // Usage:
 //   vnf = vnf_from_region(region, [transform], [reverse]);
 // Description:
 //   Given a (two-dimensional) region, applies the given transformation matrix to it and makes a (three-dimensional) triangulated VNF of
 //   faces for that region, reversed if desired.
 // Arguments:
-//   region = The region to conver to a vnf.
+//   region = The region to convert to a vnf.
 //   transform = If given, a transformation matrix to apply to the faces generated from the region.  Default: No transformation applied.
 //   reverse = If true, reverse the normals of the faces generated from the region.  An untransformed region will have face normals pointing `UP`.  Default: false
 // Example(3D):
@@ -602,6 +630,9 @@ function vnf_from_region(region, transform, reverse=false) =
 
 
 // Function: is_vnf()
+// Synopsis: Returns true given a VNF-like structure.
+// Topics: VNF Manipulation
+// See Also: is_vnf_list(), vnf_vertices(), vnf_faces()
 // Usage:
 //   bool = is_vnf(x);
 // Description:
@@ -616,16 +647,26 @@ function is_vnf(x) =
 
 
 // Function: is_vnf_list()
+// Synopsis: Returns true given a list of VNF-like structures.
+// Topics: VNF Manipulation
+// See Also: is_vnf(), vnf_vertices(), vnf_faces()
+//
 // Description: Returns true if the given value looks passingly like a list of VNF structures.
 function is_vnf_list(x) = is_list(x) && all([for (v=x) is_vnf(v)]);
 
 
 // Function: vnf_vertices()
+// Synopsis: Returns the list of vertex points from a VNF.
+// Topics: VNF Manipulation
+// See Also: is_vnf(), is_vnf_list(), vnf_faces()
 // Description: Given a VNF structure, returns the list of vertex points.
 function vnf_vertices(vnf) = vnf[0];
 
 
 // Function: vnf_faces()
+// Synopsis: Returns the list of faces from a VNF.
+// Topics: VNF Manipulation
+// See Also: is_vnf(), is_vnf_list(), vnf_vertices()
 // Description: Given a VNF structure, returns the list of faces, where each face is a list of indices into the VNF vertex list.
 function vnf_faces(vnf) = vnf[1];
 
@@ -635,6 +676,10 @@ function vnf_faces(vnf) = vnf[1];
 
 
 // Function: vnf_reverse_faces()
+// Synopsis: Reverses the faces of a VNF.
+// SynTags: VNF
+// Topics: VNF Manipulation
+// See Also: vnf_quantize(), vnf_merge_points(), vnf_drop_unused_points(), vnf_triangulate(), vnf_slice() 
 // Usage:
 //   rvnf = vnf_reverse_faces(vnf);
 // Description:
@@ -644,6 +689,10 @@ function vnf_reverse_faces(vnf) =
 
 
 // Function: vnf_quantize()
+// Synopsis: Quantizes the vertex coordinates of a VNF.
+// SynTags: VNF
+// Topics: VNF Manipulation
+// See Also: vnf_reverse_faces(), vnf_merge_points(), vnf_drop_unused_points(), vnf_triangulate(), vnf_slice() 
 // Usage:
 //   vnf2 = vnf_quantize(vnf,[q]);
 // Description:
@@ -657,6 +706,10 @@ function vnf_quantize(vnf,q=pow(2,-12)) =
 
 
 // Function: vnf_merge_points()
+// Synopsis: Consolidates duplicate vertices of a VNF.
+// SynTags: VNF
+// Topics: VNF Manipulation
+// See Also: vnf_reverse_faces(), vnf_quantize(), vnf_drop_unused_points(), vnf_triangulate(), vnf_slice() 
 // Usage:
 //   new_vnf = vnf_merge_points(vnf, [eps]);
 // Description:
@@ -689,6 +742,10 @@ function vnf_merge_points(vnf,eps=EPSILON) =
 
 
 // Function: vnf_drop_unused_points()
+// Synopsis: Removes unreferenced vertices from a VNF.
+// SynTags: VNF
+// Topics: VNF Manipulation
+// See Also: vnf_reverse_faces(), vnf_quantize(), vnf_merge_points(), vnf_triangulate(), vnf_slice() 
 // Usage:
 //   clean_vnf = vnf_drop_unused_points(vnf);
 // Description:
@@ -717,12 +774,16 @@ function _link_indicator(l,imin,imax) =
             _link_indicator(greater,pivot+1,imax) ) ;
 
 // Function: vnf_triangulate()
+// Synopsis: Triangulates the faces of a VNF.
+// SynTags: VNF
+// Topics: VNF Manipulation
+// See Also: vnf_reverse_faces(), vnf_quantize(), vnf_merge_points(), vnf_drop_unused_points(), vnf_slice() 
 // Usage:
 //   vnf2 = vnf_triangulate(vnf);
 // Description:
 //   Triangulates faces in the VNF that have more than 3 vertices.
 // Arguments:
-//   vnf = vnf to triangulate
+//   vnf = VNF to triangulate
 // Example(3D):
 //   include <BOSL2/polyhedra.scad>
 //   vnf = zrot(33,regular_polyhedron_info("vnf", "dodecahedron", side=12));
@@ -757,6 +818,10 @@ function _vnf_sort_vertices(vnf, idx=[2,1,0]) =
 
 
 // Function: vnf_slice()
+// Synopsis: Slice the faces of a VNF along an axis.
+// SynTags: VNF
+// Topics: VNF Manipulation
+// See Also: vnf_reverse_faces(), vnf_quantize(), vnf_merge_points(), vnf_drop_unused_points(), vnf_triangulate()
 // Usage:
 //   sliced = vnf_slice(vnf, dir, cuts);
 // Description:
@@ -764,7 +829,7 @@ function _vnf_sort_vertices(vnf, idx=[2,1,0]) =
 //   The cut points can appear in any order.  You can use this to refine the faces of a VNF before
 //   applying a nonlinear transformation to its vertex set.
 // Arguments:
-//   vnf = vnf to slice
+//   vnf = VNF to slice
 //   dir = normal direction to the slices, either "X", "Y" or "Z"
 //   cuts = X, Y or Z values where cuts occur
 // Example(3D):
@@ -818,7 +883,7 @@ function _split_polygon_at_x(poly, x) =
             if (len(out1)>=3) each split_path_at_self_crossings(out1),
             if (len(out2)>=3) each split_path_at_self_crossings(out2),
         ],
-        out = [for (p=out3) if (len(p) > 2) cleanup_path(p)]
+        out = [for (p=out3) if (len(p) > 2) list_unwrap(p)]
     ) out;
 
 
@@ -882,6 +947,10 @@ function _slice_3dpolygons(polys, dir, cuts) =
 
 
 // Module: vnf_polyhedron()
+// Synopsis: Returns a polyhedron from a VNF or list of VNFs.
+// SynTags: Geom
+// Topics: VNF Manipulation
+// See Also: vnf_wireframe()
 // Usage:
 //   vnf_polyhedron(vnf) [ATTACHMENTS];
 //   vnf_polyhedron([VNF, VNF, VNF, ...]) [ATTACHMENTS];
@@ -912,6 +981,10 @@ module vnf_polyhedron(vnf, convexity=2, extent=true, cp="centroid", anchor="orig
 
 
 // Module: vnf_wireframe()
+// Synopsis: Creates a wireframe model from a VNF.
+// SynTags: VNF
+// Topics: VNF Manipulation
+// See Also: vnf_polyhedron()
 // Usage:
 //   vnf_wireframe(vnf, [width]);
 // Description:
@@ -939,20 +1012,30 @@ module vnf_polyhedron(vnf, convexity=2, extent=true, cp="centroid", anchor="orig
 //   vnf_wireframe(octahedron,width=5);
 module vnf_wireframe(vnf, width=1)
 {
+  no_children($children);
   vertex = vnf[0];
   edges = unique([for (face=vnf[1], i=idx(face))
                     sort([face[i], select(face,i+1)])
                  ]);
-  for (e=edges) extrude_from_to(vertex[e[0]],vertex[e[1]]) circle(d=width);
-  // Identify vertices actually used and draw them
-  vertused = search(count(len(vertex)), flatten(edges), 1);
-  for(i=idx(vertex)) if(vertused[i]!=[]) move(vertex[i]) sphere(d=width);
+  attachable()
+  {
+    union(){
+      for (e=edges) extrude_from_to(vertex[e[0]],vertex[e[1]]) circle(d=width);
+      // Identify vertices actually used and draw them
+      vertused = search(count(len(vertex)), flatten(edges), 1);
+      for(i=idx(vertex)) if(vertused[i]!=[]) move(vertex[i]) sphere(d=width);
+    }
+    union();
+  }
 }
 
 
 // Section: Operations on VNFs
 
 // Function: vnf_volume()
+// Synopsis: Returns the volume of a VNF.
+// Topics: VNF Manipulation
+// See Also: vnf_area(), vnf_halfspace(), vnf_bend() 
 // Usage:
 //   vol = vnf_volume(vnf);
 // Description:
@@ -970,6 +1053,9 @@ function vnf_volume(vnf) =
 
 
 // Function: vnf_area()
+// Synopsis: Returns the surface area of a VNF.
+// Topics: VNF Manipulation
+// See Also: vnf_volume(), vnf_halfspace(), vnf_bend() 
 // Usage:
 //   area = vnf_area(vnf);
 // Description:
@@ -1008,6 +1094,10 @@ function _vnf_centroid(vnf,eps=EPSILON) =
 
 
 // Function: vnf_halfspace()
+// Synopsis: Returns the intersection of the vnf with a half space.
+// SynTags: VNF
+// Topics: VNF Manipulation
+// See Also: vnf_volume(), vnf_area(), vnf_bend() 
 // Usage:
 //   newvnf = vnf_halfspace(plane, vnf, [closed], [boundary]);
 // Description:
@@ -1023,10 +1113,14 @@ function _vnf_centroid(vnf,eps=EPSILON) =
 //   vnf as usual (with closed=false) and boundary is a list giving each connected component of the cut
 //   boundary surface.  Each entry in boundary is a list of index values that index into the vnf vertex list (vnf[0]).
 //   This makes it possible to construct mating shapes, e.g. with {{skin()}} or {{vnf_vertex_array()}} that
-//   can be combined using {{vnf_join()}} to make a valid polyhedron.  
+//   can be combined using {{vnf_join()}} to make a valid polyhedron.
+//   .
+//   Note that the input to vnf_halfspace() does not need to be a closed, manifold polyhedron.
+//   Because it adds the faces on the cut surface, you can use vnf_halfspace() to cap off an open shape if you
+//   slice through a region that excludes all of the gaps in the input VNF.  
 // Arguments:
 //   plane = plane defining the boundary of the half space
-//   vnf = vnf to cut
+//   vnf = VNF to cut
 //   closed = if false do not return the cut face(s) in the returned VNF.  Default: true
 //   boundary = if true return a pair [vnf,boundary] where boundary is a list of paths on the cut boundary indexed into the VNF vertex list.  If boundary is true, then closed is set to false.  Default: false
 // Example(3D):
@@ -1088,6 +1182,17 @@ function _vnf_centroid(vnf,eps=EPSILON) =
 //   vnf=bezier_vnf(patch);
 //   vnfcut = vnf_halfspace([-.8,0,-1,-14],vnf,closed=false);
 //   vnf_polyhedron(vnfcut);
+// Example: Here is a VNF that has holes, so it is not a valid manifold. 
+//   outside = linear_sweep(circle(r=30), h=100, caps=false);
+//   inside = yrot(7,linear_sweep(circle(r=10), h=120, caps=false));
+//   open_vnf=vnf_join([outside, vnf_reverse_faces(inside)]);
+//   vnf_polyhedron(open_vnf);
+// Example: By cutting it at each end we can create closing faces, resulting in a valid manifold without holes.
+//   outside = linear_sweep(circle(r=30), h=100, caps=false);
+//   inside = yrot(11,linear_sweep(circle(r=10), h=120, caps=false));
+//   open_vnf=vnf_join([outside, vnf_reverse_faces(inside)]);
+//   vnf = vnf_halfspace([0,0,1,5], vnf_halfspace([0,.7,-1,-75], open_vnf));
+//   vnf_polyhedron(vnf);
 // Example: If boundary=true then the return is a list with the VNF and boundary data.  
 //   vnf = path_sweep(circle(r=4, $fn=16),
 //                    circle(r=20, $fn=64),closed=true);
@@ -1193,6 +1298,10 @@ function _triangulate_planar_convex_polygons(polys) =
 //
 
 // Function: vnf_bend()
+// Synopsis: Bends a VNF around an axis.
+// SynTags: VNF
+// Topics: VNF Manipulation
+// See Also: vnf_volume(), vnf_area(), vnf_halfspace() 
 // Usage:
 //   bentvnf = vnf_bend(vnf,r|d=,[axis=]);
 // Description:
@@ -1399,6 +1508,10 @@ module _show_faces(vertices, faces, size=1, filter) {
 
 
 // Module: debug_vnf()
+// Synopsis: A replacement for `vnf_polyhedron()` to help with debugging.
+// SynTags: VNF
+// Topics: VNF Manipulation, Debugging
+// See Also: vnf_validate()
 // Usage:
 //   debug_vnf(vnfs, [faces=], [vertices=], [opacity=], [size=], [convexity=], [filter=]);
 // Description:
@@ -1414,7 +1527,7 @@ module _show_faces(vertices, faces, size=1, filter) {
 //   can rerun the preview to display them oriented for viewing from a different viewpoint.
 // Topics: Polyhedra, Debugging
 // Arguments:
-//   vnf = vnf to display
+//   vnf = VNF to display
 //   ---
 //   faces = if true display face numbers.  Default: true
 //   vertices = if true display vertex numbers.  Default: true
@@ -1438,14 +1551,15 @@ module debug_vnf(vnf, faces=true, vertices=true, opacity=0.5, size=1, convexity=
 }
 
 
-// Function&Module: vnf_validate()
-// Usage: As Function
-//   fails = vnf_validate(vnf);
-// Usage: As Module
+// Module: vnf_validate()
+// Synopsis: Echos non-manifold VNF errors to the console.
+// SynTags: VNF
+// Topics: VNF Manipulation, Debugging
+// See Also: debug_vnf()
+// 
+// Usage: 
 //   vnf_validate(vnf, [size], [show_warns=], [check_isects=], [opacity=], [adjacent=], [label_verts=], [label_faces=], [wireframe=]);
 // Description:
-//   When called as a function, returns a list of non-manifold errors with the given VNF.
-//   Each error has the format `[ERR_OR_WARN,CODE,MESG,POINTS,COLOR]`.
 //   When called as a module, echoes the non-manifold errors to the console, and color hilites the
 //   bad edges and vertices, overlaid on a transparent gray polyhedron of the VNF.
 //   .
@@ -1454,13 +1568,13 @@ module debug_vnf(vnf, faces=true, vertices=true, opacity=0.5, size=1, convexity=
 //   Type    | Color    | Code         | Message
 //   ------- | -------- | ------------ | ---------------------------------
 //   WARNING | Yellow   | BIG_FACE     | Face has more than 3 vertices, and may confuse CGAL.
-//   WARNING | Brown    | NULL_FACE    | Face has zero area.
+//   WARNING | Blue     | NULL_FACE    | Face has zero area.
 //   ERROR   | Cyan     | NONPLANAR    | Face vertices are not coplanar.
 //   ERROR   | Brown    | DUP_FACE     | Multiple instances of the same face.
 //   ERROR   | Orange   | MULTCONN     | Multiply Connected Geometry. Too many faces attached at Edge.
 //   ERROR   | Violet   | REVERSAL     | Faces reverse across edge.
 //   ERROR   | Red      | T_JUNCTION   | Vertex is mid-edge on another Face.
-//   ERROR   | Blue     | FACE_ISECT   | Faces intersect.
+//   ERROR   | Brown    | FACE_ISECT   | Faces intersect.
 //   ERROR   | Magenta  | HOLE_EDGE    | Edge bounds Hole.
 //   .
 //   Still to implement:
@@ -1471,11 +1585,11 @@ module debug_vnf(vnf, faces=true, vertices=true, opacity=0.5, size=1, convexity=
 //   ---
 //   show_warns = If true show warnings for non-triangular faces.  Default: true
 //   check_isects = If true, performs slow checks for intersecting faces.  Default: false
-//   opacity = The opacity level to show the polyhedron itself with.  (Module only)  Default: 0.67
-//   label_verts = If true, shows labels at each vertex that show the vertex number.  (Module only)  Default: false
-//   label_faces = If true, shows labels at the center of each face that show the face number.  (Module only)  Default: false
-//   wireframe = If true, shows edges more clearly so you can see them in Thrown Together mode.  (Module only)  Default: false
-//   adjacent = If true, only display faces adjacent to a vertex listed in the errors.  (Module only)  Default: false
+//   opacity = The opacity level to show the polyhedron itself with.    Default: 0.67
+//   label_verts = If true, shows labels at each vertex that show the vertex number.    Default: false
+//   label_faces = If true, shows labels at the center of each face that show the face number.    Default: false
+//   wireframe = If true, shows edges more clearly so you can see them in Thrown Together mode.    Default: false
+//   adjacent = If true, only display faces adjacent to a vertex listed in the errors.    Default: false
 // Example(3D,Edges): BIG_FACE Warnings; Faces with More Than 3 Vertices.  CGAL often will fail to accept that a face is planar after a rotation, if it has more than 3 vertices.
 //   vnf = skin([
 //       path3d(regular_ngon(n=3, d=100),0),
@@ -1532,10 +1646,13 @@ module debug_vnf(vnf, faces=true, vertices=true, opacity=0.5, size=1, convexity=
 //       path3d(regular_ngon(n=5, d=100),100)
 //   ], slices=0, caps=false);
 //   vnf_validate(vnf,size=2);
-function vnf_validate(vnf, show_warns=true, check_isects=false) =
+
+
+//   Returns a list of non-manifold errors with the given VNF.
+//   Each error has the format `[ERR_OR_WARN,CODE,MESG,POINTS,COLOR]`.
+function _vnf_validate(vnf, show_warns=true, check_isects=false) =
     assert(is_vnf(vnf), "Invalid VNF")
     let(
-        vnf = vnf_merge_points(vnf),
         varr = vnf[0],
         faces = vnf[1],
         lvarr = len(varr),
@@ -1744,26 +1861,34 @@ function _edge_not_reported(edge, varr, reports) =
 
 module vnf_validate(vnf, size=1, show_warns=true, check_isects=false, opacity=0.67, adjacent=false, label_verts=false, label_faces=false, wireframe=false) {
     no_children($children);
-    verts = vnf[0];
-    faults = vnf_validate(
+    vcount = len(vnf[0]);
+    fcount = len(vnf[1]);
+    vnf = vnf_merge_points(vnf);
+    faults = _vnf_validate(
         vnf, show_warns=show_warns,
         check_isects=check_isects
     );
+    verts = vnf[0];
+    vnf_changed = len(verts)!=vcount || len(vnf[1])!=fcount;
     if (!faults) {
         echo("VNF appears valid.");
     }
+    if (vnf_changed) echo("VNF changed when merging points; unable to display indices");
     for (fault = faults) {
         err = fault[0];
         typ = fault[1];
         clr = fault[2];
         msg = fault[3];
         idxs = fault[4];
-        pts = [for (i=idxs) if(is_finite(i) && i>=0 && i<len(verts)) verts[i]];
-        echo(str(typ, " ", err, " (", clr ,"): ", msg, " at ", pts, " indices: ", idxs));
+        pts = err=="FACE_ISECT" ? idxs : [for (i=idxs) if(is_finite(i) && i>=0 && i<len(verts)) verts[i]];
+        if (vnf_changed || err=="FACE_ISECT")
+          echo(str(typ, " ", err, " (", clr ,"): ", msg, " at ", pts));
+        else
+          echo(str(typ, " ", err, " (", clr ,"): ", msg, " at ", pts, " indices: ", idxs));
         color(clr) {
             if (is_vector(pts[0])) {
                 if (len(pts)==2) {
-                    stroke(pts, width=size, closed=true, endcaps="butt", $fn=8);
+                    stroke(pts, width=size, endcaps="butt", $fn=8);
                 } else if (len(pts)>2) {
                     stroke(pts, width=size, closed=true, $fn=8);
                     polyhedron(pts,[[for (i=idx(pts)) i]]);

@@ -14,14 +14,18 @@
 
 
 // Module: chamfer_edge_mask()
+// Synopsis: Creates a shape to chamfer a 90° edge.
+// SynTags: Geom
+// Topics: Masking, Chamfers, Shapes (3D)
+// See Also: chamfer_corner_mask(), chamfer_cylinder_mask(), chamfer_edge_mask()
 // Usage:
-//   chamfer_edge_mask(l, chamfer, [excess]) [ATTACHMENTS];
+//   chamfer_edge_mask(l|h=|length=|height=, chamfer, [excess]) [ATTACHMENTS];
 // Description:
-//   Creates a shape that can be used to chamfer a 90 degree edge.
+//   Creates a shape that can be used to chamfer a 90° edge.
 //   Difference it from the object to be chamfered.  The center of
 //   the mask object should align exactly with the edge to be chamfered.
 // Arguments:
-//   l = Length of mask.
+//   l/h/length/height = Length of mask.
 //   chamfer = Size of chamfer.
 //   excess = The extra amount to add to the length of the mask so that it differences away from other shapes cleanly.  Default: `0.1`
 //   ---
@@ -41,8 +45,9 @@
 //       edge_mask(TOP+RIGHT)
 //           #chamfer_edge_mask(l=50, chamfer=10);
 //   }
-function chamfer_edge_mask(l=1, chamfer=1, excess=0.1, anchor=CENTER, spin=0, orient=UP) = no_function("chamfer_edge_mask");
-module chamfer_edge_mask(l=1, chamfer=1, excess=0.1, anchor=CENTER, spin=0, orient=UP) {
+function chamfer_edge_mask(l, chamfer=1, excess=0.1, h, length, height, anchor=CENTER, spin=0, orient=UP) = no_function("chamfer_edge_mask");
+module chamfer_edge_mask(l, chamfer=1, excess=0.1, h, length, height, anchor=CENTER, spin=0, orient=UP) {
+    l = one_defined([l, h, height, length], "l,h,height,length");
     attachable(anchor,spin,orient, size=[chamfer*2, chamfer*2, l]) {
         cylinder(r=chamfer, h=l+excess, center=true, $fn=4);
         children();
@@ -51,10 +56,14 @@ module chamfer_edge_mask(l=1, chamfer=1, excess=0.1, anchor=CENTER, spin=0, orie
 
 
 // Module: chamfer_corner_mask()
+// Synopsis: Creates a shape to chamfer a 90° corner.
+// SynTags: Geom
+// Topics: Masking, Chamfers, Shapes (3D)
+// See Also: chamfer_corner_mask(), chamfer_cylinder_mask(), chamfer_edge_mask()
 // Usage:
 //   chamfer_corner_mask(chamfer) [ATTACHMENTS];
 // Description:
-//   Creates a shape that can be used to chamfer a 90 degree corner.
+//   Creates a shape that can be used to chamfer a 90° corner.
 //   Difference it from the object to be chamfered.  The center of
 //   the mask object should align exactly with the corner to be chamfered.
 // Arguments:
@@ -86,6 +95,10 @@ module chamfer_corner_mask(chamfer=1, anchor=CENTER, spin=0, orient=UP) {
 
 
 // Module: chamfer_cylinder_mask()
+// Synopsis: Creates a shape to chamfer the end of a cylinder.
+// SynTags: Geom
+// Topics: Masking, Chamfers, Cylinders
+// See Also: chamfer_corner_mask(), chamfer_cylinder_mask(), chamfer_edge_mask()
 // Usage:
 //   chamfer_cylinder_mask(r|d=, chamfer, [ang], [from_end]) [ATTACHMENTS];
 // Description:
@@ -148,15 +161,19 @@ module chamfer_cylinder_mask(r, chamfer, d, ang=45, from_end=false, anchor=CENTE
 // Section: Rounding Masks
 
 // Module: rounding_edge_mask()
+// Synopsis: Creates a shape to round a 90° edge.
+// SynTags: Geom
+// Topics: Masks, Rounding, Shapes (3D)
+// See Also: rounding_angled_edge_mask(), rounding_corner_mask(), rounding_angled_corner_mask() 
 // Usage:
-//   rounding_edge_mask(l|h, r|d, [excess=]) [ATTACHMENTS];
-//   rounding_edge_mask(l|h, r1=|d1=, r2=|d2=, [excess=]) [ATTACHMENTS];
+//   rounding_edge_mask(l|h=|length=|height=, r|d=, [excess=]) [ATTACHMENTS];
+//   rounding_edge_mask(l|h=|length=|height=, r1=|d1=, r2=|d2=, [excess=]) [ATTACHMENTS];
 // Description:
-//   Creates a shape that can be used to round a vertical 90 degree edge.
+//   Creates a shape that can be used to round a vertical 90° edge.
 //   Difference it from the object to be rounded.  The center of the mask
 //   object should align exactly with the edge to be rounded.
 // Arguments:
-//   l/h = Length of mask.
+//   l/h/length/height = Length of mask.
 //   r = Radius of the rounding.
 //   ---
 //   r1 = Bottom radius of rounding.
@@ -193,10 +210,10 @@ module chamfer_cylinder_mask(r, chamfer, d, ang=45, from_end=false, anchor=CENTE
 //               rounding_edge_mask(l=p.z, r=25);
 //       }
 //   }
-function rounding_edge_mask(l, r, r1, r2, d, d1, d2, excess=0.1, anchor=CENTER, spin=0, orient=UP, h=undef) = no_function("rounding_edge_mask");
-module rounding_edge_mask(l, r, r1, r2, d, d1, d2, excess=0.1, anchor=CENTER, spin=0, orient=UP, h=undef)
+function rounding_edge_mask(l, r, r1, r2, d, d1, d2, excess=0.1, anchor=CENTER, spin=0, orient=UP, h,height,length) = no_function("rounding_edge_mask");
+module rounding_edge_mask(l, r, r1, r2, d, d1, d2, excess=0.1, anchor=CENTER, spin=0, orient=UP, h,height,length)
 {
-    l = first_defined([l, h, 1]);
+    l = one_defined([l, h, height, length], "l,h,height,length");
     r1 = get_radius(r1=r1, r=r, d1=d1, d=d, dflt=1);
     r2 = get_radius(r1=r2, r=r, d1=d2, d=d, dflt=1);
     sides = quantup(segs(max(r1,r2)),4);
@@ -224,10 +241,14 @@ module rounding_edge_mask(l, r, r1, r2, d, d1, d2, excess=0.1, anchor=CENTER, sp
 
 
 // Module: rounding_corner_mask()
+// Synopsis: Creates a shape to round 90° corners.
+// SynTags: Geom
+// Topics: Masking, Rounding, Shapes (3D)
+// See Also: rounding_angled_corner_mask(), rounding_edge_mask(), rounding_angled_edge_mask()
 // Usage:
 //   rounding_corner_mask(r|d, [excess=], [style=]) [ATTACHMENTS];
 // Description:
-//   Creates a shape that you can use to round 90 degree corners.
+//   Creates a shape that you can use to round 90° corners.
 //   Difference it from the object to be rounded.  The center of the mask
 //   object should align exactly with the corner to be rounded.
 // Arguments:
@@ -266,7 +287,7 @@ module rounding_corner_mask(r, d, style="octa", excess=0.1, anchor=CENTER, spin=
             translate(-excess*[1,1,1])
                 cube(size=r+excess, center=false);
             translate([r,r,r])
-                sphere(r=r, style=style);
+                spheroid(r=r, style=style);
         }
         children();
     }
@@ -274,15 +295,19 @@ module rounding_corner_mask(r, d, style="octa", excess=0.1, anchor=CENTER, spin=
 
 
 // Module: rounding_angled_edge_mask()
+// Synopsis: Creates a shape to round edges of any angle.
+// SynTags: Geom
+// Topics: Masks, Rounding
+// See Also: rounding_angled_corner_mask(), rounding_edge_mask(), rounding_corner_mask()
 // Usage:
-//   rounding_angled_edge_mask(h, r|d=, [ang=]) [ATTACHMENTS];
-//   rounding_angled_edge_mask(h, r1=|d1=, r2=|d2=, [ang=]) [ATTACHMENTS];
+//   rounding_angled_edge_mask(h|l=|length=|height=, r|d=, [ang=]) [ATTACHMENTS];
+//   rounding_angled_edge_mask(h|l=|length=|height=, r1=|d1=, r2=|d2=, [ang=]) [ATTACHMENTS];
 // Description:
 //   Creates a vertical mask that can be used to round the edge where two face meet, at any arbitrary
 //   angle.  Difference it from the object to be rounded.  The center of the mask should align exactly
 //   with the edge to be rounded.
 // Arguments:
-//   h = Height of vertical mask.
+//   h/l/height/length = Height of vertical mask.
 //   r = Radius of the rounding.
 //   ---
 //   r1 = Bottom radius of rounding.
@@ -304,8 +329,8 @@ module rounding_corner_mask(r, d, style="octa", excess=0.1, anchor=CENTER, spin=
 //       pie_slice(ang=70, h=50, d=100, center=true);
 //       #rounding_angled_edge_mask(h=51, r1=10, r2=25, ang=70, $fn=32);
 //   }
-function rounding_angled_edge_mask(h, r, r1, r2, d, d1, d2, ang=90, anchor=CENTER, spin=0, orient=UP) = no_function("rounding_angled_edge_mask");
-module rounding_angled_edge_mask(h, r, r1, r2, d, d1, d2, ang=90, anchor=CENTER, spin=0, orient=UP)
+function rounding_angled_edge_mask(h, r, r1, r2, d, d1, d2, ang=90, anchor=CENTER, spin=0, orient=UP,l,height,length) = no_function("rounding_angled_edge_mask");
+module rounding_angled_edge_mask(h, r, r1, r2, d, d1, d2, ang=90, anchor=CENTER, spin=0, orient=UP,l,height,length)
 {
     function _mask_shape(r) = [
         for (i = [0:1:n]) let (a=90+ang+i*sweep/n) [r*cos(a)+x, r*sin(a)+r],
@@ -313,7 +338,7 @@ module rounding_angled_edge_mask(h, r, r1, r2, d, d1, d2, ang=90, anchor=CENTER,
         [min(-1, r*cos(270-ang)+x-1), r*sin(270-ang)-r],
         [min(-1, r*cos(90+ang)+x-1), r*sin(90+ang)+r],
     ];
-
+    h = one_defined([l, h, height, length], "l,h,height,length");
     sweep = 180-ang;
     r1 = get_radius(r1=r1, r=r, d1=d1, d=d, dflt=1);
     r2 = get_radius(r1=r2, r=r, d1=d2, d=d, dflt=1);
@@ -340,6 +365,10 @@ module rounding_angled_edge_mask(h, r, r1, r2, d, d1, d2, ang=90, anchor=CENTER,
 
 
 // Module: rounding_angled_corner_mask()
+// Synopsis: Creates a shape to round the corner of an arbitrary angle.
+// SynTags: Geom
+// Topics: Masks, Rounding, Shapes (3D)
+// See Also: rounding_angled_edge_mask(), rounding_corner_mask(), rounding_edge_mask()
 // Usage:
 //   rounding_angled_corner_mask(r|d=, [ang]) [ATTACHMENTS];
 // Description:
@@ -388,6 +417,10 @@ module rounding_angled_corner_mask(r, ang=90, d, anchor=CENTER, spin=0, orient=U
 
 
 // Module: rounding_cylinder_mask()
+// Synopsis: Creates a shape to round the end of a cylinder.
+// SynTags: Geom
+// Topics: Masking, Rounding, Cylinders
+// See Also: rounding_hole_mask(), rounding_angled_edge_mask(), rounding_corner_mask(), rounding_angled_corner_mask() 
 // Usage:
 //   rounding_cylinder_mask(r|d=, rounding);
 // Description:
@@ -436,6 +469,10 @@ module rounding_cylinder_mask(r, rounding, d, anchor=CENTER, spin=0, orient=UP)
 
 
 // Module: rounding_hole_mask()
+// Synopsis: Creates a shape to round the edge of a round hole.
+// SynTags: Geom
+// Topics: Masking, Rounding
+// See Also: rounding_cylinder_mask(), rounding_hole_mask(), rounding_angled_edge_mask(), rounding_corner_mask(), rounding_angled_corner_mask() 
 // Usage:
 //   rounding_hole_mask(r|d, rounding, [excess]) [ATTACHMENTS];
 // Description:
@@ -445,10 +482,10 @@ module rounding_cylinder_mask(r, rounding, d, anchor=CENTER, spin=0, orient=UP)
 //   hole to be rounded.
 // Arguments:
 //   r = Radius of hole.
-//   d = Diameter of hole to rounding.
 //   rounding = Radius of the rounding.
 //   excess = The extra thickness of the mask.  Default: `0.1`.
 //   ---
+//   d = Diameter of hole to rounding.
 //   anchor = Translate so anchor point is at origin (0,0,0).  See [anchor](attachments.scad#subsection-anchor).  Default: `CENTER`
 //   spin = Rotate this many degrees around the Z axis after anchor.  See [spin](attachments.scad#subsection-spin).  Default: `0`
 //   orient = Vector to rotate top towards, after spin.  See [orient](attachments.scad#subsection-orient).  Default: `UP`
@@ -485,12 +522,16 @@ module rounding_hole_mask(r, rounding, excess=0.1, d, anchor=CENTER, spin=0, ori
 // Section: Teardrop Masking
 
 // Module: teardrop_edge_mask()
+// Synopsis: Creates a shape to round a 90° edge but limit the angle of overhang.
+// SynTags: Geom
+// Topics: Masking, Rounding, Shapes (3D), FDM Optimized
+// See Also: teardrop_corner_mask(), teardrop_edge_mask()
 // Usage:
-//   teardrop_edge_mask(l, r|d=, [angle], [excess], [anchor], [spin], [orient]) [ATTACHMENTS];
+//   teardrop_edge_mask(l|h=|length=|height=, r|d=, [angle], [excess], [anchor], [spin], [orient]) [ATTACHMENTS];
 // Description:
-//   Makes an apropriate 3D corner rounding mask that keeps within `angle` degrees of vertical.
+//   Makes an apropriate 3D edge rounding mask that keeps within `angle` degrees of vertical.
 // Arguments:
-//   l = length of mask
+//   l/h/length/height = length of mask
 //   r = Radius of the mask rounding.
 //   angle = Maximum angle from vertical. Default: 45
 //   excess = Excess mask size.  Default: 0.1
@@ -509,9 +550,10 @@ module rounding_hole_mask(r, rounding, excess=0.1, d, anchor=CENTER, spin=0, ori
 //       corner_mask(BOT)
 //           teardrop_corner_mask(r=10, angle=40);
 //   }
-function teardrop_edge_mask(l, r, angle, excess=0.1, d, anchor, spin, orient) = no_function("teardrop_edge_mask");
-module teardrop_edge_mask(l, r, angle, excess=0.1, d, anchor=CTR, spin=0, orient=UP)
+function teardrop_edge_mask(l, r, angle=45, excess=0.1, d, anchor, spin, orient,h,height,length) = no_function("teardrop_edge_mask");
+module teardrop_edge_mask(l, r, angle=45, excess=0.1, d, anchor=CTR, spin=0, orient=UP,h,height,length)
 {
+    l = one_defined([l, h, height, length], "l,h,height,length");
     check = 
       assert(is_num(l) && l>0, "Length of mask must be positive")
       assert(is_num(angle) && angle>0 && angle<90, "Angle must be a number between 0 and 90")
@@ -523,6 +565,10 @@ module teardrop_edge_mask(l, r, angle, excess=0.1, d, anchor=CTR, spin=0, orient
 
 
 // Module: teardrop_corner_mask()
+// Synopsis: Creates a shape to round a 90° corner but limit the angle of overhang.
+// SynTags: Geom
+// Topics: Masking, Rounding, Shapes (3D), FDM Optimized
+// See Also: teardrop_corner_mask(), teardrop_edge_mask()
 // Usage:
 //   teardrop_corner_mask(r|d=, [angle], [excess], [anchor], [spin], [orient]) [ATTACHMENTS];
 // Description:
@@ -546,8 +592,8 @@ module teardrop_edge_mask(l, r, angle, excess=0.1, d, anchor=CTR, spin=0, orient
 //       corner_mask(BOT)
 //           teardrop_corner_mask(r=10, angle=40);
 //   }
-function teardrop_corner_mask(r, angle, excess=0.1, d, anchor, spin, orient) = no_function("teardrop_corner_mask");
-module teardrop_corner_mask(r, angle, excess=0.1, d, anchor=CTR, spin=0, orient=UP)
+function teardrop_corner_mask(r, angle=45, excess=0.1, d, anchor, spin, orient) = no_function("teardrop_corner_mask");
+module teardrop_corner_mask(r, angle=45, excess=0.1, d, anchor=CTR, spin=0, orient=UP)
 {  
     assert(is_num(angle));
     assert(is_num(excess));

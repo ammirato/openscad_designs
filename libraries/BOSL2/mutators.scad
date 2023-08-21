@@ -13,6 +13,10 @@
 //////////////////////////////////////////////////////////////////////
 
 // Module: bounding_box()
+// Synopsis: Creates the smallest bounding box that contains all the children.
+// SynTags: Geom
+// Topics: Mutators, Bounds, Bounding Boxes
+// See Also: pointlist_bounds()
 // Usage:
 //   bounding_box([excess],[planar]) CHILDREN;
 // Description:
@@ -82,15 +86,19 @@ module bounding_box(excess=0, planar=false) {
         }
     }
 
-    if(planar) {
-        offset(excess-1/2) _oversize_bbox() children();
-    } else {
-        render(convexity=2)
-        if (excess>.1) {
-            _oversize_bbox() children();
-        } else {
-            _shrink_cube() _oversize_bbox() children();
-        }
+    req_children($children);
+    attachable(){
+      if(planar) {
+          offset(excess-1/2) _oversize_bbox() children();
+      } else {
+          render(convexity=2)
+          if (excess>.1) {
+              _oversize_bbox() children();
+          } else {
+              _shrink_cube() _oversize_bbox() children();
+          }
+      }
+      union();
     }
 }
 
@@ -101,7 +109,10 @@ module bounding_box(excess=0, planar=false) {
 
 
 // Module: chain_hull()
-//
+// Synopsis: Performs the union of hull operations between consecutive pairs of children.
+// SynTags: Geom
+// Topics: Mutators
+// See Also: hull()
 // Usage:
 //   chain_hull() CHILDREN;
 //
@@ -132,10 +143,12 @@ module bounding_box(excess=0, planar=false) {
 //   }
 module chain_hull()
 {
-    union() {
+    req_children($children);
+    attachable(){
         if ($children == 1) {
             children();
-        } else if ($children > 1) {
+        }
+        else {
             for (i =[1:1:$children-1]) {
                 $idx = i;
                 hull() {
@@ -144,11 +157,16 @@ module chain_hull()
                 }
             }
         }
+        union();
     }
 }
 
 
 // Module: path_extrude2d()
+// Synopsis: Extrudes 2D children along a 2D path.
+// SynTags: Geom
+// Topics: Mutators, Extrusion 
+// See Also: path_sweep(), path_extrude()
 // Usage:
 //   path_extrude2d(path, [caps=], [closed=], [s=], [convexity=]) 2D-CHILDREN;
 // Description:
@@ -195,6 +213,7 @@ module chain_hull()
 //       move_copies([[-3.5,1.5],[0.0,3.0],[3.5,1.5]])
 //           circle(r=1.5);
 module path_extrude2d(path, caps=false, closed=false, s, convexity=10) {
+    req_children($children);
     extra_ang = 0.1; // Extra angle for overlap of joints
     check =
        assert(caps==false || closed==false, "Cannot have caps on a closed extrusion")
@@ -205,63 +224,72 @@ module path_extrude2d(path, caps=false, closed=false, s, convexity=10) {
         norm(b[1]-b[0]);
     check2 = assert(is_finite(s));
     L = len(path);
-    for (i = [0:1:L-(closed?1:2)]) {
-        seg = select(path, i, i+1);
-        segv = seg[1] - seg[0];
-        seglen = norm(segv);
-        translate((seg[0]+seg[1])/2) {
-            rot(from=BACK, to=segv) {
-                difference() {
-                    xrot(90) {
-                        linear_extrude(height=seglen, center=true, convexity=convexity) {
-                            children();
+    attachable(){
+      union(){
+        for (i = [0:1:L-(closed?1:2)]) {
+            seg = select(path, i, i+1);
+            segv = seg[1] - seg[0];
+            seglen = norm(segv);
+            translate((seg[0]+seg[1])/2) {
+                rot(from=BACK, to=segv) {
+                    difference() {
+                        xrot(90) {
+                            linear_extrude(height=seglen, center=true, convexity=convexity) {
+                                children();
+                            }
                         }
-                    }
-                    if (closed || i>0) {
-                        pt = select(path, i-1);
-                        pang = v_theta(rot(from=-segv, to=RIGHT, p=pt - seg[0]));
-                        fwd(seglen/2+0.01) zrot(pang/2) cube(s, anchor=BACK);
-                    }
-                    if (closed || i<L-2) {
-                        pt = select(path, i+2);
-                        pang = v_theta(rot(from=segv, to=RIGHT, p=pt - seg[1]));
-                        back(seglen/2+0.01) zrot(pang/2) cube(s, anchor=FWD);
+                        if (closed || i>0) {
+                            pt = select(path, i-1);
+                            pang = v_theta(rot(from=-segv, to=RIGHT, p=pt - seg[0]));
+                            fwd(seglen/2+0.01) zrot(pang/2) cube(s, anchor=BACK);
+                        }
+                        if (closed || i<L-2) {
+                            pt = select(path, i+2);
+                            pang = v_theta(rot(from=segv, to=RIGHT, p=pt - seg[1]));
+                            back(seglen/2+0.01) zrot(pang/2) cube(s, anchor=FWD);
+                        }
                     }
                 }
             }
         }
-    }
-    for (t=triplet(path,wrap=closed)) {
-        ang = -(180-vector_angle(t)) * sign(_point_left_of_line2d(t[2],[t[0],t[1]]));
-        delt = point3d(t[2] - t[1]);
-        if (ang!=0)
-            translate(t[1]) {
-                frame_map(y=delt, z=UP)
-                    rotate(-sign(ang)*extra_ang/2)
-                        rotate_extrude(angle=ang+sign(ang)*extra_ang)
-                            if (ang<0)
-                                right_half(planar=true) children();
-                            else
-                                left_half(planar=true) children();                          
-            }
-                
-    }
-    if (caps) {
-        bseg = select(path,0,1);
-        move(bseg[0])
-            rot(from=BACK, to=bseg[0]-bseg[1])
-                rotate_extrude(angle=180)
-                    right_half(planar=true) children();
-        eseg = select(path,-2,-1);
-        move(eseg[1])
-            rot(from=BACK, to=eseg[1]-eseg[0])
-                rotate_extrude(angle=180)
-                    right_half(planar=true) children();
+        for (t=triplet(path,wrap=closed)) {
+            ang = -(180-vector_angle(t)) * sign(_point_left_of_line2d(t[2],[t[0],t[1]]));
+            delt = point3d(t[2] - t[1]);
+            if (ang!=0)
+                translate(t[1]) {
+                    frame_map(y=delt, z=UP)
+                        rotate(-sign(ang)*extra_ang/2)
+                            rotate_extrude(angle=ang+sign(ang)*extra_ang)
+                                if (ang<0)
+                                    right_half(planar=true) children();
+                                else
+                                    left_half(planar=true) children();                          
+                }
+                    
+        }
+        if (caps) {
+            bseg = select(path,0,1);
+            move(bseg[0])
+                rot(from=BACK, to=bseg[0]-bseg[1])
+                    rotate_extrude(angle=180)
+                        right_half(planar=true) children();
+            eseg = select(path,-2,-1);
+            move(eseg[1])
+                rot(from=BACK, to=eseg[1]-eseg[0])
+                    rotate_extrude(angle=180)
+                        right_half(planar=true) children();
+        }
+      }
+      union();
     }
 }
 
 
 // Module: cylindrical_extrude()
+// Synopsis: Extrudes 2D children outwards around a cylinder.
+// SynTags: Geom
+// Topics: Mutators, Extrusion, Rotation
+// See Also: heightfield(), cylindrical_heightfield(), cyl()
 // Usage:
 //   cylindrical_extrude(ir|id=, or|od=, [size=], [convexity=], [spin=], [orient=]) 2D-CHILDREN;
 // Description:
@@ -287,6 +315,7 @@ module path_extrude2d(path, caps=false, closed=false, s, convexity=10) {
 //   cylindrical_extrude(or=40, ir=35, orient=BACK)
 //       text(text="Hello World!", size=10, halign="center", valign="center");
 module cylindrical_extrude(ir, or, od, id, size=1000, convexity=10, spin=0, orient=UP) {
+    req_children($children);
     check1 = assert(is_num(size) || is_vector(size,2));
     size = is_num(size)? [size,size] : size;
     ir = get_radius(r=ir,d=id);
@@ -299,28 +328,35 @@ module cylindrical_extrude(ir, or, od, id, size=1000, convexity=10, spin=0, orie
     sides = segs(or);
     step = circumf / sides;
     steps = ceil(width / step);
-    rot(from=UP, to=orient) rot(spin) {
-        for (i=[0:1:steps-2]) {
-            x = (i+0.5-steps/2) * step;
-            zrot(360 * x / circumf) {
-                fwd(or*cos(180/sides)) {
-                    xrot(-90) {
-                        linear_extrude(height=or-ir, scale=[ir/or,1], center=false, convexity=convexity) {
-                            yflip()
-                            intersection() {
-                                left(x) children();
-                                rect([quantup(step,pow(2,-15)),size.y]);
-                            }
-                        }
-                    }
-                }
-            }
-        }
+    attachable() {
+      rot(from=UP, to=orient) rot(spin) {
+          for (i=[0:1:steps-2]) {
+              x = (i+0.5-steps/2) * step;
+              zrot(360 * x / circumf) {
+                  fwd(or*cos(180/sides)) {
+                      xrot(-90) {
+                          linear_extrude(height=or-ir, scale=[ir/or,1], center=false, convexity=convexity) {
+                              yflip()
+                              intersection() {
+                                  left(x) children();
+                                  rect([quantup(step,pow(2,-15)),size.y]);
+                              }
+                          }
+                      }
+                  }
+              }
+          }
+      }
+      union();
     }
 }
 
 
 // Module: extrude_from_to()
+// Synopsis: Extrudes 2D children between two points in 3D space.
+// SynTags: Geom
+// Topics: Extrusion, Mutators
+// See Also: path_sweep(), path_extrude2d()
 // Usage:
 //   extrude_from_to(pt1, pt2, [convexity=], [twist=], [scale=], [slices=]) 2D-CHILDREN;
 // Description:
@@ -339,30 +375,39 @@ module cylindrical_extrude(ir, or, od, id, size=1000, convexity=10, spin=0, orie
 //       xcopies(3) circle(3, $fn=32);
 //   }
 module extrude_from_to(pt1, pt2, convexity, twist, scale, slices) {
+    req_children($children);
     check =
       assert(is_vector(pt1),"First point must be a vector")
       assert(is_vector(pt2),"Second point must be a vector");
     pt1 = point3d(pt1);
     pt2 = point3d(pt2);
     rtp = xyz_to_spherical(pt2-pt1);
-    translate(pt1) {
-        rotate([0, rtp[2], rtp[1]]) {
-            if (rtp[0] > 0) {
-                linear_extrude(height=rtp[0], convexity=convexity, center=false, slices=slices, twist=twist, scale=scale) {
-                    children();
-                }
-            }
-        }
+    attachable()
+    {
+      translate(pt1) {
+          rotate([0, rtp[2], rtp[1]]) {
+              if (rtp[0] > 0) {
+                  linear_extrude(height=rtp[0], convexity=convexity, center=false, slices=slices, twist=twist, scale=scale) {
+                      children();
+                  }
+              }
+          }
+      }
+      union();
     }
 }
 
 
 
 // Module: path_extrude()
-// Usage: path_extrude(path, [convexity], [clipsize]) 2D-CHILDREN;
+// Synopsis: Extrudes 2D children along a 3D path.
+// SynTags: Geom
+// Topics: Paths, Extrusion, Mutators
+// See Also: path_sweep(), path_extrude2d()
+// Usage:
+//   path_extrude(path, [convexity], [clipsize]) 2D-CHILDREN;
 // Description:
 //   Extrudes 2D children along a 3D path.  This may be slow and can have problems with twisting.  
-// See Also: path_sweep()
 // Arguments:
 //   path = Array of points for the bezier path to extrude along.
 //   convexity = Maximum number of walls a ray can pass through.
@@ -371,6 +416,7 @@ module extrude_from_to(pt1, pt2, convexity, twist, scale, slices) {
 //   path = [ [0, 0, 0], [33, 33, 33], [66, 33, 40], [100, 0, 0], [150,0,0] ];
 //   path_extrude(path) circle(r=10, $fn=6);
 module path_extrude(path, convexity=10, clipsize=100) {
+    req_children($children);
     rotmats = cumprod([
        for (i = idx(path,e=-2)) let(
            vec1 = i==0? UP : unit(path[i]-path[i-1], UP),
@@ -381,32 +427,35 @@ module path_extrude(path, convexity=10, clipsize=100) {
     interp = rot_resample(rotmats,n=2,method="count");
     epsilon = 0.0001;  // Make segments ever so slightly too long so they overlap.
     ptcount = len(path);
-    for (i = [0:1:ptcount-2]) {
-        pt1 = path[i];
-        pt2 = path[i+1];
-        dist = norm(pt2-pt1);
-        T = rotmats[i];
-        difference() {
-            translate(pt1) {
-                multmatrix(T) {
-                    down(clipsize/2/2) {
-                        if ((dist+clipsize/2) > 0) {
-                            linear_extrude(height=dist+clipsize/2, convexity=convexity) {
-                                children();
-                            }
-                        }
-                    }
-                }
-            }
-            translate(pt1) {
-                hq = (i > 0)? interp[2*i-1] : T;
-                multmatrix(hq) down(clipsize/2+epsilon) cube(clipsize, center=true);
-            }
-            translate(pt2) {
-                hq = (i < ptcount-2)? interp[2*i+1] : T;
-                multmatrix(hq) up(clipsize/2+epsilon) cube(clipsize, center=true);
-            }
-        }
+    attachable(){
+       for (i = [0:1:ptcount-2]) {
+           pt1 = path[i];
+           pt2 = path[i+1];
+           dist = norm(pt2-pt1);
+           T = rotmats[i];
+           difference() {
+               translate(pt1) {
+                   multmatrix(T) {
+                       down(clipsize/2/2) {
+                           if ((dist+clipsize/2) > 0) {
+                               linear_extrude(height=dist+clipsize/2, convexity=convexity) {
+                                   children();
+                               }
+                           }
+                       }
+                   }
+               }
+               translate(pt1) {
+                   hq = (i > 0)? interp[2*i-1] : T;
+                   multmatrix(hq) down(clipsize/2+epsilon) cube(clipsize, center=true);
+               }
+               translate(pt2) {
+                   hq = (i < ptcount-2)? interp[2*i+1] : T;
+                   multmatrix(hq) up(clipsize/2+epsilon) cube(clipsize, center=true);
+               }
+           }
+       }
+       union();
     }
 }
 
@@ -418,6 +467,10 @@ module path_extrude(path, convexity=10, clipsize=100) {
 //////////////////////////////////////////////////////////////////////
 
 // Module: minkowski_difference()
+// Synopsis: Removes diff shapes from base shape surface.
+// SynTags: Geom
+// Topics: Mutators
+// See Also: offset3d()
 // Usage:
 //   minkowski_difference() { BASE; DIFF1; DIFF2; ... }
 // Description:
@@ -436,17 +489,21 @@ module path_extrude(path, convexity=10, clipsize=100) {
 //       sphere(r=10);
 //   }
 module minkowski_difference(planar=false) {
-    difference() {
-        bounding_box(excess=0, planar=planar) children(0);
-        render(convexity=20) {
-            minkowski() {
-                difference() {
-                    bounding_box(excess=1, planar=planar) children(0);
-                    children(0);
-                }
-                for (i=[1:1:$children-1]) children(i);
-            }
-        }
+    req_children($children);
+    attachable(){
+         difference() {
+             bounding_box(excess=0, planar=planar) children(0);
+             render(convexity=20) {
+                 minkowski() {
+                     difference() {
+                         bounding_box(excess=1, planar=planar) children(0);
+                         children(0);
+                     }
+                     for (i=[1:1:$children-1]) children(i);
+                 }
+             }
+         }
+         union();
     }
 }
 
@@ -454,6 +511,10 @@ module minkowski_difference(planar=false) {
 
 
 // Module: offset3d()
+// Synopsis: Expands or contracts the surface of a 3D object.
+// SynTags: Geom
+// Topics: Mutators
+// See Also: minkowski_difference(), round3d()
 // Usage:
 //   offset3d(r, [size], [convexity]) CHILDREN;
 // Description:
@@ -465,34 +526,42 @@ module minkowski_difference(planar=false) {
 //   size = Maximum size of object to be contracted, given as a scalar.  Default: 100
 //   convexity = Max number of times a line could intersect the walls of the object.  Default: 10
 module offset3d(r, size=100, convexity=10) {
+    req_children($children);
     n = quant(max(8,segs(abs(r))),4);
-    if (r==0) {
-        children();
-    } else if (r>0) {
-        render(convexity=convexity)
-        minkowski() {
-            children();
-            sphere(r, $fn=n);
-        }
-    } else {
-        size2 = size * [1,1,1];
-        size1 = size2 * 1.02;
-        render(convexity=convexity)
-        difference() {
-            cube(size2, center=true);
-            minkowski() {
-                difference() {
-                    cube(size1, center=true);
-                    children();
-                }
-                sphere(-r, $fn=n);
-            }
-        }
+    attachable(){
+      if (r==0) {
+          children();
+      } else if (r>0) {
+          render(convexity=convexity)
+          minkowski() {
+              children();
+              sphere(r, $fn=n);
+          }
+      } else {
+          size2 = size * [1,1,1];
+          size1 = size2 * 1.02;
+          render(convexity=convexity)
+          difference() {
+              cube(size2, center=true);
+              minkowski() {
+                  difference() {
+                      cube(size1, center=true);
+                      children();
+                  }
+                  sphere(-r, $fn=n);
+              }
+          }
+      }
+      union();
     }
 }
 
 
 // Module: round3d()
+// Synopsis: Rounds arbitrary 3d objects.
+// SynTags: Geom
+// Topics: Rounding, Mutators
+// See Also: offset3d(), minkowski_difference()
 // Usage:
 //   round3d(r) CHILDREN;
 //   round3d(or) CHILDREN;
@@ -511,12 +580,16 @@ module offset3d(r, size=100, convexity=10) {
 //   ir = Radius to round only inside (concave) corners to.  Use instead of `r`.
 module round3d(r, or, ir, size=100)
 {
+    req_children($children);
     or = get_radius(r1=or, r=r, dflt=0);
     ir = get_radius(r1=ir, r=r, dflt=0);
-    offset3d(or, size=size)
-        offset3d(-ir-or, size=size)
-            offset3d(ir, size=size)
-                children();
+    attachable(){
+       offset3d(or, size=size)
+           offset3d(-ir-or, size=size)
+               offset3d(ir, size=size)
+                   children();
+       union();
+    }
 }
 
 
