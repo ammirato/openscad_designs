@@ -21,27 +21,29 @@ eps=0.001;
 //}
 
 closed_box_with_hinge_bottom(
-    width=20, 
+    width=60, 
     depth=15, 
     outer_height=10, 
     inner_height=4, 
-    outer_wall_thickness=3, 
-    inner_wall_thickness=5, 
+    outer_wall_thickness=2, 
+    inner_wall_thickness=5,
+    back_outer_wall_thickness=3.5,
     chamfer=.5, 
     center=false
 );
 
-translate([20 + 3 + 3, 0, 14 + 3 + 10 + 3 ])
-rotate([0, 180, 0])
-//translate([30, 0, 0])
+//translate([20 + 3 + 3, 0, 14 + 3 + 10 + 3 ])
+//rotate([0, 180, 0])
+translate([70, 0, 0])
 closed_box_with_hinge_top(
     height=14,
-    bot_width=20, 
+    bot_width=60, 
     bot_depth=15, 
     bot_outer_height=10, 
     bot_inner_height=4, 
-    bot_outer_wall_thickness=3, 
-    bot_inner_wall_thickness=5, 
+    bot_outer_wall_thickness=2,
+    bot_inner_wall_thickness=5,
+    bot_back_outer_wall_thickness=3.5, 
     chamfer=.5, 
     center=false
 );
@@ -77,7 +79,8 @@ module closed_box_with_hinge_bottom(
     outer_height, 
     inner_height, 
     outer_wall_thickness, 
-    inner_wall_thickness, 
+    inner_wall_thickness,
+    back_outer_wall_thickness=0, 
     center=false, 
     pin_diam=1.75 + 0.25,
     chamfer=0
@@ -87,12 +90,14 @@ module closed_box_with_hinge_bottom(
    
 */
     
+    back_inner_wall_thickness = 0; //DONT CHANGE: top doesn't know about this
+    back_outer_wall_thickness = back_outer_wall_thickness > 0 ? back_outer_wall_thickness : outer_wall_thickness;
     full_width = width + outer_wall_thickness*2;
-    full_depth = depth + outer_wall_thickness*2 + inner_wall_thickness;
+    full_depth = depth + outer_wall_thickness + back_outer_wall_thickness + inner_wall_thickness + back_inner_wall_thickness;
     full_height = outer_height + outer_wall_thickness;
     
     outer_box_width = width;
-    outer_box_depth = depth + inner_wall_thickness;
+    outer_box_depth = depth + inner_wall_thickness + back_inner_wall_thickness;
     outer_box_height = outer_height;
     
     full_trans_x = center ? -1*full_width/2 : 0;
@@ -107,12 +112,13 @@ module closed_box_with_hinge_bottom(
                     depth=outer_box_depth,
                     height=outer_box_height,
                     wall_thickness=outer_wall_thickness,
+                    back_wall_thickness=back_outer_wall_thickness,
                     chamfer=chamfer,
                     center=false
                 );
                 
                 back_chop_width = full_width + eps*3;
-                back_chop_depth = outer_wall_thickness  +eps*2;
+                back_chop_depth = back_outer_wall_thickness  +eps*2;
                 back_chop_height = outer_height - inner_height + eps;
                 back_chop_trans_x = 0;
                 back_chop_trans_y = full_depth - back_chop_depth + eps;
@@ -136,19 +142,34 @@ module closed_box_with_hinge_bottom(
                     wall_thickness=inner_wall_thickness,
                     left_wall_thickness=0,
                     right_wall_thickness=0,
-                    back_wall_thickness=0,
+                    back_wall_thickness=back_inner_wall_thickness,
                     bottomless=true,
                     chamfer=0,
                     center=false
                 );
             }
             
-            hinge_width=width;
-            hinge_trans_x = outer_wall_thickness;//full_width - outer_wall_thickness;
+            hinge_width=width/4;
+            hinge_trans_x_1 = outer_wall_thickness;//full_width - outer_wall_thickness;
+            hinge_trans_x_2 = full_width - outer_wall_thickness - hinge_width;
             //hinge_trans_x = full_width - outer_wall_thickness;
-            hinge_trans_y = depth + outer_wall_thickness + inner_wall_thickness;
+            hinge_trans_y = depth + outer_wall_thickness + inner_wall_thickness + back_inner_wall_thickness;
             hinge_trans_z = inner_height + outer_wall_thickness - eps;
-            translate([hinge_trans_x, hinge_trans_y, hinge_trans_z]){
+            translate([hinge_trans_x_1, hinge_trans_y, hinge_trans_z]){
+                //rotate([0, 0, 180])
+                knuckle_hinge(
+                    length=hinge_width, 
+                    pin_diam=pin_diam,
+                    segs=3, 
+                    offset=3, 
+                    arm_height=0,
+                    arm_angle=90, 
+                    pin_fn=8, 
+                    clear_top=true, 
+                    anchor=FRONT+LEFT+BOTTOM
+                );
+            }
+            translate([hinge_trans_x_2, hinge_trans_y, hinge_trans_z]){
                 //rotate([0, 0, 180])
                 knuckle_hinge(
                     length=hinge_width, 
@@ -174,13 +195,16 @@ module closed_box_with_hinge_top(
     bot_inner_height, 
     bot_outer_wall_thickness, 
     bot_inner_wall_thickness,
+    bot_back_outer_wall_thickness=0,
     center=false, 
     pin_diam=1.75 + 0.25,
     chamfer=0
 ) {
     
+    bot_back_outer_wall_thickness = bot_back_outer_wall_thickness > 0 ? bot_back_outer_wall_thickness : bot_outer_wall_thickness;
+
     full_width = bot_width + bot_outer_wall_thickness*2;
-    full_depth = bot_depth + bot_inner_wall_thickness*2 + bot_outer_wall_thickness*2;
+    full_depth = bot_depth + bot_inner_wall_thickness*2 + bot_outer_wall_thickness + bot_back_outer_wall_thickness;
     full_height = height + 5; //todo
     
     
@@ -199,26 +223,42 @@ module closed_box_with_hinge_top(
                 depth=box_depth,
                 height=box_height,
                 wall_thickness=bot_outer_wall_thickness,
+                back_wall_thickness=bot_back_outer_wall_thickness,
                 chamfer=chamfer,
                 center=false
             );
             
             
             //bot hinge height = inner_height + outer_wall_thickness - eps
-            hinge_offset=3;
-            hinge_width = bot_width;
+            hinge_offset=3.5;
+            hinge_width = bot_width/4;
             //how much to extend above top walls
             //hinge_extension_height = (bot_outer_height + bot_outer_wall_thickness-1) - (bot_inner_height + bot_outer_wall_thickness - eps);
-            hinge_trans_x = bot_outer_wall_thickness;//bot_width + bot_outer_wall_thickness;
+            hinge_trans_x_1 = bot_outer_wall_thickness;//bot_width + bot_outer_wall_thickness;
+            hinge_trans_x_2 = full_width - bot_outer_wall_thickness - hinge_width;
             hinge_trans_y = bot_depth + bot_outer_wall_thickness + bot_inner_wall_thickness -eps;
             hinge_trans_z = height + bot_outer_wall_thickness;// - (hinge_offset - hinge_extension_height);
-            translate([hinge_trans_x, hinge_trans_y, hinge_trans_z]){
-                
-                rotate([0,0,0])
+            translate([hinge_trans_x_1, hinge_trans_y, hinge_trans_z]){
+                //rotate([0,0,0])
                 knuckle_hinge(
                     length=hinge_width,
                     pin_diam=pin_diam,
-                    segs=3, 
+                    segs=3,
+                    offset=hinge_offset, 
+                    arm_height=0,
+                    arm_angle=90, 
+                    pin_fn=8,
+                    clear_top=true, 
+                    anchor=FRONT+LEFT+BOTTOM, 
+                    inner=true
+                );
+            }
+            translate([hinge_trans_x_2, hinge_trans_y, hinge_trans_z]){
+                //rotate([0,0,0])
+                knuckle_hinge(
+                    length=hinge_width,
+                    pin_diam=pin_diam,
+                    segs=3,
                     offset=hinge_offset, 
                     arm_height=0,
                     arm_angle=90, 

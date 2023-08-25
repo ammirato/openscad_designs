@@ -7,7 +7,7 @@ use <snap_joints/cantilever.scad>
 eps=0.001;
 
 //box_bottom_two_halves(depth=25, div_locs=[0, 10, 20]);
-//box_bottom(depth=25, div_locs=[0, 10, 20], name_text="prosperity");
+box_bottom(depth=50, div_locs=[0, 10, 20], name_text="prosperity");
 
 //box_lid(depth=25, name_text="test_text");
 
@@ -15,11 +15,11 @@ eps=0.001;
 //cube([1,1,1], center=true);
 //}
 
-divider(text="test text", thickness=1.0);
-
-translate([100, 0, 0]){
-    divider2(text="test text", thickness=1.0);
-}
+//divider(text="test text", thickness=1.0);
+//
+//translate([100, 0, 0]){
+//    divider2(text="test text", thickness=1.0);
+//}
 
 
 //box params
@@ -27,9 +27,9 @@ default_width=93;
 default_outer_height=35;
 default_inner_height=28; 
 default_inner_wall_thickness=3.75;
-default_outer_wall_thickness=1.5;
+default_outer_wall_thickness=3;
 default_snap_plug_block_height=3; 
-default_snap_plug_width=7;
+default_snap_plug_width=15;
 default_snap_socket_tol=1.0;
 default_chamfer=2.0;
 default_div_thickness=1.0;
@@ -193,6 +193,108 @@ name_text=default_name,
 }
 
 module box_bottom (
+depth,
+div_locs, 
+width=default_width,
+outer_height=default_outer_height, 
+inner_height=default_inner_height, 
+inner_wall_thickness=default_inner_wall_thickness, 
+outer_wall_thickness=default_outer_wall_thickness, 
+snap_plug_block_height=default_snap_plug_block_height, 
+snap_plug_width=default_snap_plug_width, 
+snap_socket_tol=default_snap_socket_tol,
+chamfer=default_chamfer,
+div_thickness=default_div_thickness,
+div_extra_width=default_div_extra_width,
+div_tol=default_div_tol,
+div_tol_thickness=default_div_tol_thickness,
+div_z_indent=default_div_z_indent,
+extra_bottom_thickness=default_extra_bottom_thickness, 
+center=default_center,
+name_text=default_name,
+) 
+{ 
+ 
+    
+    full_width = width + outer_wall_thickness*2;
+    full_depth = depth + outer_wall_thickness*2 + inner_wall_thickness;
+    full_height = outer_height + extra_bottom_thickness + outer_wall_thickness;
+    full_outer_height = outer_height + extra_bottom_thickness;
+
+    
+    cut_depth = inner_wall_thickness + outer_wall_thickness+2*eps;
+    cut_height =  snap_plug_block_height + snap_socket_tol;
+    cut_width = snap_plug_width + snap_socket_tol;
+    
+    cut_trans_x = full_width/2 - snap_plug_width/2;
+    cut_trans_y = 0;
+    cut_trans_z = inner_height + outer_wall_thickness + extra_bottom_thickness/2  - cut_height/2 +eps ;
+    
+    center_trans_x = center ? -1*(full_width/2) : 0;
+    center_trans_y = center ? -1*(full_depth/2) : 0;
+    center_trans_z = center ? -1*(full_height/2) : 0;
+
+    div_width = width + div_extra_width + div_tol*2;
+    div_trans_x = full_width/2 - div_width/2;
+    div_trans_y = outer_wall_thickness + inner_wall_thickness;
+    div_trans_z = outer_wall_thickness + extra_bottom_thickness - div_z_indent;
+    div_height = inner_height+ div_z_indent + extra_bottom_thickness;
+    div_full_thickness = div_thickness + div_tol_thickness;
+
+    extra_bottom_trans_x = (outer_wall_thickness);
+    extra_bottom_trans_y = (outer_wall_thickness + inner_wall_thickness);
+    extra_bottom_trans_z = outer_wall_thickness - eps;
+
+    text_depth = outer_wall_thickness;
+    
+    translate([center_trans_x, center_trans_y, center_trans_z]){
+        difference() {
+            translate([0,0,extra_bottom_thickness/2]){
+                union () {
+                    closed_box_with_hinge_bottom(width=width, depth=depth, outer_height=full_outer_height, inner_height=inner_height, outer_wall_thickness=outer_wall_thickness, inner_wall_thickness=inner_wall_thickness, chamfer=2.0, center=false);
+                    translate([extra_bottom_trans_x, extra_bottom_trans_y, extra_bottom_trans_z]) {
+                        cube([width + eps, depth + eps, extra_bottom_thickness], center=false);
+                    }
+                }
+            }
+            
+            //cut openings for snap fit first
+            translate([cut_trans_x, cut_trans_y, cut_trans_z]) {
+                rotate([0, 0, 0]){
+                    cube([cut_width, cut_depth,cut_height], center=false);
+                }
+            }
+            
+            //text name
+            translate([full_width/2, text_depth-eps, 10]){
+                rotate([90, 0, 0]){
+                    linear_extrude(text_depth){
+                        text(
+                            name_text, 
+                            size=6, 
+                            font="Helvetica:style=Bold", 
+                            halign="center", valign="center", 
+                            spacing=1
+                        );
+                    }
+                }
+            }
+                    
+            
+            // cut divider cutouts
+            for (div_loc = div_locs) {
+                translate([div_trans_x, div_trans_y + div_loc, div_trans_z]){
+                    cube([div_width, div_full_thickness, div_height]);
+                }
+            }
+        }     
+    }
+}
+
+
+
+
+module box_bottom_old (
 depth,
 div_locs, 
 width=default_width,
