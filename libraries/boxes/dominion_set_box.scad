@@ -7,9 +7,12 @@ use <snap_joints/cantilever.scad>
 eps=0.001;
 
 //box_bottom_two_halves(depth=25, div_locs=[0, 10, 20]);
-box_bottom(depth=50, div_locs=[0, 10, 20], name_text="prosperity");
+box_bottom(depth=30, outer_height=25, inner_height=18, div_locs=[0, 10, 20], name_text="prosperity");
 
-//box_lid(depth=25, name_text="test_text");
+
+translate([93+3+3, 0, 15 + 3 + 25+ 1 + 3 + 5+.5])
+rotate([180,0,180])
+box_lid(height=20, bot_depth=30, stem_extra_height=6, bot_outer_height=25, bot_inner_height=18, name_text="test_text");
 
 //translate([-0.50 + 93 + 1.5 + 3.75 + 3.75, 20, 20]){
 //cube([1,1,1], center=true);
@@ -226,7 +229,7 @@ name_text=default_name,
     cut_height =  snap_plug_block_height + snap_socket_tol;
     cut_width = snap_plug_width + snap_socket_tol;
     
-    cut_trans_x = full_width/2 - snap_plug_width/2;
+    cut_trans_x = full_width/2 - cut_width/2;
     cut_trans_y = 0;
     cut_trans_z = inner_height + outer_wall_thickness + extra_bottom_thickness/2  - cut_height/2 +eps ;
     
@@ -290,6 +293,83 @@ name_text=default_name,
         }     
     }
 }
+
+
+
+module box_lid (
+bot_depth,
+height=default_lid_height,
+bot_width=default_width,
+bot_inner_height=default_outer_height,
+bot_outer_height=default_inner_height,
+inner_wall_thickness=default_inner_wall_thickness, 
+outer_wall_thickness=default_outer_wall_thickness, 
+snap_plug_block_height=default_snap_plug_block_height, 
+snap_plug_width=default_snap_plug_width, 
+snap_socket_tol=default_snap_socket_tol,
+chamfer=default_chamfer,
+div_thickness=default_div_thickness,
+div_extra_width=default_div_extra_width,
+div_tol=default_div_tol,
+div_tol_thickness=default_div_tol_thickness,
+div_z_indent=default_div_z_indent,
+extra_bottom_thickness=default_extra_bottom_thickness, 
+center=default_center,
+stem_extra_height=default_lid_stem_extra_height,
+stem_plug_taper=default_lid_stem_plug_taper,
+name_text=default_name,
+extra_height=0,
+) {
+
+    height = height + extra_height;
+    stem_height = height + stem_extra_height +  snap_plug_block_height + snap_socket_tol*1.5;
+
+    full_width = bot_width + outer_wall_thickness*2;
+    full_depth = bot_depth + outer_wall_thickness*2 + inner_wall_thickness;
+    full_height = height + outer_wall_thickness + (stem_height - height);
+
+    snap_plug_block_depth = outer_wall_thickness*1.5;
+    stem_depth = inner_wall_thickness - snap_plug_block_depth*.8;
+        
+    snap_trans_x = full_width/2 - snap_plug_width/2;
+    snap_trans_y = outer_wall_thickness+stem_depth*.9;// - snap_plug_block_depth;
+    snap_trans_z = outer_wall_thickness;//  +  stem_height/2 - eps; 
+    
+    center_trans_x = center ? -1*(full_width/2) : 0;
+    center_trans_y = center ? -1*(full_depth/2) : 0;
+    center_trans_z = center ? -1*(full_height/2) : 0;
+
+    translate([center_trans_x, center_trans_y, center_trans_z]){
+        difference(){
+            union(){
+                closed_box_with_hinge_top(height=height, bot_width=bot_width, bot_depth=bot_depth, bot_outer_height=bot_outer_height, bot_inner_height=bot_inner_height, bot_outer_wall_thickness=outer_wall_thickness, bot_inner_wall_thickness=inner_wall_thickness, chamfer=2.0, center=false);
+
+                //add snap fit plugs
+                translate([snap_trans_x, snap_trans_y, snap_trans_z]){
+                    rotate([0, 0, -90])
+                    snap_fit_plug(width=snap_plug_width, stem_height=stem_height, stem_depth=stem_depth, block_height=snap_plug_block_height, block_depth=snap_plug_block_depth, center=false, taper=stem_plug_taper);
+                }    
+            }
+//            //text name
+//            text_depth = outer_wall_thickness*.90;
+//            box_full_depth = bot_depth + outer_wall_thickness*2 + inner_wall_thickness*2;
+//            wall_offset = 1.1*(outer_wall_thickness + inner_wall_thickness);
+//            translate([wall_offset, box_full_depth/2, text_depth-eps]){
+//                rotate([180, 0, 90]){
+//                    linear_extrude(text_depth){
+//                        text(
+//                            name_text, 
+//                            size=5, 
+//                            font="Helvetica:style=Bold", 
+//                            halign="center", valign="center", 
+//                            spacing=1
+//                        );
+//                    }
+//                }
+//            }
+        } 
+    }
+} 
 
 
 
@@ -412,7 +492,7 @@ name_text=default_name,
 }
 
 
-module box_lid (
+module box_lid_old (
 depth, 
 width=default_width,
 height=default_lid_height, 
