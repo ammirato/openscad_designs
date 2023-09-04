@@ -15,38 +15,46 @@ eps=0.001;
 
 //translate([25, 0, 0]){
 //difference (){
-//open_box_with_lip(width=10, depth=15, outer_height=8, inner_height=4, outer_wall_thickness=2, inner_wall_thickness=5, chamfer=.5, center=false);
+open_box_with_lip(
+    width=10, depth=15, 
+    outer_height=8, 
+    inner_height=4, 
+    outer_wall_thickness=2, 
+    inner_wall_thickness=5, 
+    chamfer=.5, 
+    center=false
+);
 //translate([0, -1 * 10, 0])
 //cube([20, 5, 10], center=true);
 //}
 
-closed_box_with_hinge_bottom(
-    width=60, 
-    depth=15, 
-    outer_height=10, 
-    inner_height=4, 
-    outer_wall_thickness=2, 
-    inner_wall_thickness=5,
-    back_outer_wall_thickness=3.5,
-    chamfer=.5, 
-    center=false
-);
-
-translate([60 + 2 + 2, 0, 14 + 2 + 10 + 2 ])
-rotate([0, 180, 0])
-//translate([70, 0, 0])
-closed_box_with_hinge_top(
-    height=14,
-    bot_width=60, 
-    bot_depth=15, 
-    bot_outer_height=10, 
-    bot_inner_height=4, 
-    bot_outer_wall_thickness=2,
-    bot_inner_wall_thickness=5,
-    bot_back_outer_wall_thickness=3.5, 
-    chamfer=.5, 
-    center=false
-);
+//closed_box_with_hinge_bottom(
+//    width=60, 
+//    depth=15, 
+//    outer_height=10, 
+//    inner_height=4, 
+//    outer_wall_thickness=2, 
+//    inner_wall_thickness=5,
+//    back_outer_wall_thickness=3.5,
+//    chamfer=.5, 
+//    center=false
+//);
+//
+//translate([60 + 2 + 2, 0, 14 + 2 + 10 + 2 ])
+//rotate([0, 180, 0])
+////translate([70, 0, 0])
+//closed_box_with_hinge_top(
+//    height=14,
+//    bot_width=60, 
+//    bot_depth=15, 
+//    bot_outer_height=10, 
+//    bot_inner_height=4, 
+//    bot_outer_wall_thickness=2,
+//    bot_inner_wall_thickness=5,
+//    bot_back_outer_wall_thickness=3.5, 
+//    chamfer=.5, 
+//    center=false
+//);
 
 
 //cuboid([20,40,2])
@@ -82,15 +90,10 @@ module closed_box_with_hinge_bottom(
     inner_wall_thickness,
     back_outer_wall_thickness=0, 
     center=false, 
-    pin_diam=1.75 + 0.25,
+    pin_diam=1.75 + 0.5,
     hinge_top_clearance=0.0,
     chamfer=0
 ) {
-/*
-    outer height should be at least 5 greater than inner height to clear hinge.
-   
-*/
-    
     back_inner_wall_thickness = 0; //DONT CHANGE: top doesn't know about this
     back_outer_wall_thickness = back_outer_wall_thickness > 0 ? back_outer_wall_thickness : outer_wall_thickness;
     full_width = width + outer_wall_thickness*2;
@@ -202,7 +205,7 @@ module closed_box_with_hinge_top(
     bot_inner_wall_thickness,
     bot_back_outer_wall_thickness=0,
     center=false, 
-    pin_diam=1.75 + 0.25,
+    pin_diam=1.75 + 0.35,
     bot_hinge_top_clearance=0.0,
     chamfer=0
 ) {
@@ -282,22 +285,64 @@ module closed_box_with_hinge_top(
 }
 
 
-module open_box_with_lip(width, depth, outer_height, inner_height, outer_wall_thickness, inner_wall_thickness, center=false, chamfer=0) {
+module open_box_with_lip(
+    width, 
+    depth, 
+    outer_height, 
+    inner_height, 
+    outer_wall_thickness, 
+    inner_wall_thickness,
+    left_inner_wall_thickness=-1,
+    right_inner_wall_thickness=-1,
+    back_inner_wall_thickness=-1,
+    front_inner_wall_thickness=-1,
+    center=false, 
+    chamfer=0
+) {
+    right_inner_wall_thickness = right_inner_wall_thickness >= 0 ? right_inner_wall_thickness : inner_wall_thickness;
+    left_inner_wall_thickness = left_inner_wall_thickness >= 0 ? left_inner_wall_thickness : inner_wall_thickness;
+    front_inner_wall_thickness = front_inner_wall_thickness >= 0 ? front_inner_wall_thickness : inner_wall_thickness;
+    back_inner_wall_thickness = back_inner_wall_thickness >= 0 ? back_inner_wall_thickness : inner_wall_thickness;
     
-    outer_wall_offset = (inner_wall_thickness*2);
+    full_width = width + outer_wall_thickness*2 + left_inner_wall_thickness + right_inner_wall_thickness;
+    full_depth = depth + outer_wall_thickness*2 + back_inner_wall_thickness + front_inner_wall_thickness;
+    full_height = outer_height + outer_wall_thickness;
+        
+    inner_trans_x = outer_wall_thickness;
+    inner_trans_y = outer_wall_thickness;
+    inner_trans_z = outer_wall_thickness;
     
-    inner_trans_z_center = -1* ((outer_height - inner_height) /2  + eps);
-    inner_trans_z_no_center = outer_wall_thickness  + eps;
-    inner_trans_z = center ? inner_trans_z_center : inner_trans_z_no_center;
+    center_trans_x = center ? full_width/2 : 0;
+    center_trans_y = center ? full_depth/2 : 0;
+    center_trans_z = center ? full_height/2 : 0;
     
-    inner_trans_x = center ? 0 : outer_wall_thickness;
-    inner_trans_y = center ? 0 : outer_wall_thickness;
+    outer_width = width + left_inner_wall_thickness + right_inner_wall_thickness;
+    outer_depth = depth + back_inner_wall_thickness + front_inner_wall_thickness;
     
+    translate([center_trans_x, center_trans_y, center_trans_z])
     union() {
-        open_box(width=width+outer_wall_offset, depth=depth+outer_wall_offset, height=outer_height, wall_thickness=outer_wall_thickness, chamfer=chamfer, center=center);
+        open_box(
+            width=outer_width, 
+            depth=outer_depth, 
+            height=outer_height, 
+            wall_thickness=outer_wall_thickness, 
+            chamfer=chamfer, 
+            center=false
+        );
         translate([inner_trans_x, inner_trans_y, inner_trans_z])
-        open_box(width=width + eps, depth=depth+ eps, height=inner_height, wall_thickness=inner_wall_thickness, chamfer=0, bottomless=true, center=center);
-
+            open_box(
+                width=width + eps, 
+                depth=depth+ eps, 
+                height=inner_height, 
+                wall_thickness=inner_wall_thickness,
+                left_wall_thickness=left_inner_wall_thickness,
+                right_wall_thickness=right_inner_wall_thickness,
+                back_wall_thickness=back_inner_wall_thickness,
+                front_wall_thickness=front_inner_wall_thickness,
+                chamfer=0, 
+                bottomless=true, 
+                center=false
+            );
     }
 }
 

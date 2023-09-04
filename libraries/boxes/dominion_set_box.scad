@@ -1,4 +1,4 @@
-use <BOSL2/std.scad>
+include <BOSL2/std.scad>
 
 use <primitives/prisms.scad>
 use <primitives/boxes.scad>
@@ -7,12 +7,14 @@ use <snap_joints/cantilever.scad>
 eps=0.001;
 
 //box_bottom_two_halves(depth=25, div_locs=[0, 10, 20]);
-box_bottom(depth=30, outer_height=25, inner_height=18, div_locs=[0, 10, 20], name_text="prosperity");
+box_bottom(depth=15, outer_height=25, inner_height=21, div_locs=[0, 10, 20], name_text="prosperity");
 
 
-translate([93+3+3, 0, 15 + 3 + 25+ 1 + 3 + 5+.5])
-rotate([180,0,180])
-box_lid(height=20, bot_depth=30, stem_extra_height=6, bot_outer_height=25, bot_inner_height=18, name_text="test_text");
+//translate([93+3+3, 0, 15 + 3 + 25+ 1 + 3 + 5+.5])
+//translate([45+3+3, 0, 15 + 3 + 25+ 1 + 3 + 5+.5])
+//rotate([180,0,180])
+translate([100, 0, 0])
+box_lid(height=20, bot_depth=15, bot_outer_height=25, bot_inner_height=21, name_text="test_text", stem_plug_taper=1.0);
 
 //translate([-0.50 + 93 + 1.5 + 3.75 + 3.75, 20, 20]){
 //cube([1,1,1], center=true);
@@ -28,8 +30,8 @@ box_lid(height=20, bot_depth=30, stem_extra_height=6, bot_outer_height=25, bot_i
 //box params
 default_width=93;
 default_outer_height=35;
-default_inner_height=28; 
-default_inner_wall_thickness=3.75;
+default_inner_height=default_outer_height - 7; 
+default_inner_wall_thickness=3;
 default_outer_wall_thickness=3;
 default_snap_plug_block_height=3; 
 default_snap_plug_width=15;
@@ -300,8 +302,8 @@ module box_lid (
 bot_depth,
 height=default_lid_height,
 bot_width=default_width,
-bot_inner_height=default_outer_height,
-bot_outer_height=default_inner_height,
+bot_inner_height=default_inner_height,
+bot_outer_height=default_outer_height,
 inner_wall_thickness=default_inner_wall_thickness, 
 outer_wall_thickness=default_outer_wall_thickness, 
 snap_plug_block_height=default_snap_plug_block_height, 
@@ -315,25 +317,35 @@ div_tol_thickness=default_div_tol_thickness,
 div_z_indent=default_div_z_indent,
 extra_bottom_thickness=default_extra_bottom_thickness, 
 center=default_center,
-stem_extra_height=default_lid_stem_extra_height,
+//stem_extra_height=default_lid_stem_extra_height,
 stem_plug_taper=default_lid_stem_plug_taper,
 name_text=default_name,
 extra_height=0,
 ) {
 
     height = height + extra_height;
-    stem_height = height + stem_extra_height +  snap_plug_block_height + snap_socket_tol*1.5;
-
+    stem_extra_height = bot_outer_height - bot_inner_height;
+    echo(bot_outer_height, bot_inner_height);
+    stem_height = height  + stem_extra_height +  snap_plug_block_height;// + snap_socket_tol*1.5;
+    echo(height, stem_extra_height, snap_plug_block_height, stem_height);
     full_width = bot_width + outer_wall_thickness*2;
     full_depth = bot_depth + outer_wall_thickness*2 + inner_wall_thickness;
-    full_height = height + outer_wall_thickness + (stem_height - height);
+    stem_stick_out_height = (stem_height - height) > 0 ? (stem_height - height) : 0;
+    full_height = height + outer_wall_thickness + stem_stick_out_height;
 
-    snap_plug_block_depth = outer_wall_thickness*1.5;
+    snap_plug_block_depth = outer_wall_thickness*0.4;
     stem_depth = inner_wall_thickness - snap_plug_block_depth*.8;
         
     snap_trans_x = full_width/2 - snap_plug_width/2;
-    snap_trans_y = outer_wall_thickness+stem_depth*.9;// - snap_plug_block_depth;
+    snap_trans_y = outer_wall_thickness+stem_depth*.95;// - snap_plug_block_depth;
     snap_trans_z = outer_wall_thickness;//  +  stem_height/2 - eps; 
+    
+    indent_width = full_width / 4;
+    indent_width_2 = indent_width / 2;
+    indent_height = height;
+    indent_depth = outer_wall_thickness*0.5;
+    indent_trans_z = indent_height + outer_wall_thickness + eps;
+    indent_trans_x = full_width/2 - indent_width/2;
     
     center_trans_x = center ? -1*(full_width/2) : 0;
     center_trans_y = center ? -1*(full_depth/2) : 0;
@@ -348,8 +360,18 @@ extra_height=0,
                 translate([snap_trans_x, snap_trans_y, snap_trans_z]){
                     rotate([0, 0, -90])
                     snap_fit_plug(width=snap_plug_width, stem_height=stem_height, stem_depth=stem_depth, block_height=snap_plug_block_height, block_depth=snap_plug_block_depth, center=false, taper=stem_plug_taper);
-                }    
+                }
+               
             }
+            translate([indent_trans_x, 0, indent_trans_z])
+            rotate([-90, 0,0])
+            prismoid(
+                size1=[indent_width, indent_height],
+                size2=[indent_width_2, indent_height],
+                height=indent_depth,
+                anchor=BOT+LEFT+FRONT
+            ); 
+            
 //            //text name
 //            text_depth = outer_wall_thickness*.90;
 //            box_full_depth = bot_depth + outer_wall_thickness*2 + inner_wall_thickness*2;
