@@ -22,15 +22,48 @@ include <BOSL2/std.scad>
 //}
 
 
-lore_counter();
+lore_counter(value="1");
 
 
-module lore_counter(){
-    //teardrop2d(r=30, angle=30);
-    //star(n=4, ir=15, or=30);
-    square([40, 80], center=false);
-    circle(r=20);
-    circle(r=20
+module lore_counter(
+    value, 
+    width=40, 
+    thickness=3, 
+    text_thickness=1
+){   
+    point=0.001;
+    minor_radius = width/2 - point;
+    major_radius= width*2 - minor_radius - point;
+    
+    union(){
+        linear_extrude(thickness){
+            round2d(r=.5){
+                difference(){
+                    square([width, width*2], center=false);
+                    circle(r=minor_radius);
+                    translate([width, 0, 0])
+                        circle(r=minor_radius);
+                    translate([0, width*2, 0]){
+                        ellipse(r=[minor_radius, major_radius]);
+                    }
+                    translate([width+point, width*2, 0]){
+                        ellipse(r=[minor_radius, major_radius]);
+                    }
+                }
+            }  
+        }
+        translate([width/2,width * 5/8,thickness]){
+            linear_extrude(text_thickness){
+                text(
+                    value, 
+                    size=width/4, 
+                    font="Helvetica:style=Bold", 
+                    halign="center", valign="center", 
+                    spacing=1
+                );
+            }
+        }
+    }
 }
 
 module damage_counter(
