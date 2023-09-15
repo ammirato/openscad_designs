@@ -6,25 +6,26 @@ use <snap_joints/cantilever.scad>
 
 eps=0.001;
 
+sep_dist = 23;
 cards = [
-["Amber", 20],
-["Amythest", 20],
-["Emerald", 20],
-["Ruby", 20],
-["Sapphire", 20],
-["Steel", 20],
-["Deck 1", 20],
-["Deck 2", 20],
-["", 20], // 1
-["", 20], // 2
-["", 20], // 3
-["", 20], // 4
-["", 20], // 5
-["", 20], // 6
-["", 20], // 7
-["", 20], // 8
-//["", 20], // 9
-//["", 20], // 10
+["Amber", sep_dist],
+["Amythest", sep_dist],
+["Emerald", sep_dist],
+["Ruby", sep_dist],
+["Sapphire", sep_dist],
+["Steel", sep_dist],
+["Deck 1", sep_dist],
+["Deck 2", sep_dist],
+["", sep_dist], // 1
+["", sep_dist], // 2
+["", sep_dist], // 3
+["", sep_dist], // 4
+["", sep_dist], // 5
+["", sep_dist], // 6
+//["", sep_dist], // 7
+//["", sep_dist], // 8
+//["", sep_dist], // 9
+//["", sep_dist], // 10
 ];
 
 num_piles=len(cards);
@@ -32,7 +33,7 @@ num_piles=len(cards);
 // unsleeved card: 0.35
 // sleeved card: .47
 
-card_thickness = 0.35 * 1.1;
+card_thickness = 0.35 * 1.125;
 div_thickness=1.0;
 div_full_thickness=2.0;
 
@@ -55,32 +56,34 @@ div_locs = cumsum(div_sizes);
 
 //box_bottom_two_halves(
 //translate([105, 0, 0]){
-box_bottom(
-    depth=depth,
-    div_locs=div_locs,
-    div_thickness=div_thickness,
-    center=false,
-    name_text=""
-);
-
-translate([0, depth*1.2, 0]){
-// translate([93+6,0,69+8])
-// rotate([180, 0, 180]){
-    box_lid(
-        bot_depth=depth,
-        div_thickness=div_thickness
-        //name_text="base"
-    );
-}
+//box_bottom(
+//    depth=depth,
+//    div_locs=div_locs,
+//    div_thickness=div_thickness,
+//    center=false,
+//    name_text=""
+//);
 //
-//div_idx_start = 8;
-//div_idx_end = 8;
-//for (idx=[div_idx_start:div_idx_end]) {
-//    translate([200, 90*1.1*idx, 0]){
-//        divider(text=cards[idx][0], thickness=1.0);
-//    }
+//translate([0, depth*1.2, 0]){
+// translate([93+6,0,69+8+5])
+// rotate([180, 0, 180]){
+//    box_lid(
+//        bot_depth=depth,
+//        div_thickness=div_thickness
+//        //name_text="base"
+//    );
 //}
+//
+div_idx_start = 4;
+div_idx_end = 7;
+for (idx=[div_idx_start:div_idx_end]) {
+    translate([0, 90*1.1*idx, 0]){
+        divider_raised(text=cards[idx][0], thickness=1.0, bot_box_height=45);
+        //divider(text=cards[idx][0], thickness=1.0, bot_box_height=45);
 
+  }
+}
+//token_tray(10);
 
 //box params
 default_width=93;
@@ -90,7 +93,7 @@ default_inner_wall_thickness=5;
 default_outer_wall_thickness=3;
 default_snap_plug_block_height=3; 
 default_snap_plug_width=15;
-default_snap_socket_tol=1.0;
+default_snap_socket_tol=1.5;
 default_chamfer=2.0;
 default_div_thickness=1.0;
 default_div_extra_width=1.0;
@@ -102,7 +105,7 @@ default_center=false;
 default_name="";
 
 //divider params
-default_div_width = default_width + default_div_extra_width;
+default_div_width = default_width + default_div_extra_width +default_div_tol*1.3;
 default_div_text_height = 5;
 default_div_height = 68 + default_div_text_height;
 
@@ -234,7 +237,7 @@ extra_height=0,
 ) {
 
     height = height + extra_height;
-    stem_extra_height = bot_outer_height - bot_inner_height - snap_socket_tol/2;
+    stem_extra_height = bot_outer_height - bot_inner_height;// - snap_socket_tol/2;
     echo(bot_outer_height, bot_inner_height);
     stem_height = height  + stem_extra_height +  snap_plug_block_height;// + snap_socket_tol*1.5;
     echo(height, stem_extra_height, snap_plug_block_height, stem_height);
@@ -285,13 +288,56 @@ extra_height=0,
     }
 } 
 
+module token_tray(
+    depth,
+    width=default_div_width,
+    height=default_outer_height, 
+    div_thickness=default_div_thickness,
+    div_extra_width=default_div_extra_width,
+){
+    
+    box_width = width - div_extra_width;
+    box_height = height*0.8;
+    box_depth = depth;
+    
+    slider_width = div_extra_width;
+    slider_height=box_height;
+    slider_depth=div_thickness;
+    
+    union(){
+        
+        //main box
+        translate([slider_width, 0, 0]){
+            open_box(
+                width=box_width,
+                depth=box_depth,
+                height=box_height,
+                wall_thickness=div_thickness,
+                center=false
+            );
+        }
+        
+        //sliders
+        cube([slider_width, slider_depth, slider_height], center=false);
+        translate([0, box_depth + div_thickness, 0])   
+            cube([slider_width, slider_depth, slider_height], center=false);
+        translate([box_width + div_thickness*2 + slider_width, 0, 0])   
+            cube([slider_width, slider_depth, slider_height], center=false);
+        translate([box_width + div_thickness*2 + slider_width, box_depth + div_thickness, 0])   
+            cube([slider_width, slider_depth, slider_height], center=false);
+
+    }
+}
+
 module divider(
 text, 
 width=default_div_width, 
 height=default_div_height, 
+bot_box_height=-1,
 thickness=default_div_thickness, 
 text_height=default_div_text_height, 
-top_bar_width_percentage=0.55
+top_bar_width_percentage=0.55,
+center=False,
 ) 
 {
     text_thickness = thickness*0.80;
@@ -311,7 +357,11 @@ top_bar_width_percentage=0.55
     text_trans_y = top_bar_trans_y;// - text_buffer;
     text_trans_z = (text_thickness - thickness/2)*-1;///2 * -1;
     bottom_bar_trans_y = -1 * (height/2 - bottom_bar_height/2);
-    second_bottom_bar_trans_y = bottom_bar_trans_y + bottom_bar_height*2;
+    second_bottom_bar_trans_y_1 = bottom_bar_trans_y + bottom_bar_height*2;
+    second_bottom_bar_trans_y_2 = bottom_bar_trans_y + bot_box_height - bottom_bar_height;
+    second_bottom_bar_trans_y = bot_box_height > 0 ? second_bottom_bar_trans_y_2 : second_bottom_bar_trans_y_1;
+
+    //third_bottom_bar_trans_y = bot_box_height > 0 ? (bot_box_height - bottom_bar_height) : second_bottom_bar_trans_y + bottom_bar_height*2;
 
     union() {
         difference() {
@@ -333,19 +383,23 @@ top_bar_width_percentage=0.55
         translate([0,second_bottom_bar_trans_y,0]){
             cube([bottom_bar_width, bottom_bar_height, thickness], center=true);
         }
+//        translate([0,third_bottom_bar_trans_y,0]){
+//            cube([bottom_bar_width, bottom_bar_height, thickness], center=true);
+//        }
     }  
 }
 
-module divider2(
+module divider_raised(
 text, 
 width=default_div_width, 
 height=default_div_height, 
+bot_box_height=-1,
 thickness=default_div_thickness, 
 text_height=default_div_text_height, 
 top_bar_width_percentage=0.55
 ) 
 {
-    text_thickness = thickness*0.80;
+    text_thickness = thickness*0.5;
     text_buffer = max(1.5, text_height/10);
     text_spacing = max(1.15, 1 + text_buffer/10);
     
@@ -355,30 +409,34 @@ top_bar_width_percentage=0.55
     bottom_bar_width = width;
     
        
-    vbar_height = height - top_bar_height - bottom_bar_height + 0.001;
-    vbar_width = bottom_bar_height;
+    middle_bar_height = height - top_bar_height - bottom_bar_height + 0.001;
+    middle_bar_width = bottom_bar_height;
     
     top_bar_trans_y = height/2 - top_bar_height/2;
     text_trans_y = top_bar_trans_y;// - text_buffer;
-    text_trans_z = (text_thickness - thickness/2)*-1;///2 * -1;
+    text_trans_z = text_thickness;///2 * -1;
     bottom_bar_trans_y = -1 * (height/2 - bottom_bar_height/2);
-    second_bottom_bar_trans_y = bottom_bar_trans_y + bottom_bar_height*2;
+    //second_bottom_bar_trans_y = bottom_bar_trans_y + bottom_bar_height*2;
+    second_bottom_bar_trans_y_1 = bottom_bar_trans_y + bottom_bar_height*2;
+    second_bottom_bar_trans_y_2 = bottom_bar_trans_y + bot_box_height - bottom_bar_height;
+    second_bottom_bar_trans_y = bot_box_height > 0 ? second_bottom_bar_trans_y_2 : second_bottom_bar_trans_y_1;
+
+
+
 
     union() {
-        difference() {
-            translate([0, top_bar_trans_y, 0]) {
-                cube([top_bar_width,top_bar_height, thickness], center=true);
-            }
-            translate([0, text_trans_y, text_trans_z]){
-                linear_extrude(text_thickness)
-                //text(text, size=text_height, font= "Comic Sans MS:style=Bold", halign="center", valign="center", spacing=text_spacing);
-                text(text, size=text_height, font="Helvetica:style=Bold", halign="center", valign="center", spacing=text_spacing);
+        
+        translate([0, top_bar_trans_y, 0]) {
+            cube([top_bar_width,top_bar_height, thickness], center=true);
+        }
+        translate([0, text_trans_y, text_trans_z]){
+            linear_extrude(text_thickness)
+            //text(text, size=text_height, font= "Comic Sans MS:style=Bold", halign="center", valign="center", spacing=text_spacing);
+            text(text, size=text_height, font="Helvetica:style=Bold", halign="center", valign="center", spacing=text_spacing);
 
-            }
         }
         
-        //vertical bars
-        cube([vbar_width, vbar_height, thickness], center=true);
+        cube([middle_bar_width, middle_bar_height, thickness], center=true);
 
         translate([0,bottom_bar_trans_y,0]){
             cube([bottom_bar_width, bottom_bar_height, thickness], center=true);
