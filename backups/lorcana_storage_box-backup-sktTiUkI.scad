@@ -1,0 +1,197 @@
+include <BOSL2/std.scad>
+
+eps = 0.001;
+// // dime radius is 8.955 mm
+
+//num_ones = 10;
+//num_threes = 6;
+//num_fives = 2;
+//
+//for (idx=[0:num_fives-1]){
+//    translate([0, 20*idx, 0])
+//        damage_counter(value="5", radius=9);
+//}
+//
+//for (idx=[0:num_threes-1]){
+//    translate([30, 15*idx, 0])
+//        damage_counter(value="3", radius=7);
+//}
+//
+//for (idx=[0:5]){
+//    translate([50, 11*idx, 0])
+//    damage_counter(value="1", radius=5);
+//}
+//for (idx=[0:5]){
+//    translate([70, 11*idx, 0])
+//    damage_counter(value="1", radius=5);
+//}
+
+//num_lore_ones = 10;
+//num_lore_threes = 6;
+//num_lore_tens = 2;
+//
+//for (idx=[0:num_lore_tens-1]){
+//    translate([150, 33*idx, 0])
+//        lore_counter(value="10", width=20, text_size=4.25);
+//}
+//
+//for (idx=[0:num_lore_threes-1]){
+//    translate([130, 24*idx, 0])
+//        lore_counter(value="3", width=16, text_size=5.25);
+//}
+//
+//for (idx=[0:5]){
+//    translate([100, 20*idx, 0])
+//        lore_counter(value="1", width=13, text_size=4.65);
+//}
+//for (idx=[0:5]){
+//    translate([80, 20*idx, 0])
+//        lore_counter(value="1", width=13, text_size=4.65);
+//}
+
+cant_quest_width = 20;
+cant_quest_depth = 8;
+reminder_rect(
+    text="Can't Quest",
+    width=cant_quest_width,
+    depth=cant_quest_depth
+);
+
+
+module lore_counter(
+    value, 
+    width=40, 
+    thickness=3, 
+    text_thickness=0.5,
+    text_size=-1
+){      
+    union(){
+        text_size = text_size > 0 ? text_size : width/5;
+        //base
+        _lore_base(width=width, thickness=thickness);
+        
+        //outline
+        outline_width = width*0.85;
+        outline_sub_width = outline_width*0.85;
+        outline_thickness = text_thickness;///2;
+        translate([0,0,thickness]){
+        translate([(width - outline_width)/2, (width - outline_width)/1.9, 0]){
+            difference(){
+                    _lore_base(width=outline_width, thickness=outline_thickness);
+                    translate([(outline_width - outline_sub_width)/2, (outline_width - outline_sub_width)/2, 0])
+                        _lore_base(width=outline_sub_width, thickness=outline_thickness);
+               }
+            }
+        }
+        
+        //text
+        translate([width/2,width * 5/8,thickness]){
+            linear_extrude(text_thickness){
+                text(
+                    value, 
+                    size=text_size, 
+                    font="Helvetica:style=Bold", 
+                    halign="center", valign="center", 
+                    spacing=1
+                );
+            }
+        }
+    }
+}
+
+module damage_counter(
+    value, 
+    radius,
+    thickness=3,
+    text_thickness=0.5,
+){
+    union(){
+        
+        // base
+        translate([radius, 0,0])
+        cylinder(h=thickness, r=radius, anchor=BOTTOM+FRONT);
+        
+        //outline
+        translate([radius, radius, thickness]){
+            linear_extrude(text_thickness){
+                stroke(circle(r=radius*0.85), width=radius/20, closed=true);
+            }
+        }
+        
+        // value
+        translate([radius, radius, thickness]){
+                rotate([0, 0, 0]){
+                    linear_extrude(text_thickness){
+                        text(
+                            value, 
+                            size=radius, 
+                            font="Helvetica:style=Bold", 
+                            halign="center", valign="center", 
+                            spacing=1
+                        );
+                    }
+                }
+            }
+    }
+}
+
+module reminder_rect(
+    text,
+    width,
+    depth,
+    thickness=3,
+    text_thickness=0.5,
+){
+    
+    border_width = width * 0.05;
+    inner_width = width  - border_width*2;
+    inner_depth = depth - border_width*2;
+    inner_wall_thickness = depth * 0.05;
+    
+    inner_trans_x = width/2;
+    inner_trans_y = depth/2;
+    inner_trans_z = thickness - eps;
+    
+    union(){
+        cube([width, depth, thickness], center=false);
+        translate([inner_trans_x, inner_trans_y, inner_trans_z]){
+            rect_tube(
+                size=[inner_width, inner_depth], 
+                wall=inner_wall_thickness, h=text_thickness, 
+                anchor=BOTTOM
+            );
+            linear_extrude(text_thickness){
+                        text(
+                            text, 
+                            size=width*0.1, 
+                            font="Helvetica:style=Bold", 
+                            halign="center", valign="center", 
+                            spacing=1
+                        );
+            }
+        }
+    }
+}
+
+
+module _lore_base(width, thickness){   
+    point=0.001;
+    minor_radius = width/2 - point;
+    major_radius= width*2 - minor_radius - point;   
+    linear_extrude(thickness){
+        round2d(r=width/30){
+            difference(){
+                square([width, width*2], center=false);
+                circle(r=minor_radius);
+                translate([width, 0, 0])
+                    circle(r=minor_radius);
+                translate([0, width*2, 0]){
+                    ellipse(r=[minor_radius, major_radius]);
+                }
+                translate([width+point, width*2, 0]){
+                    ellipse(r=[minor_radius, major_radius]);
+                }
+            }
+        }  
+    } 
+}
