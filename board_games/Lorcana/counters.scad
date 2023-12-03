@@ -74,12 +74,40 @@ eps = 0.001;
 //    width=reckless_width,
 //    depth=reckless_depth
 //);
+//
+evasive_width = 28;
+evasive_depth = 11;
+translate([0, 0, 0])
+reminder_rect(
+    text="Evasive",
+    width=evasive_width,
+    depth=evasive_depth
+);
+
+ward_width = 20;
+ward_depth = 11;
+translate([30, 0, 0])
+reminder_rect(
+    text="Ward",
+    width=ward_width,
+    depth=ward_depth
+);
+
+bodyguard_width = 35;
+bodyguard_depth = 11;
+translate([53, 0, 0])
+reminder_rect(
+    text="Bodyguard",
+    width=bodyguard_width,
+    depth=bodyguard_depth
+);
+
 
 //_damage_symbol(radius=10, thickness=1);
-minus_damage_token(
-    width=18,
-    depth=15
-);
+//minus_damage_token(
+//    width=18,
+//    depth=15
+//);
 
 
 

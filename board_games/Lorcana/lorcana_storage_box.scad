@@ -56,33 +56,32 @@ div_locs = cumsum(div_sizes);
 
 //box_bottom_two_halves(
 //translate([105, 0, 0]){
-//box_bottom(
-//    depth=depth,
-//    div_locs=div_locs,
-//    div_thickness=div_thickness,
-//    center=false,
-//    name_text=""
-//);
-//
+box_bottom(
+    depth=depth,
+    div_locs=div_locs,
+    div_thickness=div_thickness,
+    center=false,
+    name_text=""
+);
 //translate([0, depth*1.2, 0]){
-// translate([93+6,0,69+8+5])
-// rotate([180, 0, 180]){
-//    box_lid(
-//        bot_depth=depth,
-//        div_thickness=div_thickness
-//        //name_text="base"
-//    );
-//}
-//
-div_idx_start = 4;
-div_idx_end = 7;
-for (idx=[div_idx_start:div_idx_end]) {
-    translate([0, 90*1.1*idx, 0]){
-        divider_raised(text=cards[idx][0], thickness=1.0, bot_box_height=45);
-        //divider(text=cards[idx][0], thickness=1.0, bot_box_height=45);
-
-  }
+translate([93+8,0,69+8+7])
+ rotate([180, 0, 180]){
+    box_lid(
+        bot_depth=depth,
+        div_thickness=div_thickness
+        //name_text="base"
+    );
 }
+//
+//div_idx_start = 4;
+//div_idx_end = 7;
+//for (idx=[div_idx_start:div_idx_end]) {
+//    translate([0, 90*1.1*idx, 0]){
+//        divider_raised(text=cards[idx][0], thickness=1.0, bot_box_height=45);
+//        //divider(text=cards[idx][0], thickness=1.0, bot_box_height=45);
+//
+//  }
+//}
 //token_tray(10);
 
 //box params
@@ -90,7 +89,7 @@ default_width=93;
 default_outer_height=45;
 default_inner_height=default_outer_height - 7; 
 default_inner_wall_thickness=5;
-default_outer_wall_thickness=3;
+default_outer_wall_thickness=4;
 default_snap_plug_block_height=3; 
 default_snap_plug_width=15;
 default_snap_socket_tol=1.5;
@@ -253,7 +252,7 @@ extra_height=0,
     snap_trans_y = outer_wall_thickness+stem_depth*.95;// - snap_plug_block_depth;
     snap_trans_z = outer_wall_thickness;//  +  stem_height/2 - eps; 
     
-    indent_width = full_width / 4;
+    indent_width = full_width / 2;
     indent_width_2 = indent_width / 2;
     indent_height = height;
     indent_depth = outer_wall_thickness*0.5;
@@ -267,7 +266,17 @@ extra_height=0,
     translate([center_trans_x, center_trans_y, center_trans_z]){
         difference(){
             union(){
-                closed_box_with_hinge_top(height=height, bot_width=bot_width, bot_depth=bot_depth, bot_outer_height=bot_outer_height, bot_inner_height=bot_inner_height, bot_outer_wall_thickness=outer_wall_thickness, bot_inner_wall_thickness=inner_wall_thickness, chamfer=2.0, center=false);
+                closed_box_with_hinge_top(
+                    height=height, 
+                    bot_width=bot_width, 
+                    bot_depth=bot_depth, 
+                    bot_outer_height=bot_outer_height, 
+                    bot_inner_height=bot_inner_height, 
+                    bot_outer_wall_thickness=outer_wall_thickness, 
+                    bot_inner_wall_thickness=inner_wall_thickness, 
+                    chamfer=2.0, 
+                    center=false
+                );
 
                 //add snap fit plugs
                 translate([snap_trans_x, snap_trans_y, snap_trans_z]){

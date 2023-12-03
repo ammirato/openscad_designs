@@ -216,7 +216,6 @@ module closed_box_with_hinge_top(
     full_depth = bot_depth + bot_inner_wall_thickness*2 + bot_outer_wall_thickness + bot_back_outer_wall_thickness;
     full_height = height + 5; //todo
     
-    
     box_width = bot_width;
     box_depth = bot_depth + bot_inner_wall_thickness;
     box_height = height;
