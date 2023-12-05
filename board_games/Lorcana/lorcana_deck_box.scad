@@ -16,23 +16,23 @@ depth = card_thickness * 60 + card_thickness*10;
 
 //
 ////translate([0,0,33])
-//box_bottom(depth=depth);
+box_bottom(depth=depth);
 //
 //translate([card_width + 20, 0, 0])
-////translate([card_width + +2+6, 0, card_height*0.2 + 3 + 33 +card_height*0.8+ 10 + 3 + 5])
-////rotate([180, 0, 180])
-//box_lid(bot_depth=depth);
+translate([card_width + +2+6, 0, card_height*0.2 + 3 + 33 +card_height*0.8+ 10 + 3 + 5])
+rotate([180, 0, 180])
+box_lid(bot_depth=depth);
 
-translate([(card_width + 20)*2,0,0])
-rotate([0,0,0])
-tray_bottom(depth=depth);
+////translate([(card_width + 20)*2,0,0])
+////rotate([0,0,0])
+////tray_bottom(depth=depth);
 
-tray_bottom_alt(depth=depth);
+//tray_bottom_alt(depth=depth);
 
 //box bottom params
 default_width=card_width + 2;
 default_outer_height=card_height*0.8;
-default_inner_height=default_outer_height - 9; 
+default_inner_height=default_outer_height - 5; 
 default_inner_wall_thickness=3;
 default_outer_wall_thickness=3;
 default_snap_plug_block_height=3; 

@@ -15,30 +15,30 @@ eps=0.001;
 
 //translate([25, 0, 0]){
 //difference (){
-open_box_with_lip(
-    width=10, depth=15, 
-    outer_height=8, 
-    inner_height=4, 
-    outer_wall_thickness=2, 
-    inner_wall_thickness=5, 
-    chamfer=.5, 
-    center=false
-);
+//open_box_with_lip(
+//    width=10, depth=15, 
+//    outer_height=8, 
+//    inner_height=4, 
+//    outer_wall_thickness=2, 
+//    inner_wall_thickness=5, 
+//    chamfer=.5, 
+//    center=false
+//);
 //translate([0, -1 * 10, 0])
 //cube([20, 5, 10], center=true);
 //}
 
-//closed_box_with_hinge_bottom(
-//    width=60, 
-//    depth=15, 
-//    outer_height=10, 
-//    inner_height=4, 
-//    outer_wall_thickness=2, 
-//    inner_wall_thickness=5,
-//    back_outer_wall_thickness=3.5,
-//    chamfer=.5, 
-//    center=false
-//);
+closed_box_with_hinge_bottom(
+    width=60, 
+    depth=15, 
+    outer_height=10, 
+    inner_height=4, 
+    outer_wall_thickness=2, 
+    inner_wall_thickness=5,
+    back_outer_wall_thickness=3.5,
+    chamfer=.5, 
+    center=false
+);
 //
 //translate([60 + 2 + 2, 0, 14 + 2 + 10 + 2 ])
 //rotate([0, 180, 0])
@@ -92,6 +92,7 @@ module closed_box_with_hinge_bottom(
     center=false, 
     pin_diam=1.75 + 0.5,
     hinge_top_clearance=0.0,
+    filler_clearance=0,
     chamfer=0
 ) {
     back_inner_wall_thickness = 0; //DONT CHANGE: top doesn't know about this
@@ -105,7 +106,7 @@ module closed_box_with_hinge_bottom(
     outer_box_height = outer_height;
     
     hinge_offset=3;
-    knuckle_diam = 4;
+    knuckle_diam = 5;
     hinge_height = knuckle_diam+ (hinge_offset - (knuckle_diam/2));
     
     full_trans_x = center ? -1*full_width/2 : 0;
@@ -167,6 +168,7 @@ module closed_box_with_hinge_bottom(
                 //rotate([0, 0, 180])
                 knuckle_hinge(
                     length=hinge_width, 
+                    knuckle_diam=knuckle_diam,
                     pin_diam=pin_diam,
                     segs=3, 
                     offset=3, 
@@ -180,7 +182,8 @@ module closed_box_with_hinge_bottom(
             translate([hinge_trans_x_2, hinge_trans_y, hinge_trans_z]){
                 //rotate([0, 0, 180])
                 knuckle_hinge(
-                    length=hinge_width, 
+                    length=hinge_width,
+                    knuckle_diam=knuckle_diam,
                     pin_diam=pin_diam,
                     segs=3, 
                     offset=3, 
@@ -190,6 +193,15 @@ module closed_box_with_hinge_bottom(
                     clear_top=true, 
                     anchor=FRONT+LEFT+BOTTOM
                 );
+            }
+            filler_width = full_width - hinge_width*2 - outer_wall_thickness*2 - filler_clearance;
+            filler_depth = outer_wall_thickness;
+            filler_height = knuckle_diam;
+            filler_trans_x = full_width/2 - filler_width/2;
+            filler_trans_y = depth + outer_wall_thickness + inner_wall_thickness + back_inner_wall_thickness;
+            filler_trans_z = outer_height + outer_wall_thickness - hinge_height - hinge_top_clearance - eps;//inner_height + outer_wall_thickness - eps;
+            translate([filler_trans_x, filler_trans_y, filler_trans_z]){
+                cube([filler_width, filler_depth, filler_height], center=false);
             }
         }
     }
@@ -240,7 +252,7 @@ module closed_box_with_hinge_top(
             bot_knuckle_diam = 4;
             bot_hinge_height = bot_knuckle_diam+ (bot_hinge_offset - (bot_knuckle_diam/2));
 
-            knuckle_diam = 4;
+            knuckle_diam = 5;
             hinge_offset = 0.5 + bot_hinge_top_clearance + knuckle_diam/2;
             hinge_width = bot_width/4;
             //how much to extend above top walls
@@ -253,6 +265,7 @@ module closed_box_with_hinge_top(
                 //rotate([0,0,0])
                 knuckle_hinge(
                     length=hinge_width,
+                    knuckle_diam=knuckle_diam,
                     pin_diam=pin_diam,
                     segs=3,
                     offset=hinge_offset, 
@@ -268,6 +281,7 @@ module closed_box_with_hinge_top(
                 //rotate([0,0,0])
                 knuckle_hinge(
                     length=hinge_width,
+                    knuckle_diam=knuckle_diam,
                     pin_diam=pin_diam,
                     segs=3,
                     offset=hinge_offset, 
@@ -279,6 +293,7 @@ module closed_box_with_hinge_top(
                     inner=true
                 );
             }
+            
         }
     }
 }

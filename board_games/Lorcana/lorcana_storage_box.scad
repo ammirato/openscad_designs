@@ -63,13 +63,13 @@ box_bottom(
     center=false,
     name_text=""
 );
-//translate([0, depth*1.2, 0]){
-translate([93+8,0,69+8+7])
+////translate([0, depth*1.2, 0]){
+translate([93+8,0,69+8+5.5])
  rotate([180, 0, 180]){
     box_lid(
         bot_depth=depth,
-        div_thickness=div_thickness
-        //name_text="base"
+        div_thickness=div_thickness,
+        text="Phil 001"
     );
 }
 //
@@ -98,8 +98,8 @@ default_div_thickness=1.0;
 default_div_extra_width=1.0;
 default_div_tol=0.7;
 default_div_tol_thickness=1.0;
-default_div_z_indent=0.5;
-default_extra_bottom_thickness=1.0; 
+default_div_z_indent=0.0;
+default_extra_bottom_thickness=0.0; 
 default_center=false;
 default_name="";
 
@@ -147,7 +147,7 @@ name_text=default_name,
     
     cut_trans_x = full_width/2 - cut_width/2;
     cut_trans_y = 0;
-    cut_trans_z = inner_height + outer_wall_thickness + extra_bottom_thickness/2  - cut_height/2 +eps ;
+    cut_trans_z = outer_wall_thickness + inner_height;//inner_height + outer_wall_thickness + extra_bottom_thickness/2  - cut_height/2 +eps ;
     
     center_trans_x = center ? -1*(full_width/2) : 0;
     center_trans_y = center ? -1*(full_depth/2) : 0;
@@ -157,7 +157,7 @@ name_text=default_name,
     div_trans_x = full_width/2 - div_width/2;
     div_trans_y = outer_wall_thickness + inner_wall_thickness;
     div_trans_z = outer_wall_thickness + extra_bottom_thickness - div_z_indent;
-    div_height = outer_height+ div_z_indent + extra_bottom_thickness;
+    div_height = outer_height+ div_z_indent;// + extra_bottom_thickness;
     div_full_thickness = div_thickness + div_tol_thickness;
 
     extra_bottom_trans_x = (outer_wall_thickness);
@@ -170,10 +170,20 @@ name_text=default_name,
         difference() {
             translate([0,0,extra_bottom_thickness/2]){
                 union () {
-                    closed_box_with_hinge_bottom(width=width, depth=depth, outer_height=full_outer_height, inner_height=inner_height, outer_wall_thickness=outer_wall_thickness, inner_wall_thickness=inner_wall_thickness, chamfer=2.0, center=false);
-                    translate([extra_bottom_trans_x, extra_bottom_trans_y, extra_bottom_trans_z]) {
-                        cube([width + eps, depth + eps, extra_bottom_thickness], center=false);
-                    }
+                    closed_box_with_hinge_bottom(
+                        width=width, 
+                        depth=depth, 
+                        outer_height=full_outer_height, 
+                        inner_height=inner_height, 
+                        outer_wall_thickness=outer_wall_thickness, 
+                        inner_wall_thickness=inner_wall_thickness,
+                        filler_clearance=4*2,
+                        chamfer=2.0, 
+                        center=false
+                    );
+//                    translate([extra_bottom_trans_x, extra_bottom_trans_y, extra_bottom_trans_z]) {
+//                        cube([width + eps, depth + eps, extra_bottom_thickness], center=false);
+//                    }
                 }
             }
             
@@ -233,10 +243,11 @@ center=default_center,
 stem_plug_taper=default_lid_stem_plug_taper,
 name_text=default_name,
 extra_height=0,
+text="",
 ) {
 
     height = height + extra_height;
-    stem_extra_height = bot_outer_height - bot_inner_height;// - snap_socket_tol/2;
+    stem_extra_height = bot_outer_height - bot_inner_height - snap_plug_block_height - snap_socket_tol/2;
     echo(bot_outer_height, bot_inner_height);
     stem_height = height  + stem_extra_height +  snap_plug_block_height;// + snap_socket_tol*1.5;
     echo(height, stem_extra_height, snap_plug_block_height, stem_height);
@@ -258,6 +269,14 @@ extra_height=0,
     indent_depth = outer_wall_thickness*0.5;
     indent_trans_z = indent_height + outer_wall_thickness + eps;
     indent_trans_x = full_width/2 - indent_width/2;
+    
+    text_thickness=0.5;
+    text_height=3;
+    text_spacing=1.1;
+    text_trans_x = text_thickness-eps;// -1 * text_thickness/2;
+    text_trans_y = bot_width/6;
+    text_trans_z = bot_outer_height/6;
+    
     
     center_trans_x = center ? -1*(full_width/2) : 0;
     center_trans_y = center ? -1*(full_depth/2) : 0;
@@ -285,6 +304,7 @@ extra_height=0,
                 }
                
             }
+            //indent for snap fit
             translate([indent_trans_x, 0, indent_trans_z])
             rotate([-90, 0,0])
             prismoid(
@@ -292,8 +312,14 @@ extra_height=0,
                 size2=[indent_width_2, indent_height],
                 height=indent_depth,
                 anchor=BOT+LEFT+FRONT
-            ); 
-        } 
+            );
+            translate([text_trans_x, text_trans_y, text_trans_z]){
+                rotate([90,180,-90])
+                linear_extrude(text_thickness)
+                    text(text, size=text_height, font="Helvetica:style=Bold", halign="center", valign="bottom", spacing=text_spacing);
+            } 
+        }
+        
     }
 } 
 
