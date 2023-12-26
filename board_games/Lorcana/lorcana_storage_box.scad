@@ -6,7 +6,7 @@ use <snap_joints/cantilever.scad>
 
 eps=0.001;
 
-sep_dist = 23;
+sep_dist = 13;
 cards = [
 ["Amber", sep_dist],
 ["Amythest", sep_dist],
@@ -15,17 +15,23 @@ cards = [
 ["Sapphire", sep_dist],
 ["Steel", sep_dist],
 ["Deck 1", sep_dist],
-["Deck 2", sep_dist],
+["Extra", sep_dist],
 ["", sep_dist], // 1
 ["", sep_dist], // 2
 ["", sep_dist], // 3
 ["", sep_dist], // 4
 ["", sep_dist], // 5
 ["", sep_dist], // 6
-//["", sep_dist], // 7
-//["", sep_dist], // 8
-//["", sep_dist], // 9
-//["", sep_dist], // 10
+["", sep_dist], // 7
+["", sep_dist], // 8
+["", sep_dist], // 9
+["", sep_dist], // 10
+["", sep_dist], // 11
+["", sep_dist], // 12
+["", sep_dist], // 13
+
+
+
 ];
 
 num_piles=len(cards);
@@ -56,32 +62,32 @@ div_locs = cumsum(div_sizes);
 
 //box_bottom_two_halves(
 //translate([105, 0, 0]){
-box_bottom(
-    depth=depth,
-    div_locs=div_locs,
-    div_thickness=div_thickness,
-    center=false,
-    name_text=""
-);
-////translate([0, depth*1.2, 0]){
-translate([93+8,0,69+8+5.5])
- rotate([180, 0, 180]){
-    box_lid(
-        bot_depth=depth,
-        div_thickness=div_thickness,
-        text="Phil 001"
-    );
-}
-//
-//div_idx_start = 4;
-//div_idx_end = 7;
-//for (idx=[div_idx_start:div_idx_end]) {
-//    translate([0, 90*1.1*idx, 0]){
-//        divider_raised(text=cards[idx][0], thickness=1.0, bot_box_height=45);
-//        //divider(text=cards[idx][0], thickness=1.0, bot_box_height=45);
-//
-//  }
+//box_bottom(
+//    depth=depth,
+//    div_locs=div_locs,
+//    div_thickness=div_thickness,
+//    center=false,
+//    name_text=""
+//);
+//////translate([0, depth*1.2, 0]){
+//translate([93+8,0,69+8+5.5])
+// rotate([180, 0, 180]){
+//    box_lid(
+//        bot_depth=depth,
+//        div_thickness=div_thickness,
+//        text="Phil 001"
+//    );
 //}
+//
+div_idx_start = 0;
+div_idx_end = 3;
+for (idx=[div_idx_start:div_idx_end]) {
+    translate([0, 90*1.1*idx, 0]){
+        divider_raised(text=cards[idx][0], thickness=1.0, bot_box_height=45, fill_bar=true);
+        //divider(text=cards[idx][0], thickness=1.0, bot_box_height=45);
+
+  }
+}
 //token_tray(10);
 
 //box params
@@ -95,7 +101,7 @@ default_snap_plug_width=15;
 default_snap_socket_tol=1.5;
 default_chamfer=2.0;
 default_div_thickness=1.0;
-default_div_extra_width=1.0;
+default_div_extra_width=1.75;
 default_div_tol=0.7;
 default_div_tol_thickness=1.0;
 default_div_z_indent=0.0;
@@ -104,7 +110,7 @@ default_center=false;
 default_name="";
 
 //divider params
-default_div_width = default_width + default_div_extra_width +default_div_tol*1.3;
+default_div_width = default_width + default_div_extra_width +default_div_tol*(1.3 + 0.7);
 default_div_text_height = 5;
 default_div_height = 68 + default_div_text_height;
 
@@ -156,7 +162,7 @@ name_text=default_name,
     div_width = width + div_extra_width + div_tol*2;
     div_trans_x = full_width/2 - div_width/2;
     div_trans_y = outer_wall_thickness + inner_wall_thickness;
-    div_trans_z = outer_wall_thickness + extra_bottom_thickness - div_z_indent;
+    div_trans_z = outer_wall_thickness + extra_bottom_thickness - div_z_indent +eps;
     div_height = outer_height+ div_z_indent;// + extra_bottom_thickness;
     div_full_thickness = div_thickness + div_tol_thickness;
 
@@ -247,7 +253,7 @@ text="",
 ) {
 
     height = height + extra_height;
-    stem_extra_height = bot_outer_height - bot_inner_height - snap_plug_block_height - snap_socket_tol/2;
+    stem_extra_height = bot_outer_height - bot_inner_height - snap_plug_block_height - snap_socket_tol/2 + 0.2;
     echo(bot_outer_height, bot_inner_height);
     stem_height = height  + stem_extra_height +  snap_plug_block_height;// + snap_socket_tol*1.5;
     echo(height, stem_extra_height, snap_plug_block_height, stem_height);
@@ -270,7 +276,7 @@ text="",
     indent_trans_z = indent_height + outer_wall_thickness + eps;
     indent_trans_x = full_width/2 - indent_width/2;
     
-    text_thickness=0.5;
+    text_thickness=1.0;
     text_height=3;
     text_spacing=1.1;
     text_trans_x = text_thickness-eps;// -1 * text_thickness/2;
@@ -431,7 +437,8 @@ height=default_div_height,
 bot_box_height=-1,
 thickness=default_div_thickness, 
 text_height=default_div_text_height, 
-top_bar_width_percentage=0.55
+top_bar_width_percentage=0.55,
+fill_bar=false,
 ) 
 {
     text_thickness = thickness*0.5;
@@ -456,8 +463,13 @@ top_bar_width_percentage=0.55
     second_bottom_bar_trans_y_2 = bottom_bar_trans_y + bot_box_height - bottom_bar_height;
     second_bottom_bar_trans_y = bot_box_height > 0 ? second_bottom_bar_trans_y_2 : second_bottom_bar_trans_y_1;
 
+    fill_bar_height = bot_box_height;
+    fill_bar_width = bottom_bar_width;
+    fill_bar_thickness = thickness;
 
-
+    fill_trans_x = 0;
+    fill_trans_y = -1*(middle_bar_height - fill_bar_height)/2 - bottom_bar_height;
+    fill_trans_z = 0;
 
     union() {
         
@@ -473,11 +485,22 @@ top_bar_width_percentage=0.55
         
         cube([middle_bar_width, middle_bar_height, thickness], center=true);
 
-        translate([0,bottom_bar_trans_y,0]){
-            cube([bottom_bar_width, bottom_bar_height, thickness], center=true);
+
+        if (fill_bar){
+            translate([fill_trans_x, fill_trans_y, fill_trans_z]){
+                difference(){
+                    cube([fill_bar_width, fill_bar_height, fill_bar_thickness], center=true);
+                    cube([fill_bar_width/1.5, fill_bar_height/2, fill_bar_thickness], center=true);
+                }
+            }
         }
-        translate([0,second_bottom_bar_trans_y,0]){
-            cube([bottom_bar_width, bottom_bar_height, thickness], center=true);
+        else{
+            translate([0,bottom_bar_trans_y,0]){
+                cube([bottom_bar_width, bottom_bar_height, thickness], center=true);
+            }
+            translate([0,second_bottom_bar_trans_y,0]){
+                cube([bottom_bar_width, bottom_bar_height, thickness], center=true);
+            }
         }
     }  
 }
