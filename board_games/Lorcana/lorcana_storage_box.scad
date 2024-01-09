@@ -15,7 +15,7 @@ cards = [
 ["Sapphire", sep_dist],
 ["Steel", sep_dist],
 ["Deck 1", sep_dist],
-["Extra", sep_dist],
+["Deck 2", sep_dist],
 ["", sep_dist], // 1
 ["", sep_dist], // 2
 ["", sep_dist], // 3
@@ -79,8 +79,8 @@ div_locs = cumsum(div_sizes);
 //    );
 //}
 //
-div_idx_start = 0;
-div_idx_end = 3;
+div_idx_start = 4;
+div_idx_end = 7;
 for (idx=[div_idx_start:div_idx_end]) {
     translate([0, 90*1.1*idx, 0]){
         divider_raised(text=cards[idx][0], thickness=1.0, bot_box_height=45, fill_bar=true);
