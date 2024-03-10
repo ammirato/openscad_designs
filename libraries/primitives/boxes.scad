@@ -159,10 +159,10 @@ module closed_box_with_hinge_bottom(
             }
             
             hinge_width=width/4;
-            hinge_trans_x_1 = outer_wall_thickness;//full_width - outer_wall_thickness;
-            hinge_trans_x_2 = full_width - outer_wall_thickness - hinge_width;
+            hinge_trans_x_1 = outer_wall_thickness/2;//full_width - outer_wall_thickness;
+            hinge_trans_x_2 = full_width - (outer_wall_thickness/2) - hinge_width;
             //hinge_trans_x = full_width - outer_wall_thickness;
-            hinge_trans_y = depth + outer_wall_thickness + inner_wall_thickness + back_inner_wall_thickness;
+            hinge_trans_y = depth + outer_wall_thickness + inner_wall_thickness + back_inner_wall_thickness - eps;
             hinge_trans_z = outer_height + outer_wall_thickness - hinge_height - hinge_top_clearance - eps;//inner_height + outer_wall_thickness - eps;
             translate([hinge_trans_x_1, hinge_trans_y, hinge_trans_z]){
                 //rotate([0, 0, 180])
@@ -194,8 +194,8 @@ module closed_box_with_hinge_bottom(
                     anchor=FRONT+LEFT+BOTTOM
                 );
             }
-            filler_width = full_width - hinge_width*2 - outer_wall_thickness*2 - filler_clearance;
-            filler_depth = outer_wall_thickness;
+            filler_width = full_width - hinge_width*2 - (outer_wall_thickness/2)*2 - filler_clearance + eps*2;
+            filler_depth = back_outer_wall_thickness + back_inner_wall_thickness;
             filler_height = knuckle_diam;
             filler_trans_x = full_width/2 - filler_width/2;
             filler_trans_y = depth + outer_wall_thickness + inner_wall_thickness + back_inner_wall_thickness;
