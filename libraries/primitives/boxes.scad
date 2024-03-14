@@ -257,8 +257,8 @@ module closed_box_with_hinge_top(
             hinge_width = bot_width/4;
             //how much to extend above top walls
             //hinge_extension_height = (bot_outer_height + bot_outer_wall_thickness-1) - (bot_inner_height + bot_outer_wall_thickness - eps);
-            hinge_trans_x_1 = bot_outer_wall_thickness;//bot_width + bot_outer_wall_thickness;
-            hinge_trans_x_2 = full_width - bot_outer_wall_thickness - hinge_width;
+            hinge_trans_x_1 = bot_outer_wall_thickness/2;//bot_width + bot_outer_wall_thickness;
+            hinge_trans_x_2 = full_width - bot_outer_wall_thickness/2 - hinge_width;
             hinge_trans_y = bot_depth + bot_outer_wall_thickness + bot_inner_wall_thickness -eps;
             hinge_trans_z = height + bot_outer_wall_thickness;// - (hinge_offset - hinge_extension_height);
             translate([hinge_trans_x_1, hinge_trans_y, hinge_trans_z]){
