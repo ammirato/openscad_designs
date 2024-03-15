@@ -5,13 +5,13 @@ $fn=32;
 eps=0.001;
 
 
-//open_box(
-//    width=10, depth=15, height=5, 
-//    wall_thickness=1, 
-//    left_wall_thickness=5,
-//    front_wall_thickness=0,
-//    bottomless=true, chamfer=0, center=true
-//);
+open_box(
+    width=10, depth=15, height=5, 
+    wall_thickness=1, 
+    left_wall_thickness=5,
+    front_wall_thickness=0,
+    bottomless=true, chamfer=0, center=true
+);
 
 //translate([25, 0, 0]){
 //difference (){
@@ -28,17 +28,17 @@ eps=0.001;
 //cube([20, 5, 10], center=true);
 //}
 
-closed_box_with_hinge_bottom(
-    width=60, 
-    depth=15, 
-    outer_height=10, 
-    inner_height=4, 
-    outer_wall_thickness=2, 
-    inner_wall_thickness=5,
-    back_outer_wall_thickness=3.5,
-    chamfer=.5, 
-    center=false
-);
+//closed_box_with_hinge_bottom(
+//    width=60, 
+//    depth=15, 
+//    outer_height=10, 
+//    inner_height=4, 
+//    outer_wall_thickness=2, 
+//    inner_wall_thickness=5,
+//    back_outer_wall_thickness=3.5,
+//    chamfer=.5, 
+//    center=false
+//);
 //
 //translate([60 + 2 + 2, 0, 14 + 2 + 10 + 2 ])
 //rotate([0, 180, 0])

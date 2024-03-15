@@ -75,7 +75,7 @@ div_locs = cumsum(div_sizes);
     box_lid_front_cut(
         bot_depth=depth,
         div_thickness=div_thickness,
-        text="Phil"
+        text=""
     );
 //}
 //
