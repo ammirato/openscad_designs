@@ -31,7 +31,17 @@ module magnet_stand(
     stand_thickness,
     base_depth,
     base_thickness,
+    magnet_locs=[[10, 10]]
 ){
+    /*
+    
+    Args:
+        magnet_locs: List of lists. Length of outer list is number of 
+            magnets. Each inner list should be length 2, the position
+            of the magnet. Positions are (x, y), where (0,0) is the
+            bottom left of the stand. the x axis is along the width,
+            the y axis is along the height. 
+    */
 difference(){
     union(){
         //base
@@ -44,11 +54,11 @@ difference(){
             cube([width, stand_thickness, stand_height], center=true); 
         }
     }
-    translate([width/4,base_depth*0.7 + stand_thickness - default_magnet_height,stand_height/1.3]){
-        vertical_magnet_cylinder();
-    }
-    translate([width*3/4,base_depth*0.7 + stand_thickness - default_magnet_height,stand_height/1.3]){
-        vertical_magnet_cylinder();
+    
+    for (magnet_loc = magnet_locs){
+        translate([magnet_loc[0], base_depth*0.7 + stand_thickness - default_magnet_height, magnet_loc[1]]){
+            vertical_magnet_cylinder();
+        }      
     }
 }
 }
