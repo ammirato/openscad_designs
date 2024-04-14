@@ -3,13 +3,15 @@ use <primitives/boxes.scad>
 $fn=25;
 eps = 0.001;
 //
+
+// Regular Mob box
  box_with_corner_magnets(
-    width=20, 
-    height=10, 
-    depth=10, 
-    wall_thickness=3.25,
-    hole_radius=2.5*1.05,
-    hole_height=3*1.05,
+    width=114, 
+    height=32, 
+    depth=114, 
+    wall_thickness=3.3,
+    hole_radius=2.5*1.10,
+    hole_height=3*1.01,
     chamfer=0.5
 );
 //

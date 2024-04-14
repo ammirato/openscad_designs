@@ -299,6 +299,110 @@ module closed_box_with_hinge_top(
 }
 
 
+module box_with_corner_magnets(
+    width, 
+    depth, 
+    height, 
+    wall_thickness, 
+    hole_radius=2.5,
+    hole_height=3,
+    center=false, 
+    add_fillets=false,
+    chamfer=0,
+ ){
+    difference(){
+        open_box(
+            width=width, 
+            depth=depth, 
+            height=height, 
+            wall_thickness=wall_thickness,
+            center=center,
+            add_fillets=add_fillets,
+            chamfer=chamfer
+        );
+        hole_trans_z_top = -1*hole_height/2 + height + wall_thickness + eps;
+        hole_trans_z_bottom = hole_height/2 - eps;
+        
+        x_trans_left = hole_radius*1.2;//wall_thickness/2*1.15;
+        x_trans_right = width + wall_thickness*2 - hole_radius*1.2;//wall_thickness + wall_thickness/2*0.85;
+        y_trans_front =  hole_radius*1.2;//wall_thickness/2*1.15;
+        y_trans_back = depth + wall_thickness*2 - hole_radius*1.2;// + wall_thickness/2*0.85;
+        
+        //top
+        translate([x_trans_left, y_trans_front, hole_trans_z_top]){
+            cylinder(h=hole_height, r=hole_radius, center=true);
+        }
+        translate([x_trans_right, y_trans_front, hole_trans_z_top]){
+            cylinder(h=hole_height, r=hole_radius, center=true);
+        }
+        translate([x_trans_left, y_trans_back, hole_trans_z_top]){
+            cylinder(h=hole_height, r=hole_radius, center=true);
+        }
+        translate([x_trans_right, y_trans_back, hole_trans_z_top]){
+            cylinder(h=hole_height, r=hole_radius, center=true);
+        }
+        //bottom
+        translate([x_trans_left, y_trans_front, hole_trans_z_bottom]){
+            cylinder(h=hole_height, r=hole_radius, center=true);
+        }
+        translate([x_trans_right, y_trans_front, hole_trans_z_bottom]){
+            cylinder(h=hole_height, r=hole_radius, center=true);
+        }
+        translate([x_trans_left, y_trans_back, hole_trans_z_bottom]){
+            cylinder(h=hole_height, r=hole_radius, center=true);
+        }
+        translate([x_trans_right, y_trans_back, hole_trans_z_bottom]){
+            cylinder(h=hole_height, r=hole_radius, center=true);
+        }
+        
+    } 
+}
+
+module box_with_corner_magnets_top(
+    width, 
+    depth, 
+    height, 
+    wall_thickness, 
+    hole_radius=2.5,
+    hole_height=3,
+    center=false, 
+    add_fillets=false,
+    chamfer=0,
+ ){
+     
+    full_width = width + wall_thickness*2;
+    full_depth = depth + wall_thickness*2;
+
+    difference(){
+        translate([full_width/2, full_depth/2, wall_thickness/2]){
+            cuboid([full_width, full_depth, wall_thickness], chamfer=chamfer);
+        }
+        hole_trans_z_bottom = hole_height/2 - eps;
+        
+        x_trans_left = hole_radius*1.2;//wall_thickness/2*1.15;
+        x_trans_right = width + wall_thickness*2 - hole_radius*1.2;//wall_thickness + wall_thickness/2*0.85;
+        y_trans_front =  hole_radius*1.2;//wall_thickness/2*1.15;
+        y_trans_back = depth + wall_thickness*2 - hole_radius*1.2;// + wall_thickness/2*0.85;
+        
+        
+        //bottom
+        translate([x_trans_left, y_trans_front, hole_trans_z_bottom]){
+            cylinder(h=hole_height, r=hole_radius, center=true);
+        }
+        translate([x_trans_right, y_trans_front, hole_trans_z_bottom]){
+            cylinder(h=hole_height, r=hole_radius, center=true);
+        }
+        translate([x_trans_left, y_trans_back, hole_trans_z_bottom]){
+            cylinder(h=hole_height, r=hole_radius, center=true);
+        }
+        translate([x_trans_right, y_trans_back, hole_trans_z_bottom]){
+            cylinder(h=hole_height, r=hole_radius, center=true);
+        }
+    }
+}
+
+
+
 module open_box_with_lip(
     width, 
     depth, 
@@ -363,6 +467,7 @@ module open_box_with_lip(
 
 
 
+
 module open_box(
     width, 
     depth, 
@@ -375,7 +480,8 @@ module open_box(
     front_wall_thickness=-1,
     back_wall_thickness=-1,
     bottom_wall_thickness=-1, 
-    bottomless=false
+    bottomless=false,
+    add_fillets=false
 ){
 /* A box without a top (or optionally without a bottom).
     
@@ -408,38 +514,56 @@ module open_box(
     
     translate([full_shift_x, full_shift_y, full_shift_z])
     {
-        difference(){
-            cuboid(
-                [full_width, full_depth, full_height], 
-                chamfer=chamfer, 
-                anchor=FRONT + BOTTOM + LEFT
-            );
-            
-            //cut out middle
-            mid_chop_shift_x = full_width/2 + (left_wall_thickness - right_wall_thickness)/2;
-            mid_chop_shift_y = full_depth/2 + (front_wall_thickness - back_wall_thickness)/2;
-            mid_chop_shift_z = height/2 + bottom_wall_thickness;
-            translate([mid_chop_shift_x, mid_chop_shift_y, mid_chop_shift_z]){
-                cube([width+eps, depth+eps, height+eps], anchor=CENTER);
-            }
-            
-            //chop off top
-            top_chop_shift_x = full_width/2;
-            top_chop_shift_y = full_depth/2;
-            top_chop_shift_z = bottom_wall_thickness/2 + full_height - bottom_wall_thickness;
-            translate([top_chop_shift_x, top_chop_shift_y, top_chop_shift_z]){
-                cube([full_width+eps, full_depth+eps, bottom_wall_thickness+eps],anchor=CENTER);
-            }
-            
-            // chop off bottom
-            if (bottomless) {
-                bot_chop_shift_x = full_width/2;
-                bot_chop_shift_y = full_depth/2;
-                bot_chop_shift_z = bottom_wall_thickness/2;
-                translate([bot_chop_shift_x, bot_chop_shift_y, bot_chop_shift_z]){
-                    cube([full_width, full_depth, wall_thickness + eps],anchor=CENTER);
+        union(){
+            difference(){    
+                cuboid(
+                    [full_width, full_depth, full_height], 
+                    chamfer=chamfer, 
+                    anchor=FRONT + BOTTOM + LEFT
+                );
+                
+                //cut out middle
+                mid_chop_shift_x = full_width/2 + (left_wall_thickness - right_wall_thickness)/2;
+                mid_chop_shift_y = full_depth/2 + (front_wall_thickness - back_wall_thickness)/2;
+                mid_chop_shift_z = height/2 + bottom_wall_thickness;
+                translate([mid_chop_shift_x, mid_chop_shift_y, mid_chop_shift_z]){
+                    cube([width+eps, depth+eps, height+eps], anchor=CENTER);
                 }
-            
+                
+                //chop off top
+                top_chop_shift_x = full_width/2;
+                top_chop_shift_y = full_depth/2;
+                top_chop_shift_z = bottom_wall_thickness/2 + full_height - bottom_wall_thickness;
+                translate([top_chop_shift_x, top_chop_shift_y, top_chop_shift_z]){
+                    cube([full_width+eps, full_depth+eps, bottom_wall_thickness+eps],anchor=CENTER);
+                }
+                
+                // chop off bottom
+                if (bottomless) {
+                    bot_chop_shift_x = full_width/2;
+                    bot_chop_shift_y = full_depth/2;
+                    bot_chop_shift_z = bottom_wall_thickness/2;
+                    translate([bot_chop_shift_x, bot_chop_shift_y, bot_chop_shift_z]){
+                        cube([full_width, full_depth, wall_thickness + eps],anchor=CENTER);
+                    }
+                
+                } 
+            }
+            if (add_fillets){
+                    fillet_trans_x_left = wall_thickness;
+                    fillet_trans_y = depth/2 + wall_thickness;
+                    fillet_trans_z = wall_thickness;
+                    translate([fillet_trans_x_left, fillet_trans_y, fillet_trans_z]){
+                        rotate([90, 0, 0]){
+                            fillet(l=depth, r=height, ang=90);
+                        }
+                    }
+                    fillet_trans_x_right = wall_thickness + width;
+                    translate([fillet_trans_x_right, fillet_trans_y, fillet_trans_z]){
+                        rotate([90, 0, 180]){
+                            fillet(l=depth, r=height, ang=90);
+                        }
+                    }          
             }
         }
     }
