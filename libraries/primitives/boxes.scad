@@ -555,13 +555,13 @@ module open_box(
                     fillet_trans_z = wall_thickness;
                     translate([fillet_trans_x_left, fillet_trans_y, fillet_trans_z]){
                         rotate([90, 0, 0]){
-                            fillet(l=depth, r=height, ang=90);
+                            fillet(l=depth, r=height*0.5, ang=90);
                         }
                     }
                     fillet_trans_x_right = wall_thickness + width;
                     translate([fillet_trans_x_right, fillet_trans_y, fillet_trans_z]){
                         rotate([90, 0, 180]){
-                            fillet(l=depth, r=height, ang=90);
+                            fillet(l=depth, r=height*0.5, ang=90);
                         }
                     }          
             }
