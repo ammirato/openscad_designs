@@ -4,16 +4,16 @@ $fn=25;
 eps = 0.001;
 //
 
-//// Loot/MonsterSpawn + Activation/Corruption + Portal/Objective/Lifebringer/DarknessTracker
+//// Treasure + Player + Fire/Ice
 //token_magnet_box(
 //    width=43, 
 //    height=25, 
-//    depth=156, 
+//    depth=113, 
 //    wall_thickness=3.3,
 //    hole_radius=2.5*1.10,
 //    hole_height=3*1.01,
 //    chamfer=0.5,
-//    div_locs=[46, 92],
+//    div_locs=[41, 82],
 //    div_thickness=1
 //);
 
@@ -30,34 +30,34 @@ eps = 0.001;
 //    div_thickness=1
 //);
 
-//// Treasure + Fire/Ice
+//// Portal/obj/life/dt + activation/corruption + loot/spawn
 //token_magnet_box(
 //    width=43, 
 //    height=25, 
-//    depth=80, 
+//    depth=153, 
 //    wall_thickness=3.3,
 //    hole_radius=2.5*1.10,
 //    hole_height=3*1.01,
 //    chamfer=0.5,
-//    div_locs=[46],
+//    div_locs=[61, 107],
 //    div_thickness=1
 //);
 
-// Bard + Tinkerers + Pal/Ber/Sha/Nec + playertokens
+//// Bard + Tinkerers + Pal/Ber/Sha/Nec 
 token_magnet_box(
     width=43, 
     height=25, 
-    depth=185, 
+    depth=138, 
     wall_thickness=3.3,
     hole_radius=2.5*1.10,
     hole_height=3*1.01,
     chamfer=0.5,
-    div_locs=[62, 104, 140],
+    div_locs=[61, 102],
     div_thickness=1
 );
 
 
-
+//185 + 7 + 80 + 7 + 184 + 7 + 156 + 7
 
 //translate([0, 0, 35.3 ]){
 //    box_with_corner_magnets_top(
