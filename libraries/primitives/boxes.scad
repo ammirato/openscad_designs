@@ -5,13 +5,13 @@ $fn=32;
 eps=0.001;
 
 
-open_box(
-    width=10, depth=15, height=5, 
-    wall_thickness=1, 
-    left_wall_thickness=5,
-    front_wall_thickness=0,
-    bottomless=true, chamfer=0, center=true
-);
+//open_box(
+//    width=10, depth=15, height=5, 
+//    wall_thickness=1, 
+//    left_wall_thickness=5,
+//    front_wall_thickness=0,
+//    bottomless=true, chamfer=0, center=true
+//);
 
 //translate([25, 0, 0]){
 //difference (){
@@ -28,17 +28,17 @@ open_box(
 //cube([20, 5, 10], center=true);
 //}
 
-//closed_box_with_hinge_bottom(
-//    width=60, 
-//    depth=15, 
-//    outer_height=10, 
-//    inner_height=4, 
-//    outer_wall_thickness=2, 
-//    inner_wall_thickness=5,
-//    back_outer_wall_thickness=3.5,
-//    chamfer=.5, 
-//    center=false
-//);
+closed_box_with_hinge_bottom(
+    width=60, 
+    depth=15, 
+    outer_height=10, 
+    inner_height=4, 
+    outer_wall_thickness=2, 
+    inner_wall_thickness=5,
+    back_outer_wall_thickness=5,
+    chamfer=.5, 
+    center=false
+);
 //
 //translate([60 + 2 + 2, 0, 14 + 2 + 10 + 2 ])
 //rotate([0, 180, 0])
@@ -89,6 +89,7 @@ module closed_box_with_hinge_bottom(
     outer_wall_thickness, 
     inner_wall_thickness,
     back_outer_wall_thickness=0, 
+    bottom_wall_thickness=-1,
     center=false, 
     pin_diam=1.75 + 0.5,
     hinge_top_clearance=0.0,
@@ -97,9 +98,13 @@ module closed_box_with_hinge_bottom(
 ) {
     back_inner_wall_thickness = 0; //DONT CHANGE: top doesn't know about this
     back_outer_wall_thickness = back_outer_wall_thickness > 0 ? back_outer_wall_thickness : outer_wall_thickness;
+    bottom_wall_thickness = bottom_wall_thickness >= 0 ? bottom_wall_thickness : outer_wall_thickness;    
+
+    
     full_width = width + outer_wall_thickness*2;
     full_depth = depth + outer_wall_thickness + back_outer_wall_thickness + inner_wall_thickness + back_inner_wall_thickness;
-    full_height = outer_height + outer_wall_thickness;
+    full_height = outer_height + bottom_wall_thickness;
+    
     
     outer_box_width = width;
     outer_box_depth = depth + inner_wall_thickness + back_inner_wall_thickness;
@@ -121,6 +126,7 @@ module closed_box_with_hinge_bottom(
                     depth=outer_box_depth,
                     height=outer_box_height,
                     wall_thickness=outer_wall_thickness,
+                    bottom_wall_thickness=bottom_wall_thickness,
                     back_wall_thickness=back_outer_wall_thickness,
                     chamfer=chamfer,
                     center=false
@@ -175,7 +181,8 @@ module closed_box_with_hinge_bottom(
                     arm_height=0,
                     arm_angle=90, 
                     pin_fn=8, 
-                    clear_top=true, 
+//                    clear_top=true,
+                    clear_top=false, 
                     anchor=FRONT+LEFT+BOTTOM
                 );
             }
@@ -190,7 +197,8 @@ module closed_box_with_hinge_bottom(
                     arm_height=0,
                     arm_angle=90, 
                     pin_fn=8, 
-                    clear_top=true, 
+                    clear_top=false, 
+//                    teardrop=true,
                     anchor=FRONT+LEFT+BOTTOM
                 );
             }
