@@ -7,20 +7,30 @@ use <snap_joints/cantilever.scad>
 eps=0.001;
 
 
-box_bottom_magnets(
-    depth=100,
-    div_locs=[20],
-    div_thickness=2.0,
+//box_bottom_magnets(
+//    depth=100,
+//    div_locs=[20],
+//    div_thickness=2.0,
+//    center=false,
+//    name_text=""
+//);
+//
+//translate([93+9, 0, 90-9]){
+//rotate([0, 180,])
+box_top_magnets(
+    bot_depth=100,
     center=false,
-    name_text=""
+    text="base cards"
 );
+//}
 
 //box params
 default_width=93;
-default_outer_height=45;
+default_outer_height=35;
 default_inner_height=default_outer_height - 7; 
 default_inner_wall_thickness=5;
-default_outer_wall_thickness=4;
+default_outer_wall_thickness=4.5;
+default_back_outer_wall_thickness=5;
 default_snap_plug_block_height=3; 
 default_snap_plug_width=15;
 //default_snap_plug_width=default_inner_wall_thickness*0.8;
@@ -46,6 +56,7 @@ lid_height_tol = 1.5; //had been 2 in prev versions
 default_lid_height = default_div_height - default_outer_height + lid_height_tol;
 default_lid_stem_extra_height = default_outer_height - default_inner_height;
 default_lid_stem_plug_taper = 1.0;
+default_extra_top_thickness = 0.0;
 
 
 
@@ -58,6 +69,7 @@ outer_height=default_outer_height,
 inner_height=default_inner_height, 
 inner_wall_thickness=default_inner_wall_thickness, 
 outer_wall_thickness=default_outer_wall_thickness, 
+bottom_wall_thickness=2,
 mag_hole_radius=2.5,
 mag_hole_height=3,
 chamfer=default_chamfer,
@@ -67,6 +79,7 @@ div_tol=default_div_tol,
 div_tol_thickness=default_div_tol_thickness,
 div_z_indent=default_div_z_indent,
 extra_bottom_thickness=default_extra_bottom_thickness, 
+back_outer_wall_thickness=default_back_outer_wall_thickness,
 center=default_center,
 name_text=default_name,
 ) 
@@ -76,14 +89,6 @@ name_text=default_name,
     full_height = outer_height + extra_bottom_thickness + outer_wall_thickness;
     full_outer_height = outer_height + extra_bottom_thickness;
 
-//    cut_depth = inner_wall_thickness + outer_wall_thickness+2*eps;
-//    cut_height =  snap_plug_block_height + snap_socket_tol;
-//    cut_width = snap_plug_width + snap_socket_tol;
-//    
-//    cut_trans_x = full_width/2 - cut_width/2;
-//    cut_trans_y = 0;
-//    cut_trans_z = outer_wall_thickness + inner_height;//inner_height + outer_wall_thickness + extra_bottom_thickness/2  - cut_height/2 +eps ;
-    
     center_trans_x = center ? -1*(full_width/2) : 0;
     center_trans_y = center ? -1*(full_depth/2) : 0;
     center_trans_z = center ? -1*(full_height/2) : 0;
@@ -92,14 +97,12 @@ name_text=default_name,
     extra_bottom_trans_y = (outer_wall_thickness + inner_wall_thickness);
     extra_bottom_trans_z = outer_wall_thickness - eps;
     
-    
     mag_x_trans_left = mag_hole_radius*1.2;//wall_thickness/2*1.15;
     mag_x_trans_right = full_width - mag_hole_radius*1.2;//wall_thickness + wall_thickness/2*0.85;
     mag_y_trans_front =  mag_hole_radius*1.2;//wall_thickness/2*1.15;
     mag_y_trans_back = full_depth - mag_hole_radius*1.2;// + wall_thickness/2*0.85;
-    mag_trans_z_top = -1*mag_hole_height/2 + outer_wall_thickness + extra_bottom_thickness+ full_outer_height + eps;
+    mag_trans_z_top = -1*mag_hole_height/2 + bottom_wall_thickness + extra_bottom_thickness+ full_outer_height + eps;
 
-    
     translate([center_trans_x, center_trans_y, center_trans_z]){
         difference() {
             translate([0,0,extra_bottom_thickness/2]){
@@ -111,6 +114,8 @@ name_text=default_name,
                     inner_height=inner_height, 
                     inner_wall_thickness=0, //inner_wall_thickness, 
                     outer_wall_thickness=outer_wall_thickness, 
+                    bottom_wall_thickness=bottom_wall_thickness,
+                    back_outer_wall_thickness=back_outer_wall_thickness,
                     chamfer=chamfer,
                     div_thickness=div_thickness,
                     div_extra_width=div_extra_width,
@@ -122,18 +127,98 @@ name_text=default_name,
                     name_text=name_text
                 );
             }           
-            //cut openings for snap fit first
-//            translate([cut_trans_x, cut_trans_y, cut_trans_z]) {
-//                rotate([0, 0, 0]){
-//                    cube([cut_width, cut_depth,cut_height], center=false);
-//                }
-//            }
+            //magnet cuts
             translate([mag_x_trans_left, mag_y_trans_front, mag_trans_z_top]){
+                cylinder(h=mag_hole_height, r=mag_hole_radius, center=true);
+            }
+            translate([mag_x_trans_right, mag_y_trans_front, mag_trans_z_top]){
                 cylinder(h=mag_hole_height, r=mag_hole_radius, center=true);
             }
         }     
     }
 }
+
+module box_top_magnets(
+    bot_depth,
+height=default_lid_height,
+bot_width=default_width,
+bot_inner_height=default_inner_height,
+bot_outer_height=default_outer_height,
+inner_wall_thickness=0, //default_inner_wall_thickness, 
+outer_wall_thickness=default_outer_wall_thickness,
+bot_back_outer_wall_thickness=default_back_outer_wall_thickness,
+chamfer=default_chamfer,
+div_thickness=default_div_thickness,
+div_extra_width=default_div_extra_width,
+div_tol=default_div_tol,
+div_tol_thickness=default_div_tol_thickness,
+div_z_indent=default_div_z_indent,
+extra_bottom_thickness=default_extra_bottom_thickness, 
+center=default_center,
+name_text=default_name,
+bottom_wall_thickness=2,
+mag_hole_radius=2.5,
+mag_hole_height=3,
+extra_height=0,
+text="",
+) {
+
+    height = height + extra_height;
+    full_width = bot_width + outer_wall_thickness*2;
+    full_depth = bot_depth + outer_wall_thickness*2 + inner_wall_thickness;
+    full_height = height + bottom_wall_thickness;
+    
+    text_thickness=1.0;
+    text_height=3;
+    text_spacing=1.1;
+    text_trans_x = text_thickness-eps;// -1 * text_thickness/2;
+    text_trans_y = bot_width/6;
+    text_trans_z = -10; // bot_outer_height/6;
+    
+    center_trans_x = center ? -1*(full_width/2) : 0;
+    center_trans_y = center ? -1*(full_depth/2) : 0;
+    center_trans_z = center ? -1*(full_height/2) : 0;
+    
+    mag_x_trans_left = mag_hole_radius*1.2;//wall_thickness/2*1.15;
+    mag_x_trans_right = full_width - mag_hole_radius*1.2;//wall_thickness + wall_thickness/2*0.85;
+    mag_y_trans_front =  mag_hole_radius*1.2;//wall_thickness/2*1.15;
+    mag_y_trans_back = full_depth - mag_hole_radius*1.2;// + wall_thickness/2*0.85;
+    mag_trans_z_top = mag_hole_height/2 + full_height + eps;
+
+    translate([center_trans_x, center_trans_y, center_trans_z]){
+        difference(){
+            union(){
+                closed_box_with_hinge_top(
+                    height=height, 
+                    bot_width=bot_width, 
+                    bot_depth=bot_depth, 
+                    bot_outer_height=bot_outer_height, 
+                    bot_inner_height=bot_inner_height, 
+                    bot_outer_wall_thickness=outer_wall_thickness, 
+                    bot_inner_wall_thickness=inner_wall_thickness,
+                    bot_back_outer_wall_thickness=bot_back_outer_wall_thickness,
+                    chamfer=2.0, 
+                    center=false
+                ); 
+              //text cut
+            translate([text_trans_x, text_trans_y, text_trans_z]){
+                rotate([0,0,0])
+                linear_extrude(text_thickness)
+                    text(text, size=text_height, font="Helvetica:style=Bold", halign="center", valign="bottom", spacing=text_spacing);
+            }   
+            }
+            //magnet cuts
+            translate([mag_x_trans_left, mag_y_trans_front, mag_trans_z_top]){
+                cylinder(h=mag_hole_height, r=mag_hole_radius, center=true);
+            }
+            translate([mag_x_trans_right, mag_y_trans_front, mag_trans_z_top]){
+                cylinder(h=mag_hole_height, r=mag_hole_radius, center=true);
+            }
+            
+       }
+   } 
+}
+
 
 
 module box_bottom_front_cut(
@@ -334,11 +419,14 @@ div_z_indent=default_div_z_indent,
 extra_bottom_thickness=default_extra_bottom_thickness, 
 center=default_center,
 name_text=default_name,
+bottom_wall_thickness=-1,
+back_outer_wall_thickness=default_back_outer_wall_thickness,
 ) 
 { 
+    bottom_wall_thickness = bottom_wall_thickness >= 0 ? bottom_wall_thickness : outer_wall_thickness;    
     full_width = width + outer_wall_thickness*2;
     full_depth = depth + outer_wall_thickness*2 + inner_wall_thickness;
-    full_height = outer_height + extra_bottom_thickness + outer_wall_thickness;
+    full_height = outer_height + extra_bottom_thickness + bottom_wall_thickness;
     full_outer_height = outer_height + extra_bottom_thickness;
 
     center_trans_x = center ? -1*(full_width/2) : 0;
@@ -348,7 +436,7 @@ name_text=default_name,
     div_width = width + div_extra_width + div_tol*2;
     div_trans_x = full_width/2 - div_width/2;
     div_trans_y = outer_wall_thickness + inner_wall_thickness;
-    div_trans_z = outer_wall_thickness + extra_bottom_thickness - div_z_indent +eps;
+    div_trans_z = bottom_wall_thickness + extra_bottom_thickness - div_z_indent +eps;
     div_height = outer_height+ div_z_indent;// + extra_bottom_thickness;
     div_full_thickness = div_thickness + div_tol_thickness;
 
@@ -369,7 +457,8 @@ name_text=default_name,
                         inner_height=inner_height, 
                         outer_wall_thickness=outer_wall_thickness, 
                         inner_wall_thickness=inner_wall_thickness,
-                        back_outer_wall_thickness=5,//undo
+                        back_outer_wall_thickness=back_outer_wall_thickness,
+                        bottom_wall_thickness=bottom_wall_thickness,
                         filler_clearance=0,
                         chamfer=2.0, 
                         center=false
