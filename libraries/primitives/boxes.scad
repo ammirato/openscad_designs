@@ -209,7 +209,8 @@ module closed_box_with_hinge_bottom(
             filler_trans_y = depth + outer_wall_thickness + inner_wall_thickness + back_inner_wall_thickness;
             filler_trans_z = outer_height + bottom_wall_thickness - hinge_height - hinge_top_clearance - eps;//inner_height + outer_wall_thickness - eps;
             translate([filler_trans_x, filler_trans_y, filler_trans_z]){
-                cube([filler_width, filler_depth, filler_height], center=false);
+                //cube([filler_width, filler_depth, filler_height], center=false);
+                prismoid([filler_width, filler_depth], [filler_width, filler_depth*0.5], filler_height, shift=[0, -1*filler_depth*0.25],anchor=BOT+LEFT+FRONT);
             }
         }
     }

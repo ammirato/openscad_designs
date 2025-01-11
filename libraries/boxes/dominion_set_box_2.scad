@@ -29,7 +29,7 @@ default_width=93;
 default_outer_height=35;
 default_inner_height=default_outer_height - 7; 
 default_inner_wall_thickness=5;
-default_outer_wall_thickness=4.5;
+default_outer_wall_thickness=5;
 default_back_outer_wall_thickness=5;
 default_snap_plug_block_height=3; 
 default_snap_plug_width=15;
@@ -49,7 +49,7 @@ default_name="";
 //divider params
 default_div_width = default_width + default_div_extra_width +default_div_tol*(1.3 + 0.7);
 default_div_text_height = 5;
-default_div_height = 68 + default_div_text_height;
+default_div_height = 63 + default_div_text_height;
 
 //lid only params
 lid_height_tol = 1.5; //had been 2 in prev versions
@@ -58,6 +58,9 @@ default_lid_stem_extra_height = default_outer_height - default_inner_height;
 default_lid_stem_plug_taper = 1.0;
 default_extra_top_thickness = 0.0;
 
+//mag holes
+default_mag_hole_radius=2.5*1.10;
+default_mag_hole_height=3*1.01;
 
 
 
@@ -70,8 +73,8 @@ inner_height=default_inner_height,
 inner_wall_thickness=default_inner_wall_thickness, 
 outer_wall_thickness=default_outer_wall_thickness, 
 bottom_wall_thickness=2,
-mag_hole_radius=2.5,
-mag_hole_height=3,
+mag_hole_radius=default_mag_hole_radius,
+mag_hole_height=default_mag_hole_height,
 chamfer=default_chamfer,
 div_thickness=default_div_thickness,
 div_extra_width=default_div_extra_width,
@@ -157,8 +160,8 @@ extra_bottom_thickness=default_extra_bottom_thickness,
 center=default_center,
 name_text=default_name,
 bottom_wall_thickness=2,
-mag_hole_radius=2.5,
-mag_hole_height=3,
+mag_hole_radius=default_mag_hole_radius,
+mag_hole_height=default_mag_hole_height,
 extra_height=0,
 text="",
 ) {
@@ -169,11 +172,11 @@ text="",
     full_height = height + bottom_wall_thickness;
     
     text_thickness=1.0;
-    text_height=3;
+    text_height=4;
     text_spacing=1.1;
-    text_trans_x = text_thickness-eps;// -1 * text_thickness/2;
-    text_trans_y = bot_width/6;
-    text_trans_z = -10; // bot_outer_height/6;
+    text_trans_x = bot_width/2; // -1 * text_thickness/2;
+    text_trans_y = bot_width/8;
+    text_trans_z = text_thickness-eps; // bot_outer_height/6;
     
     center_trans_x = center ? -1*(full_width/2) : 0;
     center_trans_y = center ? -1*(full_depth/2) : 0;
@@ -200,12 +203,7 @@ text="",
                     chamfer=2.0, 
                     center=false
                 ); 
-              //text cut
-            translate([text_trans_x, text_trans_y, text_trans_z]){
-                rotate([0,0,0])
-                linear_extrude(text_thickness)
-                    text(text, size=text_height, font="Helvetica:style=Bold", halign="center", valign="bottom", spacing=text_spacing);
-            }   
+               
             }
             //magnet cuts
             translate([mag_x_trans_left, mag_y_trans_front, mag_trans_z_top]){
@@ -214,7 +212,12 @@ text="",
             translate([mag_x_trans_right, mag_y_trans_front, mag_trans_z_top]){
                 cylinder(h=mag_hole_height, r=mag_hole_radius, center=true);
             }
-            
+            //text cut
+            translate([text_trans_x, text_trans_y, text_trans_z]){
+                rotate([180,0,180])
+                linear_extrude(text_thickness)
+                    text(text, size=text_height, font="Helvetica:style=Bold", halign="center", valign="bottom", spacing=text_spacing);
+            }
        }
    } 
 }
