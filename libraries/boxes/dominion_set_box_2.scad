@@ -17,12 +17,15 @@ eps=0.001;
 //
 //translate([93+9, 0, 90-9]){
 //rotate([0, 180,])
-box_top_magnets(
-    bot_depth=100,
-    center=false,
-    text="base cards"
-);
+//box_top_magnets(
+//    bot_depth=100,
+//    center=false,
+//    text="base cards"
+//);
 //}
+
+divider_raised(text="test", thickness=1.0, bot_box_height=35, fill_bar=true, tray_length=12*0.35*1.3);
+
 
 //box params
 default_width=93;
@@ -505,6 +508,8 @@ thickness=default_div_thickness,
 text_height=default_div_text_height, 
 top_bar_width_percentage=0.55,
 fill_bar=false,
+tray_length=0,
+tray_thickness=0.5,
 ) 
 {
     text_thickness = thickness*0.5;
@@ -536,6 +541,10 @@ fill_bar=false,
     fill_trans_x = 0;
     fill_trans_y = -1*(middle_bar_height - fill_bar_height)/2 - bottom_bar_height;
     fill_trans_z = 0;
+    
+    tray_trans_x = 0;
+    tray_trans_y = -1* height/2;
+    tray_trans_z = tray_length/2;
 
     union() {
         
@@ -567,6 +576,9 @@ fill_bar=false,
             translate([0,second_bottom_bar_trans_y,0]){
                 cube([bottom_bar_width, bottom_bar_height, thickness], center=true);
             }
+        }
+        translate([tray_trans_x, tray_trans_y, tray_trans_z]){
+            cube([bottom_bar_width,tray_thickness, tray_length], center=true);
         }
     }  
 }
