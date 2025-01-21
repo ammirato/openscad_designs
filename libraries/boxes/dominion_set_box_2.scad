@@ -7,15 +7,15 @@ use <snap_joints/cantilever.scad>
 eps=0.001;
 
 
-//box_bottom_magnets(
-//    depth=100,
-//    div_locs=[20],
-//    div_thickness=2.0,
-//    center=false,
-//    name_text=""
-//);
+box_bottom_magnets(
+    depth=100,
+    div_locs=[20],
+    div_thickness=2.0,
+    center=false,
+    name_text=""
+);
 //
-//translate([93+9, 0, 90-9]){
+//translate([93+6, 0, 90-15]){
 //rotate([0, 180,])
 //box_top_magnets(
 //    bot_depth=100,
@@ -24,7 +24,7 @@ eps=0.001;
 //);
 //}
 
-divider_raised(text="test", thickness=1.0, bot_box_height=35, fill_bar=true, tray_length=12*0.35*1.3);
+//divider_raised(text="test", thickness=1.0, bot_box_height=35, fill_bar=true, tray_length=12*0.35*1.3);
 
 
 //box params
@@ -32,7 +32,7 @@ default_width=93;
 default_outer_height=35;
 default_inner_height=default_outer_height - 7; 
 default_inner_wall_thickness=5;
-default_outer_wall_thickness=5;
+default_outer_wall_thickness=3;
 default_back_outer_wall_thickness=5;
 default_snap_plug_block_height=3; 
 default_snap_plug_width=15;
@@ -41,7 +41,7 @@ default_snap_socket_tol=1.5;
 //default_snap_socket_tol=0.25;
 default_chamfer=2.0;
 default_div_thickness=1.0;
-default_div_extra_width=1.75;
+default_div_extra_width=2.75;
 default_div_tol=0.7;
 default_div_tol_thickness=1.0;
 default_div_z_indent=0.0;
@@ -63,7 +63,9 @@ default_extra_top_thickness = 0.0;
 
 //mag holes
 default_mag_hole_radius=2.5*1.10;
-default_mag_hole_height=3*1.01;
+default_mag_hole_height= 2 * 1.1; //3*1.01;
+default_mag_hole_length=10;
+default_mag_hole_width=3;
 
 
 
@@ -78,6 +80,8 @@ outer_wall_thickness=default_outer_wall_thickness,
 bottom_wall_thickness=2,
 mag_hole_radius=default_mag_hole_radius,
 mag_hole_height=default_mag_hole_height,
+mag_hole_width=default_mag_hole_width,
+mag_hole_length=default_mag_hole_length,
 chamfer=default_chamfer,
 div_thickness=default_div_thickness,
 div_extra_width=default_div_extra_width,
@@ -103,11 +107,21 @@ name_text=default_name,
     extra_bottom_trans_y = (outer_wall_thickness + inner_wall_thickness);
     extra_bottom_trans_z = outer_wall_thickness - eps;
     
-    mag_x_trans_left = mag_hole_radius*1.2;//wall_thickness/2*1.15;
-    mag_x_trans_right = full_width - mag_hole_radius*1.2;//wall_thickness + wall_thickness/2*0.85;
-    mag_y_trans_front =  mag_hole_radius*1.2;//wall_thickness/2*1.15;
-    mag_y_trans_back = full_depth - mag_hole_radius*1.2;// + wall_thickness/2*0.85;
+    
+    // mags circular
+//    mag_x_trans_left = mag_hole_radius*1.2;//wall_thickness/2*1.15;
+//    mag_x_trans_right = full_width - mag_hole_radius*1.2;//wall_thickness + wall_thickness/2*0.85;
+//    mag_y_trans_front =  mag_hole_radius*1.2;//wall_thickness/2*1.15;
+//    mag_y_trans_back = full_depth - mag_hole_radius*1.2;// + wall_thickness/2*0.85;
+//    mag_trans_z_top = -1*mag_hole_height/2 + bottom_wall_thickness + extra_bottom_thickness+ full_outer_height + eps;
+
+    // mags cube
+    x_trans_factor = 2;
+    mag_x_trans_left = mag_hole_length*x_trans_factor;//wall_thickness/2*1.15;
+    mag_x_trans_right = full_width - mag_hole_length*x_trans_factor;//wall_thickness + wall_thickness/2*0.85;
+    mag_y_trans_front =  mag_hole_width/2;//wall_thickness/2*1.15;
     mag_trans_z_top = -1*mag_hole_height/2 + bottom_wall_thickness + extra_bottom_thickness+ full_outer_height + eps;
+
 
     translate([center_trans_x, center_trans_y, center_trans_z]){
         difference() {
@@ -133,12 +147,19 @@ name_text=default_name,
                     name_text=name_text
                 );
             }           
-            //magnet cuts
+//            //magnet cuts circular
+//            translate([mag_x_trans_left, mag_y_trans_front, mag_trans_z_top]){
+//                cylinder(h=mag_hole_height, r=mag_hole_radius, center=true);
+//            }
+//            translate([mag_x_trans_right, mag_y_trans_front, mag_trans_z_top]){
+//                cylinder(h=mag_hole_height, r=mag_hole_radius, center=true);
+//            }
+            //magnet cuts cube
             translate([mag_x_trans_left, mag_y_trans_front, mag_trans_z_top]){
-                cylinder(h=mag_hole_height, r=mag_hole_radius, center=true);
+                cube([mag_hole_length, mag_hole_width, mag_hole_height], center=true);
             }
             translate([mag_x_trans_right, mag_y_trans_front, mag_trans_z_top]){
-                cylinder(h=mag_hole_height, r=mag_hole_radius, center=true);
+                cube([mag_hole_length, mag_hole_width, mag_hole_height], center=true);
             }
         }     
     }
@@ -165,6 +186,8 @@ name_text=default_name,
 bottom_wall_thickness=2,
 mag_hole_radius=default_mag_hole_radius,
 mag_hole_height=default_mag_hole_height,
+mag_hole_width=default_mag_hole_width,
+mag_hole_length=default_mag_hole_length,
 extra_height=0,
 text="",
 ) {
@@ -185,11 +208,18 @@ text="",
     center_trans_y = center ? -1*(full_depth/2) : 0;
     center_trans_z = center ? -1*(full_height/2) : 0;
     
-    mag_x_trans_left = mag_hole_radius*1.2;//wall_thickness/2*1.15;
-    mag_x_trans_right = full_width - mag_hole_radius*1.2;//wall_thickness + wall_thickness/2*0.85;
-    mag_y_trans_front =  mag_hole_radius*1.2;//wall_thickness/2*1.15;
-    mag_y_trans_back = full_depth - mag_hole_radius*1.2;// + wall_thickness/2*0.85;
-    mag_trans_z_top = mag_hole_height/2 + full_height + eps;
+//    mag_x_trans_left = mag_hole_radius*1.2;//wall_thickness/2*1.15;
+//    mag_x_trans_right = full_width - mag_hole_radius*1.2;//wall_thickness + wall_thickness/2*0.85;
+//    mag_y_trans_front =  mag_hole_radius*1.2;//wall_thickness/2*1.15;
+//    mag_y_trans_back = full_depth - mag_hole_radius*1.2;// + wall_thickness/2*0.85;
+//    mag_trans_z_top = mag_hole_height/2 + full_height + eps;
+
+    // mags cube
+    x_trans_factor = 2;
+    mag_x_trans_left = mag_hole_length*x_trans_factor;//wall_thickness/2*1.15;
+    mag_x_trans_right = full_width - mag_hole_length*x_trans_factor;//wall_thickness + wall_thickness/2*0.85;
+    mag_y_trans_front =  mag_hole_width/2;//wall_thickness/2*1.15;
+    mag_trans_z_top = full_height + eps;
 
     translate([center_trans_x, center_trans_y, center_trans_z]){
         difference(){
@@ -208,13 +238,22 @@ text="",
                 ); 
                
             }
-            //magnet cuts
+//            //magnet cuts
+//            translate([mag_x_trans_left, mag_y_trans_front, mag_trans_z_top]){
+//                cylinder(h=mag_hole_height, r=mag_hole_radius, center=true);
+//            }
+//            translate([mag_x_trans_right, mag_y_trans_front, mag_trans_z_top]){
+//                cylinder(h=mag_hole_height, r=mag_hole_radius, center=true);
+//            }
+            //magnet cuts cube
             translate([mag_x_trans_left, mag_y_trans_front, mag_trans_z_top]){
-                cylinder(h=mag_hole_height, r=mag_hole_radius, center=true);
+                cube([mag_hole_length, mag_hole_width, mag_hole_height], center=true);
             }
             translate([mag_x_trans_right, mag_y_trans_front, mag_trans_z_top]){
-                cylinder(h=mag_hole_height, r=mag_hole_radius, center=true);
+                cube([mag_hole_length, mag_hole_width, mag_hole_height], center=true);
             }
+            
+            
             //text cut
             translate([text_trans_x, text_trans_y, text_trans_z]){
                 rotate([180,0,180])
@@ -578,7 +617,7 @@ tray_thickness=0.5,
             }
         }
         translate([tray_trans_x, tray_trans_y, tray_trans_z]){
-            cube([bottom_bar_width,tray_thickness, tray_length], center=true);
+            cube([bottom_bar_width*0.8,tray_thickness, tray_length], center=true);
         }
     }  
 }
