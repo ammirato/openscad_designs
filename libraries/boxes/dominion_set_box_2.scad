@@ -7,13 +7,13 @@ use <snap_joints/cantilever.scad>
 eps=0.001;
 
 
-box_bottom_magnets(
-    depth=100,
-    div_locs=[20],
-    div_thickness=2.0,
-    center=false,
-    name_text=""
-);
+//box_bottom_magnets(
+//    depth=100,
+//    div_locs=[20],
+//    div_thickness=2.0,
+//    center=false,
+//    name_text=""
+//);
 //
 //translate([93+6, 0, 90-15]){
 //rotate([0, 180,])
@@ -25,6 +25,7 @@ box_bottom_magnets(
 //}
 
 //divider_raised(text="test", thickness=1.0, bot_box_height=35, fill_bar=true, tray_length=12*0.35*1.3);
+divider_raised_square(text="test", thickness=1.0, bot_box_height=35, fill_bar=true, tray_length=0);
 
 
 //box params
@@ -190,6 +191,7 @@ mag_hole_width=default_mag_hole_width,
 mag_hole_length=default_mag_hole_length,
 extra_height=0,
 text="",
+text2="",
 ) {
 
     height = height + extra_height;
@@ -198,11 +200,13 @@ text="",
     full_height = height + bottom_wall_thickness;
     
     text_thickness=1.0;
-    text_height=4;
+    text_height=6;
+    text2_height=4;
     text_spacing=1.1;
     text_trans_x = bot_width/2; // -1 * text_thickness/2;
     text_trans_y = bot_width/8;
     text_trans_z = text_thickness-eps; // bot_outer_height/6;
+    text2_trans_y = bot_width/2;
     
     center_trans_x = center ? -1*(full_width/2) : 0;
     center_trans_y = center ? -1*(full_depth/2) : 0;
@@ -259,6 +263,12 @@ text="",
                 rotate([180,0,180])
                 linear_extrude(text_thickness)
                     text(text, size=text_height, font="Helvetica:style=Bold", halign="center", valign="bottom", spacing=text_spacing);
+            }
+            //text cut
+            translate([text_trans_x, text2_trans_y, text_trans_z]){
+                rotate([180,0,180])
+                linear_extrude(text_thickness)
+                    text(text2, size=text2_height, font="Helvetica:style=Bold", halign="center", valign="bottom", spacing=text_spacing);
             }
        }
    } 
@@ -621,6 +631,70 @@ tray_thickness=0.5,
         }
     }  
 }
+
+module divider_raised_square(
+text, 
+width=default_div_width*0.75, 
+height=default_div_height, 
+bot_box_height=-1,
+thickness=default_div_thickness, 
+text_height=default_div_text_height, 
+top_bar_width_percentage=0.55,
+fill_bar=false,
+tray_length=0,
+tray_thickness=0.5,
+) 
+{
+    text_thickness = thickness*0.5;
+    text_buffer = max(1.5, text_height/10);
+    text_spacing = max(1.15, 1 + text_buffer/10);
+    
+    top_bar_height = text_height + text_buffer*2;
+    top_bar_width = width*top_bar_width_percentage; // TODO: change
+    bottom_bar_height = top_bar_height;
+    bottom_bar_width = width;
+    
+       
+    middle_bar_height = height - top_bar_height - bottom_bar_height + 0.001;
+    middle_bar_width = bottom_bar_height;
+    
+    top_bar_trans_y = height/2 - top_bar_height/2;
+    text_trans_y = top_bar_trans_y;// - text_buffer;
+    text_trans_z = text_thickness;///2 * -1;
+    bottom_bar_trans_y = -1 * (height/2 - bottom_bar_height/2);
+    //second_bottom_bar_trans_y = bottom_bar_trans_y + bottom_bar_height*2;
+    second_bottom_bar_trans_y_1 = bottom_bar_trans_y + bottom_bar_height*2;
+    second_bottom_bar_trans_y_2 = bottom_bar_trans_y + bot_box_height - bottom_bar_height;
+    second_bottom_bar_trans_y = bot_box_height > 0 ? second_bottom_bar_trans_y_2 : second_bottom_bar_trans_y_1;
+
+    fill_bar_height = bot_box_height;
+    fill_bar_width = bottom_bar_width;
+    fill_bar_thickness = thickness;
+
+    fill_trans_x = 0;
+    fill_trans_y = -1*(middle_bar_height - fill_bar_height)/2 - bottom_bar_height;
+    fill_trans_z = 0;
+    
+    tray_trans_x = 0;
+    tray_trans_y = -1* height/2;
+    tray_trans_z = tray_length/2;
+
+    difference(){
+        union(){
+            cube([width, height, thickness], center=true);
+            translate([0, text_trans_y, text_trans_z]){
+                linear_extrude(text_thickness)
+                //text(text, size=text_height, font= "Comic Sans MS:style=Bold", halign="center", valign="center", spacing=text_spacing);
+                text(text, size=text_height, font="Helvetica:style=Bold", halign="center", valign="center", spacing=text_spacing);
+
+            }  
+        }
+        cube([width*0.75, height*0.75, thickness], center=true);
+    }  
+}
+
+
+
 
 
 
