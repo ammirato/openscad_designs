@@ -3,45 +3,40 @@ use <BOSL2/std.scad>
 
 
 cards = [
-["Amulet", 10],
-["Artificer", 10],
-//["Bridge Troll", 10],
-["Caravan Guard", 10],
-["Coin of the Realm", 10],
-["Distant Lands", 12],
-["Dungeon", 10],
-["Duplicate", 10],
-["Gear", 10],
-//["Giant", 10],
-["Guide", 10],
-//["Haunted Woods", 10],
-["Hireling", 10],
-["Lost City", 10],
-["Magpie", 10],
-["Messenger", 10],
-["Miser", 10],
-["Page ++" , 30],
-["Peasant ++", 30],
-["Port", 12],
-["Ranger", 10],
-["Ratcatcher", 10],
-["Raze", 10],
-//["Relic", 10],
-["Royal Carriage", 10],
-["Storyteller", 10],
-//["Swamp Hag", 10],
-["Transmogrify", 10],
-["Treasure Trove", 10],
-["Wine Merchant", 10],
-["Events", 20],
-["Randomizers", 25],
-["Tokens", 40],
+["Archive", 10],
+["Capital", 10],
+["Castles", 12],
+//["Catapult/Rocks", 10],
+["Chariot Race", 10],
+["Charm", 10],
+["City Quarter", 10],
+["Crown", 10],
+["Encampment/Plunder", 10],
+//["Enchantress", 10],
+["Engineer", 10],
+["Farmers Market", 10],
+["Forum", 10],
+["Gladiator/Fortune", 10],
+["GroundsKeeper", 10],
+//["Legionary", 10],
+["Overlord", 10],
+["Patrician/Emporium", 10],
+["Royal Blacksmith", 10],
+["Sacrifice", 10],
+["Settlers/BustlingVillage", 10],
+["Temple", 10],
+["Villa", 10],
+["Wild Hunt", 10],
+["Events", 13],
+["Landmarks", 21],
+["Tokens", 60],
+["Randomizers": 25]
 ];
 
 num_piles=len(cards);
 
 card_thickness = 0.35; //*1.3;
-div_thickness=1.0;
+div_thickness=0.75; //usually 1.0
 div_full_thickness=2.0;
 
 
@@ -88,8 +83,8 @@ box_bottom_magnets(
 //        bot_depth=depth,
 ////        div_thickness=div_thickness,
 //        center=false,
-//        text="Adventures",
-//        text2="Adventure Tokens, Tavern Mat"
+//        text="Plunder",
+//        text2=""
 //    );
 //}
 
@@ -113,11 +108,11 @@ box_bottom_magnets(
 //    }
 //}
 // Parameters
-div_idx_start = 28; // Starting index for objects to display
-div_idx_end = 29;   // Ending index for objects to display
+div_idx_start = 36; // Starting index for objects to display
+div_idx_end =37;   // Ending index for objects to display
 cols = 2;          // Number of columns in the rectangle (2 for 2x2)
 
-//// Loop to render objects in a 2x2 layout
+////// Loop to render objects in a 2x2 layout
 //for (idx = [div_idx_start:div_idx_end]) {
 //    row = floor((idx - div_idx_start) / cols);
 //    col = (idx - div_idx_start) % cols;
@@ -142,7 +137,7 @@ cols = 2;          // Number of columns in the rectangle (2 for 2x2)
 //    translate([85 * col, 83.5 * row , 0]) {
 //        translate([translation_x, translation_y, 0]){
 //        rotate([0, 0, orientation]) {
-//            divider_raised_square(text=cards[idx][0], thickness=1.0, bot_box_height=35, fill_bar=true);
+//            divider_raised_square(text=cards[idx][0], thickness=div_thickness, bot_box_height=35, fill_bar=true);
 //        }
 //        }
 //    }

@@ -3,45 +3,56 @@ use <BOSL2/std.scad>
 
 
 cards = [
-["Amulet", 10],
-["Artificer", 10],
-//["Bridge Troll", 10],
-["Caravan Guard", 10],
-["Coin of the Realm", 10],
-["Distant Lands", 12],
-["Dungeon", 10],
-["Duplicate", 10],
-["Gear", 10],
-//["Giant", 10],
-["Guide", 10],
-//["Haunted Woods", 10],
-["Hireling", 10],
-["Lost City", 10],
-["Magpie", 10],
-["Messenger", 10],
-["Miser", 10],
-["Page Set" , 30],
-["Peasant Set", 30],
-["Port", 12],
-["Ranger", 10],
-["Ratcatcher", 10],
-["Raze", 10],
-//["Relic", 10],
-["Royal Carriage", 10],
-["Storyteller", 10],
-//["Swamp Hag", 10],
-["Transmogrify", 10],
-["Treasure Trove", 10],
-["Wine Merchant", 10],
-["Events", 20],
-["Randomizers", 25],
-["Tokens", 40],
+["Abundance", 10],
+["Buried Treasure", 10],
+["Cabin Boy", 10],
+["Cage", 10],
+["Crew", 10],
+["Crucible", 10],
+//["Cutthroat", 10],
+["Enlarge", 10],
+["Figurine", 10],
+["First Mate", 10],
+["Flagship", 10],
+["Fortune Hunter", 10],
+//["Frigate", 10],
+["Gondola", 10],
+["Grotto", 10],
+["Harbor Village", 10],
+["Jewelled Egg", 10],
+["King's Cache", 10],
+["Landing Party", 10],
+["Longship", 10],
+["Mapmaker", 10],
+["Maroon", 10],
+["Mining Road", 10],
+["Pendant", 10],
+["Pickaxe", 10],
+["Pilgram", 10],
+["Quartermaster", 10],
+["Rope", 10],
+["Sack of Loot", 10],
+["Search", 10],
+["Secluded Shrine", 10],
+["Shaman", 10],
+["Silver Mine", 10],
+//["Siren", 10],
+["Stowaway", 10],
+["Swamp Shacks", 10],
+["Taskmaster", 10],
+["Tools", 10],
+//["Trickster", 10],
+["Wealthy Village", 10],
+["Loot", 30],
+//["Traits", 15],
+["Events", 15],
+//["Randomizers", 40],
 ];
 
 num_piles=len(cards);
 
 card_thickness = 0.35; //*1.3;
-div_thickness=1.0;
+div_thickness=0.75; //usually 1.0
 div_full_thickness=2.0;
 
 
@@ -88,8 +99,8 @@ div_locs = cumsum(div_sizes);
 //        bot_depth=depth,
 ////        div_thickness=div_thickness,
 //        center=false,
-//        text="Adventures",
-//        text2="Adv Tokens, Tavern Mat"
+//        text="Plunder",
+//        text2=""
 //    );
 //}
 
@@ -113,8 +124,8 @@ div_locs = cumsum(div_sizes);
 //    }
 //}
 // Parameters
-div_idx_start = 24; // Starting index for objects to display
-div_idx_end = 27;   // Ending index for objects to display
+div_idx_start = 36; // Starting index for objects to display
+div_idx_end =37;   // Ending index for objects to display
 cols = 2;          // Number of columns in the rectangle (2 for 2x2)
 
 //// Loop to render objects in a 2x2 layout
@@ -142,7 +153,7 @@ for (idx = [div_idx_start:div_idx_end]) {
     translate([85 * col, 83.5 * row , 0]) {
         translate([translation_x, translation_y, 0]){
         rotate([0, 0, orientation]) {
-            divider_raised_square(text=cards[idx][0], thickness=1.0, bot_box_height=35, fill_bar=true);
+            divider_raised_square(text=cards[idx][0], thickness=div_thickness, bot_box_height=35, fill_bar=true);
         }
         }
     }
