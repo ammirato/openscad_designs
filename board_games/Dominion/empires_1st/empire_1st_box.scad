@@ -30,7 +30,7 @@ cards = [
 ["Events", 13],
 ["Landmarks", 21],
 ["Tokens", 60],
-["Randomizers": 25]
+["Randomizers", 25]
 ];
 
 num_piles=len(cards);
@@ -68,12 +68,12 @@ div_locs = cumsum(div_sizes);
 
 //box_bottom_two_halves(
 //translate([105, 0, 0]){
-box_bottom_magnets(
-    depth=depth,
-//    div_locs=div_locs,
-//    div_thickness=div_thickness,
-    center=false
-);
+//box_bottom_magnets(
+//    depth=depth,
+////    div_locs=div_locs,
+////    div_thickness=div_thickness,
+//    center=false
+//);
 
 //
 //translate([0, depth*1.2, 0]){
@@ -83,8 +83,8 @@ box_bottom_magnets(
 //        bot_depth=depth,
 ////        div_thickness=div_thickness,
 //        center=false,
-//        text="Plunder",
-//        text2=""
+//        text="Empires",
+//        text2="Debt / Victory Tokens"
 //    );
 //}
 
@@ -108,37 +108,43 @@ box_bottom_magnets(
 //    }
 //}
 // Parameters
-div_idx_start = 36; // Starting index for objects to display
-div_idx_end =37;   // Ending index for objects to display
+div_idx_start = 24; // Starting index for objects to display
+div_idx_end =24;   // Ending index for objects to display
 cols = 2;          // Number of columns in the rectangle (2 for 2x2)
 
 ////// Loop to render objects in a 2x2 layout
-//for (idx = [div_idx_start:div_idx_end]) {
-//    row = floor((idx - div_idx_start) / cols);
-//    col = (idx - div_idx_start) % cols;
-//
-//    // Determine orientation based on position in the rectangle
-//    orientation = (row == 0 && col == 0) ? -90    // Top-left: ^
-//                : (row == 0 && col == 1) ? 0 // Top-right: <
-//                : (row == 1 && col == 0) ? 0  // Bottom-left: >
-//                : 90;                          // Bottom-right: ^
-//
-//    translation_y = (row == 0 && col == 0) ? 0    // Top-left: ^
-//            : (row == 0 && col == 1) ? -12 // Top-right: <
-//            : (row == 1 && col == 0) ? 0  // Bottom-left: >
-//            : -12; 
-//   
-//   translation_x = (row == 0 && col == 0) ? 0    // Top-left: ^
-//            : (row == 0 && col == 1) ? 0 // Top-right: <
-//            : (row == 1 && col == 0) ? 12  // Bottom-left: >
-//            : 12;   
-//
-//    // Translate and rotate objects
-//    translate([85 * col, 83.5 * row , 0]) {
-//        translate([translation_x, translation_y, 0]){
-//        rotate([0, 0, orientation]) {
-//            divider_raised_square(text=cards[idx][0], thickness=div_thickness, bot_box_height=35, fill_bar=true);
-//        }
-//        }
-//    }
-//}
+for (idx = [div_idx_start:div_idx_end]) {
+    row = floor((idx - div_idx_start) / cols);
+    col = (idx - div_idx_start) % cols;
+
+    // Determine orientation based on position in the rectangle
+    orientation = (row == 0 && col == 0) ? -90    // Top-left: ^
+                : (row == 0 && col == 1) ? 0 // Top-right: <
+                : (row == 1 && col == 0) ? 0  // Bottom-left: >
+                : 90;                          // Bottom-right: ^
+
+    translation_y = (row == 0 && col == 0) ? 0    // Top-left: ^
+            : (row == 0 && col == 1) ? -12 // Top-right: <
+            : (row == 1 && col == 0) ? 0  // Bottom-left: >
+            : -12; 
+   
+   translation_x = (row == 0 && col == 0) ? 0    // Top-left: ^
+            : (row == 0 && col == 1) ? 0 // Top-right: <
+            : (row == 1 && col == 0) ? 12  // Bottom-left: >
+            : 12;   
+
+    // Translate and rotate objects
+    translate([85 * col, 83.5 * row , 0]) {
+        translate([translation_x, translation_y, 0]){
+        rotate([0, 0, orientation]) {
+            divider_raised_square(
+                text=cards[idx][0], 
+                thickness=div_thickness,
+                bot_box_height=35, 
+                fill_bar=true,
+                text_height=4
+            );
+        }
+        }
+    }
+}
